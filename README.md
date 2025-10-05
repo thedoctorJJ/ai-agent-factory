@@ -24,6 +24,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [Platform Architecture Diagram](./docs/08-platform-architecture-diagram.md) — full architecture overview, data flow, and component interaction.
 - [Accounts and APIs Setup Guide](./docs/09-accounts-and-apis-setup.md) — complete guide for setting up all required accounts and APIs.
 - [MCP Server Setup Guide](./docs/13-mcp-server-setup-guide.md) — step-by-step guide for configuring the OpenAI MCP server in Devin AI.
+- [Unified MCP Setup Guide](./docs/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
 
 ---
 
@@ -64,6 +65,10 @@ npm run dev
 - **Frontend Dashboard**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
+- **HTTP MCP Server**: https://end-cap-mcp-server-http-fdqqqinvyq-uc.a.run.app
+  - **Health Check**: `/health`
+  - **Tools List**: `/tools`
+  - **MCP Protocol**: `/mcp` (JSON-RPC 2.0)
 
 ## 🎉 **Ready to Go!**
 
@@ -73,6 +78,7 @@ Your END_CAP Agent Factory is **fully configured** and ready for development:
 - ✅ **OpenAI voice workflow** - Create agents through ChatGPT conversations
 - ✅ **GitHub token validated** and working correctly
 - ✅ **MCP server functional** - Creates repositories automatically
+- ✅ **HTTP MCP Server deployed** - Publicly accessible at `https://end-cap-mcp-server-http-fdqqqinvyq-uc.a.run.app`
 - ✅ **Configuration validated** (15/15 checks passing)
 - ✅ **Development environment ready**
 
@@ -127,6 +133,7 @@ git filter-branch --force --index-filter \
 - **Models**: Pydantic models for agents and PRDs
 - **Database**: Supabase integration ready
 - **Devin AI Integration**: MCP server for automated deployment
+- **HTTP MCP Server**: Publicly deployed FastAPI server for external integrations
 - **Authentication**: JWT-based auth system
 
 ### Frontend (Next.js 14)
@@ -140,6 +147,7 @@ git filter-branch --force --index-filter \
 - **Local Development**: Docker Compose with PostgreSQL & Redis
 - **Production**: Google Cloud Run deployment
 - **Database**: Supabase for production, PostgreSQL for local
+- **MCP Server**: HTTP-based server deployed to Google Cloud Run
 - **Monitoring**: Integrated logging and health checks
 
 ---
@@ -170,6 +178,7 @@ git filter-branch --force --index-filter \
 - [x] **Devin AI integration** - MCP server for automated deployment
 - [x] **GitHub token validation** - Personal access token working correctly
 - [x] **MCP server testing** - Repository creation and deployment simulation working
+- [x] **HTTP MCP Server deployment** - Publicly accessible server on Google Cloud Run
 
 ### 🚧 In Progress
 - [ ] Voice input processing implementation
