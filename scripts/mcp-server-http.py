@@ -171,6 +171,22 @@ class MCPServer:
             }
         ]
 
+    def _handle_initialize(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Handles the 'initialize' method for MCP protocol."""
+        logging.info("Handling initialize request")
+        return {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {
+                "tools": {
+                    "listChanged": True
+                }
+            },
+            "serverInfo": {
+                "name": "END_CAP Agent Factory MCP Server",
+                "version": "1.0.0"
+            }
+        }
+
     def _handle_tools_list(self) -> Dict[str, Any]:
         """Handles the 'tools/list' method."""
         logging.info("Handling tools/list request")
@@ -466,7 +482,9 @@ async def list_tools():
 async def handle_mcp_request(request: MCPRequest):
     """Handle MCP protocol requests."""
     try:
-        if request.method == "tools/list":
+        if request.method == "initialize":
+            result = mcp_server._handle_initialize(request.params or {})
+        elif request.method == "tools/list":
             result = mcp_server._handle_tools_list()
         elif request.method == "tools/call":
             if not request.params:
