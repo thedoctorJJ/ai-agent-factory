@@ -41,6 +41,8 @@ yarn-error.log*
 .next/
 out/
 build/
+next-env.d.ts
+package-lock.json
 
 # Environment variables and sensitive files
 .env

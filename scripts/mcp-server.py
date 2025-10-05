@@ -51,7 +51,24 @@ class EndCapAgentFactoryMCPServer:
             request_id = request.get('id')
             
             # Handle MCP protocol methods
-            if method == 'tools/list':
+            if method == 'initialize':
+                return {
+                    'jsonrpc': '2.0',
+                    'id': request_id,
+                    'result': {
+                        'protocolVersion': '2024-11-05',
+                        'capabilities': {
+                            'tools': {}
+                        },
+                        'serverInfo': {
+                            'name': 'endcap-agent-factory',
+                            'version': '1.0.0'
+                        }
+                    }
+                }
+            elif method == 'initialized':
+                return None
+            elif method == 'tools/list':
                 return {
                     'jsonrpc': '2.0',
                     'id': request_id,
@@ -606,9 +623,10 @@ async def main():
             request = json.loads(line.strip())
             response = await server.handle_request(request)
             
-            # Write response to stdout
-            print(json.dumps(response))
-            sys.stdout.flush()
+            # Write response to stdout (skip for notifications that return None)
+            if response is not None:
+                print(json.dumps(response))
+                sys.stdout.flush()
             
         except json.JSONDecodeError:
             error_response = {'error': 'Invalid JSON request'}
