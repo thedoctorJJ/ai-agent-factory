@@ -139,6 +139,18 @@ class SimpleMCPServer:
         params = request.get("params", {})
         request_id = request.get("id")
 
+        if method == "initialize":
+            # Minimal MCP initialize response expected by some clients
+            return {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "result": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {"tools": {"listChanged": True}},
+                    "serverInfo": {"name": "END_CAP Simple MCP", "version": "1.0.0"}
+                }
+            }
+
         if method == "tools/list":
             return {
                 "jsonrpc": "2.0",
