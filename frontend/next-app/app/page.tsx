@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -29,6 +29,16 @@ export default function Dashboard() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [prds, setPrds] = useState<PRD[]>([])
   const [loading, setLoading] = useState(true)
+
+  const activeAgentsCount = useMemo(() => 
+    agents.filter(a => a.status === 'active').length,
+    [agents]
+  )
+  
+  const completedPrdsCount = useMemo(() => 
+    prds.filter(p => p.status === 'completed').length,
+    [prds]
+  )
 
   useEffect(() => {
     fetchData()
@@ -113,7 +123,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {agents.filter(a => a.status === 'active').length}
+              {activeAgentsCount}
             </div>
           </CardContent>
         </Card>
@@ -135,7 +145,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {prds.filter(p => p.status === 'completed').length}
+              {completedPrdsCount}
             </div>
           </CardContent>
         </Card>
