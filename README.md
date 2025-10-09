@@ -29,6 +29,33 @@ This repository contains all core infrastructure, libraries, and documentation t
 
 ---
 
+## 🔧 Environment Management
+
+The platform includes a comprehensive environment management system:
+
+### Environment Files Organization
+- **`config/env.example`** - Template with all required variables
+- **`config/env/.env.local`** - Your local environment (DO NOT COMMIT)
+- **`config/env/.env.backup.*`** - Automatic backups of your configuration
+
+### Environment Manager Script
+```bash
+# Initialize new environment
+./scripts/config/env-manager.sh init
+
+# Create backup
+./scripts/config/env-manager.sh backup
+
+# Restore from backup
+./scripts/config/env-manager.sh restore
+
+# List all environment files
+./scripts/config/env-manager.sh list
+
+# Clean old backups
+./scripts/config/env-manager.sh clean
+```
+
 ## ⚙️ Quick Start
 
 ### Prerequisites
@@ -45,8 +72,10 @@ cd end-cap-agent-factory
 
 ### 2. Configure Environment
 ```bash
-cp config/env.example .env
-# Edit .env with your actual configuration values
+# Initialize environment configuration
+./scripts/config/env-manager.sh init
+
+# Edit the generated config/env/.env.local with your actual values
 # See setup/SETUP-CHECKLIST.md for detailed account setup
 ```
 
@@ -143,6 +172,8 @@ end-cap-agent-factory/
 │   ├── deployment/      # Deployment automation scripts
 │   └── testing/         # Test automation scripts
 ├── config/               # Configuration files and templates
+│   ├── env/             # Environment configuration files
+│   └── env.example      # Environment variables template
 ├── setup/                # Setup guides and checklists
 ├── tests/                # Test results and reports
 ├── reports/              # Project reports and analysis
