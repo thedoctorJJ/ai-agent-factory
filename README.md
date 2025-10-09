@@ -40,14 +40,14 @@ This repository contains all core infrastructure, libraries, and documentation t
 ```bash
 git clone https://github.com/thedoctorJJ/end-cap-agent-factory.git
 cd end-cap-agent-factory
-./scripts/dev-setup.sh
+./scripts/setup/dev-setup.sh
 ```
 
 ### 2. Configure Environment
 ```bash
-cp env.example .env
+cp config/env.example .env
 # Edit .env with your actual configuration values
-# See SETUP-CHECKLIST.md for detailed account setup
+# See setup/SETUP-CHECKLIST.md for detailed account setup
 ```
 
 ### 3. Start Development
@@ -127,6 +127,28 @@ git commit -m "Your commit message"
 git filter-branch --force --index-filter \
   'git rm --cached --ignore-unmatch <sensitive-file>' \
   --prune-empty --tag-name-filter cat -- --all
+```
+
+## 📁 Directory Structure
+
+```
+end-cap-agent-factory/
+├── backend/              # FastAPI backend application
+├── frontend/             # Next.js frontend application
+├── docs/                 # Comprehensive documentation
+├── scripts/              # Organized automation scripts
+│   ├── mcp/             # MCP server scripts and configs
+│   ├── config/          # Configuration management scripts
+│   ├── setup/           # Development setup scripts
+│   ├── deployment/      # Deployment automation scripts
+│   └── testing/         # Test automation scripts
+├── config/               # Configuration files and templates
+├── setup/                # Setup guides and checklists
+├── tests/                # Test results and reports
+├── reports/              # Project reports and analysis
+├── libraries/            # Agent, prompt, and tool libraries
+├── infra/                # Infrastructure and deployment configs
+└── README.md             # This file
 ```
 
 ## 🏗️ Architecture
