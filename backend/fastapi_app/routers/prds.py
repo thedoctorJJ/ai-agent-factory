@@ -77,7 +77,10 @@ prds_db = {}
 @router.get("/prds", response_model=List[PRDResponse])
 async def get_prds():
     """Get all PRDs"""
-    return list(prds_db.values())
+    try:
+        return list(prds_db.values())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve PRDs: {str(e)}")
 
 @router.get("/prds/{prd_id}", response_model=PRDResponse)
 async def get_prd(prd_id: str):
@@ -89,51 +92,54 @@ async def get_prd(prd_id: str):
 @router.post("/prds", response_model=PRDResponse)
 async def create_prd(prd: PRDCreate):
     """Create a new PRD"""
-    prd_id = str(uuid.uuid4())
-    now = datetime.utcnow()
-    
-    # Calculate completion percentage and missing sections
-    completion_data = calculate_prd_completion(prd)
-    
-    new_prd = PRDResponse(
-        id=prd_id,
-        title=prd.title,
-        description=prd.description,
-        requirements=prd.requirements,
-        voice_input=prd.voice_input,
-        text_input=prd.text_input,
-        status="draft" if completion_data["completion_percentage"] < 100 else "submitted",
-        github_repo_url=None,
-        created_at=now,
-        updated_at=now,
+    try:
+        prd_id = str(uuid.uuid4())
+        now = datetime.utcnow()
         
-        # Enhanced PRD sections
-        problem_statement=prd.problem_statement,
-        target_users=prd.target_users,
-        user_stories=prd.user_stories,
-        acceptance_criteria=prd.acceptance_criteria,
-        technical_requirements=prd.technical_requirements,
-        performance_requirements=prd.performance_requirements,
-        security_requirements=prd.security_requirements,
-        integration_requirements=prd.integration_requirements,
-        deployment_requirements=prd.deployment_requirements,
-        success_metrics=prd.success_metrics,
-        timeline=prd.timeline,
-        dependencies=prd.dependencies,
-        risks=prd.risks,
-        assumptions=prd.assumptions,
+        # Calculate completion percentage and missing sections
+        completion_data = calculate_prd_completion(prd)
         
-        # Completion tracking
-        completion_percentage=completion_data["completion_percentage"],
-        missing_sections=completion_data["missing_sections"]
-    )
+        new_prd = PRDResponse(
+            id=prd_id,
+            title=prd.title,
+            description=prd.description,
+            requirements=prd.requirements,
+            voice_input=prd.voice_input,
+            text_input=prd.text_input,
+            status="draft" if completion_data["completion_percentage"] < 100 else "submitted",
+            github_repo_url=None,
+            created_at=now,
+            updated_at=now,
+            
+            # Enhanced PRD sections
+            problem_statement=prd.problem_statement,
+            target_users=prd.target_users,
+            user_stories=prd.user_stories,
+            acceptance_criteria=prd.acceptance_criteria,
+            technical_requirements=prd.technical_requirements,
+            performance_requirements=prd.performance_requirements,
+            security_requirements=prd.security_requirements,
+            integration_requirements=prd.integration_requirements,
+            deployment_requirements=prd.deployment_requirements,
+            success_metrics=prd.success_metrics,
+            timeline=prd.timeline,
+            dependencies=prd.dependencies,
+            risks=prd.risks,
+            assumptions=prd.assumptions,
+            
+            # Completion tracking
+            completion_percentage=completion_data["completion_percentage"],
+            missing_sections=completion_data["missing_sections"]
+        )
     
-    prds_db[prd_id] = new_prd
-    
-    # TODO: Trigger MCP service to create GitHub repo
-    # TODO: Trigger Devin AI orchestration
-    
-    return new_prd
+        prds_db[prd_id] = new_prd
+        
+        # TODO: Trigger MCP service to create GitHub repo
+        # TODO: Trigger Devin AI orchestration
+        
+        return new_prd
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create PRD: {str(e)}")
 
 @router.put("/prds/{prd_id}", response_model=PRDResponse)
 async def update_prd(prd_id: str, prd_update: PRDUpdate):

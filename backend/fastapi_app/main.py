@@ -1,11 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import os
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Import configuration
+from .config import config
 
 # Import routers
 from .routers import agents, prds, health, devin_integration
@@ -21,7 +19,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Next.js dev server
+    allow_origins=config.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
