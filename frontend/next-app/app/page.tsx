@@ -23,6 +23,8 @@ interface PRD {
   description: string
   status: string
   created_at: string
+  completion_percentage?: number
+  missing_sections?: string[]
 }
 
 export default function Dashboard() {
@@ -301,29 +303,45 @@ export default function Dashboard() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-muted-foreground">
-                        Submitted: {new Date(prd.created_at).toLocaleDateString()}
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => viewPRDMarkdown(prd.id)}
-                          className="flex items-center gap-1"
-                        >
-                          <Eye className="h-3 w-3" />
-                          View PRD
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => downloadPRDMarkdown(prd.id, prd.title)}
-                          className="flex items-center gap-1"
-                        >
-                          <Download className="h-3 w-3" />
-                          Download
-                        </Button>
+                    <div className="space-y-3">
+                      {prd.completion_percentage !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">Completion:</span>
+                          <div className="flex-1 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${prd.completion_percentage}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {prd.completion_percentage}%
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-muted-foreground">
+                          Submitted: {new Date(prd.created_at).toLocaleDateString()}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => viewPRDMarkdown(prd.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            View PRD
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadPRDMarkdown(prd.id, prd.title)}
+                            className="flex items-center gap-1"
+                          >
+                            <Download className="h-3 w-3" />
+                            Download
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
