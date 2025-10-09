@@ -138,7 +138,9 @@ export default function DevinIntegration({
             Devin AI Integration
           </CardTitle>
           <CardDescription>
-            Create optimized prompts for Devin AI and manage the copy-paste workflow
+            Create optimized prompts for Devin AI and manage the copy-paste workflow. 
+            <br />
+            <strong>💡 Tip:</strong> You can also export PRDs as markdown files from the PRDs tab to share with Devin AI.
           </CardDescription>
         </CardHeader>
         <CardContent>

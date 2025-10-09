@@ -25,6 +25,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [Accounts and APIs Setup Guide](./docs/09-accounts-and-apis-setup.md) — complete guide for setting up all required accounts and APIs.
 - [MCP Server Setup Guide](./docs/13-mcp-server-setup-guide.md) — step-by-step guide for configuring the OpenAI MCP server in Devin AI.
 - [Unified MCP Setup Guide](./docs/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
+- [Enhanced PRD System](./docs/15-enhanced-prd-system.md) — comprehensive guide to the industry-best-practices PRD system with guided completion.
 
 ---
 
@@ -81,6 +82,8 @@ Your END_CAP Agent Factory is **fully configured** and ready for development:
 - ✅ **HTTP MCP Server deployed** - Publicly accessible at `https://end-cap-mcp-server-http-fdqqqinvyq-uc.a.run.app`
 - ✅ **Configuration validated** (15/15 checks passing)
 - ✅ **Development environment ready**
+- ✅ **Enhanced PRD System** - Industry best practices with guided completion
+- ✅ **Voice-First PRD Creation** - Standardized markdown output for Devin AI
 
 **Start creating agents through voice conversations** - no additional setup required!
 
@@ -130,11 +133,14 @@ git filter-branch --force --index-filter \
 
 ### Backend (FastAPI)
 - **API Endpoints**: `/api/v1/agents`, `/api/v1/prds`, `/api/v1/health`, `/api/v1/devin`
-- **Models**: Pydantic models for agents and PRDs
+- **Enhanced PRD System**: Industry best practices with 17 sections and guided completion
+- **Models**: Pydantic models for agents and comprehensive PRDs
 - **Database**: Supabase integration ready
 - **Devin AI Integration**: MCP server for automated deployment
 - **HTTP MCP Server**: Publicly deployed FastAPI server for external integrations
 - **Authentication**: JWT-based auth system
+- **PRD Completion Tracking**: Automatic calculation and missing section detection
+- **Guided Questions**: Interactive completion workflow for incomplete PRDs
 
 ### Frontend (Next.js 14)
 - **Dashboard**: Agent and PRD management interface
@@ -152,12 +158,48 @@ git filter-branch --force --index-filter \
 
 ---
 
+## 📋 Enhanced PRD System
+
+### **Industry Best Practices**
+The END_CAP Agent Factory includes a comprehensive PRD (Product Requirements Document) system that follows industry best practices:
+
+#### **17 Comprehensive Sections**
+- **Required Sections (10)**: Title, Description, Problem Statement, Target Users, User Stories, Requirements, Acceptance Criteria, Technical Requirements, Success Metrics, Timeline
+- **Optional Sections (7)**: Performance Requirements, Security Requirements, Integration Requirements, Deployment Requirements, Dependencies, Risks, Assumptions
+
+#### **Smart Completion Tracking**
+- **Automatic Calculation**: System calculates completion percentage based on filled sections
+- **Weighted Scoring**: Important sections (like Problem Statement) have higher weights
+- **Status Management**: PRDs are marked as "draft" until 100% complete, then "submitted"
+- **Missing Section Detection**: Identifies exactly which sections need attention
+
+#### **Guided Questions System**
+For each missing section, the system provides:
+- **Main Question**: Direct, focused question about the section
+- **Sub-Questions**: 3-4 clarifying questions to help think through the topic
+- **Real Examples**: Concrete examples to guide thinking
+- **Context**: Why this section matters for the project
+
+#### **Voice-First Workflow**
+- **Unified Output**: Whether you speak or type, you get the same professional PRD format
+- **Devin-Ready**: Markdown files are optimized for Devin AI with clear implementation phases
+- **Complete Specifications**: Includes all technical details, repository structure, and deployment instructions
+- **Easy Sharing**: One-click download or view in browser
+
+### **API Endpoints**
+- `POST /api/v1/prds` - Create PRD with automatic completion tracking
+- `GET /api/v1/prds/{id}/completion` - Get completion status and missing sections
+- `GET /api/v1/prds/{id}/guided-questions` - Get questions for missing sections
+- `GET /api/v1/prds/{id}/markdown` - Export PRD as markdown for Devin AI
+- `GET /api/v1/prds/{id}/markdown/download` - Download PRD as .md file
+
 ## 🧩 Principles
 
 * **Modular & Repeatable**: Every new agent follows the same lifecycle.
 * **Voice-First & Automated**: PRDs can be created via voice, auto-triggering pipelines.
 * **Auditable & Governed**: Supabase tracks metadata, logs, and version history.
 * **Integration Ready**: Frontend, backend, and libraries are plug-and-play.
+* **Complete & Professional**: Every PRD becomes a comprehensive document ready for Devin AI.
 
 ---
 
@@ -179,6 +221,11 @@ git filter-branch --force --index-filter \
 - [x] **GitHub token validation** - Personal access token working correctly
 - [x] **MCP server testing** - Repository creation and deployment simulation working
 - [x] **HTTP MCP Server deployment** - Publicly accessible server on Google Cloud Run
+- [x] **Enhanced PRD System** - Industry best practices with 17 sections
+- [x] **PRD Completion Tracking** - Automatic calculation and missing section detection
+- [x] **Guided Questions System** - Interactive completion workflow
+- [x] **Voice-First PRD Creation** - Standardized markdown output for Devin AI
+- [x] **PRD Markdown Export** - Professional documentation ready for sharing
 
 ### 🚧 In Progress
 - [ ] Voice input processing implementation

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Bot, FileText, Activity, Github } from 'lucide-react'
+import { Plus, Bot, FileText, Activity, Github, Download, Eye } from 'lucide-react'
 import DevinIntegration from '@/components/DevinIntegration'
 
 interface Agent {
@@ -64,6 +64,58 @@ export default function Dashboard() {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const downloadPRDMarkdown = async (prdId: string, title: string) => {
+    try {
+      const response = await fetch(`/api/v1/prds/${prdId}/markdown/download`)
+      if (response.ok) {
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `PRD_${title.replace(/\s+/g, '_')}_${prdId.slice(0, 8)}.md`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }
+    } catch (error) {
+      console.error('Error downloading PRD markdown:', error)
+    }
+  }
+
+  const viewPRDMarkdown = async (prdId: string) => {
+    try {
+      const response = await fetch(`/api/v1/prds/${prdId}/markdown`)
+      if (response.ok) {
+        const data = await response.json()
+        // Open in new window/tab for viewing
+        const newWindow = window.open('', '_blank')
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head>
+                <title>${data.filename}</title>
+                <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+                  pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+                  code { background: #f5f5f5; padding: 2px 4px; border-radius: 3px; }
+                  h1, h2, h3 { color: #333; }
+                  ul, ol { padding-left: 20px; }
+                  blockquote { border-left: 4px solid #ddd; margin: 0; padding-left: 20px; color: #666; }
+                </style>
+              </head>
+              <body>
+                <pre>${data.markdown}</pre>
+              </body>
+            </html>
+          `)
+        }
+      }
+    } catch (error) {
+      console.error('Error viewing PRD markdown:', error)
     }
   }
 
@@ -237,7 +289,7 @@ export default function Dashboard() {
                 <Card key={prd.id}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1">
                         <CardTitle className="flex items-center gap-2">
                           {prd.title}
                           <Badge className={getStatusColor(prd.status)}>
@@ -249,9 +301,31 @@ export default function Dashboard() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground">
-                      Submitted: {new Date(prd.created_at).toLocaleDateString()}
-                    </p>
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-muted-foreground">
+                        Submitted: {new Date(prd.created_at).toLocaleDateString()}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => viewPRDMarkdown(prd.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-3 w-3" />
+                          View PRD
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadPRDMarkdown(prd.id, prd.title)}
+                          className="flex items-center gap-1"
+                        >
+                          <Download className="h-3 w-3" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))
