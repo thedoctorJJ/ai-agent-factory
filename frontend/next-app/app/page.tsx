@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Bot, FileText, Activity, Github, Download, Eye, BarChart3 } from 'lucide-react'
+import { Plus, Bot, FileText, Activity, Github, Download, Eye, BarChart3, Upload, ChevronDown } from 'lucide-react'
 import DevinIntegration from '@/components/DevinIntegration'
 import RoadmapDashboard from '@/components/RoadmapDashboard'
+import PRDCreationForm from '@/components/PRDCreationForm'
+import MarkdownPRDImporter from '@/components/MarkdownPRDImporter'
+import PRDChatbot from '@/components/PRDChatbot'
 
 interface Agent {
   id: string
@@ -34,6 +37,10 @@ export default function Dashboard() {
   const [prds, setPrds] = useState<PRD[]>([])
   const [loading, setLoading] = useState(true)
   const [prdTypeFilter, setPrdTypeFilter] = useState<'all' | 'platform' | 'agent'>('all')
+  const [showPRDForm, setShowPRDForm] = useState(false)
+  const [showMarkdownImporter, setShowMarkdownImporter] = useState(false)
+  const [showPRDChatbot, setShowPRDChatbot] = useState(false)
+  const [activeChatPRDId, setActiveChatPRDId] = useState<string | null>(null)
 
   const activeAgentsCount = useMemo(() => 
     agents.filter(a => a.status === 'active').length,
@@ -70,6 +77,25 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePRDSuccess = (prdId?: string) => {
+    fetchData() // Refresh the data to show the new PRD
+    if (prdId) {
+      setActiveChatPRDId(prdId)
+      setShowPRDChatbot(true)
+    }
+  }
+
+  const handleMarkdownImportSuccess = (prdId: string) => {
+    fetchData()
+    setActiveChatPRDId(prdId)
+    setShowPRDChatbot(true)
+  }
+
+  const startPRDChat = (prdId: string) => {
+    setActiveChatPRDId(prdId)
+    setShowPRDChatbot(true)
   }
 
   const downloadPRDMarkdown = async (prdId: string, title: string) => {
@@ -209,13 +235,13 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue="agents" className="space-y-4">
+      <Tabs defaultValue="create" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="agents">Agents</TabsTrigger>
+          <TabsTrigger value="create">Create New</TabsTrigger>
           <TabsTrigger value="prds">PRDs</TabsTrigger>
+          <TabsTrigger value="agents">Agents</TabsTrigger>
           <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
           <TabsTrigger value="devin">Devin AI</TabsTrigger>
-          <TabsTrigger value="create">Create New</TabsTrigger>
         </TabsList>
 
         <TabsContent value="agents" className="space-y-4">
@@ -282,10 +308,21 @@ export default function Dashboard() {
                 <option value="agent">Agent PRDs</option>
                 <option value="platform">Platform PRDs</option>
               </select>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Submit PRD
-              </Button>
+              <div className="relative">
+                <Button onClick={() => setShowPRDForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Submit PRD
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowMarkdownImporter(true)}
+                  className="ml-2"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import Markdown
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -298,7 +335,7 @@ export default function Dashboard() {
                   <p className="text-muted-foreground text-center mb-4">
                     Submit your first PRD to start creating AI agents
                   </p>
-                  <Button>Submit First PRD</Button>
+                  <Button onClick={() => setShowPRDForm(true)}>Submit First PRD</Button>
                 </CardContent>
               </Card>
             ) : (
@@ -361,6 +398,14 @@ export default function Dashboard() {
                             <Download className="h-3 w-3" />
                             Download
                           </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => startPRDChat(prd.id)}
+                            className="flex items-center gap-1"
+                          >
+                            <Bot className="h-3 w-3" />
+                            Chat to Complete
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -383,29 +428,147 @@ export default function Dashboard() {
           <DevinIntegration />
         </TabsContent>
 
-        <TabsContent value="create" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create New Agent</CardTitle>
-              <CardDescription>
-                Submit a PRD via voice or text to automatically create AI agents
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button className="h-20 flex flex-col items-center justify-center">
-                  <Plus className="h-6 w-6 mb-2" />
-                  Voice Input
+        <TabsContent value="create" className="space-y-6">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl font-bold">Start Your Agent Journey</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Submit a Product Requirements Document (PRD) to begin creating your AI agent. 
+              Our conversational assistant will help you complete any missing sections through natural dialogue.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Markdown Import - Primary Option */}
+            <Card className="border-2 border-blue-200 hover:border-blue-300 transition-colors">
+              <CardHeader className="text-center">
+                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                  <Upload className="h-6 w-6 text-blue-600" />
+                </div>
+                <CardTitle className="text-xl">Import from Markdown</CardTitle>
+                <CardDescription>
+                  Paste your existing PRD markdown content and we'll parse it automatically
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>✓ Automatic parsing of all PRD sections</p>
+                  <p>✓ Conversational completion with AI assistant</p>
+                  <p>✓ Professional markdown format support</p>
+                </div>
+                <Button 
+                  onClick={() => setShowMarkdownImporter(true)}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import Markdown PRD
                 </Button>
-                <Button variant="outline" className="h-20 flex flex-col items-center justify-center">
-                  <FileText className="h-6 w-6 mb-2" />
-                  Text Input
+              </CardContent>
+            </Card>
+
+            {/* Manual Form - Secondary Option */}
+            <Card className="border-2 hover:border-gray-300 transition-colors">
+              <CardHeader className="text-center">
+                <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <FileText className="h-6 w-6 text-gray-600" />
+                </div>
+                <CardTitle className="text-xl">Create New PRD</CardTitle>
+                <CardDescription>
+                  Fill out our comprehensive form to create a new PRD from scratch
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>✓ Step-by-step guided form</p>
+                  <p>✓ Conversational completion with AI assistant</p>
+                  <p>✓ Real-time completion tracking</p>
+                </div>
+                <Button 
+                  onClick={() => setShowPRDForm(true)}
+                  variant="outline"
+                  className="w-full"
+                  size="lg"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New PRD
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Additional Options */}
+          <div className="max-w-4xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">Other Ways to Submit</CardTitle>
+                <CardDescription className="text-center">
+                  Additional methods for submitting PRDs to the platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center space-y-2">
+                    <div className="mx-auto w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-green-600" />
+                    </div>
+                    <h4 className="font-medium">API Integration</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Submit PRDs programmatically via REST API
+                    </p>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <div className="mx-auto w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <Github className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <h4 className="font-medium">GitHub Integration</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Import PRDs from GitHub repositories
+                    </p>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <div className="mx-auto w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                      <Activity className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <h4 className="font-medium">Voice Input</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Coming soon: Voice-to-PRD conversion
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
+
+      {/* PRD Creation Form Modal */}
+      {showPRDForm && (
+        <PRDCreationForm
+          onClose={() => setShowPRDForm(false)}
+          onSuccess={handlePRDSuccess}
+        />
+      )}
+
+      {/* Markdown PRD Importer Modal */}
+      {showMarkdownImporter && (
+        <MarkdownPRDImporter
+          onClose={() => setShowMarkdownImporter(false)}
+          onSuccess={handleMarkdownImportSuccess}
+        />
+      )}
+
+      {/* PRD Chatbot Modal */}
+      {showPRDChatbot && activeChatPRDId && (
+        <PRDChatbot
+          prdId={activeChatPRDId}
+          onClose={() => setShowPRDChatbot(false)}
+          onComplete={() => {
+            setShowPRDChatbot(false)
+            setActiveChatPRDId(null)
+            fetchData()
+          }}
+        />
+      )}
     </div>
   )
 }

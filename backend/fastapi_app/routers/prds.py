@@ -1076,6 +1076,365 @@ async def get_prd_schema():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate PRD schema: {str(e)}")
 
+@router.post("/prds/{prd_id}/chat")
+async def chat_with_prd(prd_id: str, request: dict):
+    """Chat with PRD completion assistant"""
+    try:
+        if prd_id not in prds_db:
+            raise HTTPException(status_code=404, detail="PRD not found")
+        
+        prd = prds_db[prd_id]
+        user_message = request.get("message", "")
+        context = request.get("context", {})
+        
+        # Get current completion status
+        completion_data = calculate_prd_completion(prd)
+        missing_sections = completion_data["missing_sections"]
+        
+        # Analyze user input and provide intelligent response
+        response = generate_intelligent_response(prd, user_message, missing_sections, context)
+        
+        return response
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process chat: {str(e)}")
+
+def generate_intelligent_response(prd, user_message: str, missing_sections: list, context: dict) -> dict:
+    """Generate intelligent, contextual responses for PRD completion"""
+    
+    message_lower = user_message.lower()
+    
+    # First, provide intelligent analysis if user asks for it
+    if any(phrase in message_lower for phrase in ["analyze", "review", "what do you think", "feedback", "assessment", "evaluation"]):
+        return generate_prd_analysis(prd, missing_sections)
+    
+    # Determine what section the user is likely working on
+    current_section = None
+    updated_content = None
+    
+    # Smart section detection based on user input
+    if any(word in message_lower for word in ["problem", "issue", "challenge", "solve", "address"]):
+        current_section = "problem_statement"
+        if not prd.problem_statement or prd.problem_statement.strip() == "":
+            updated_content = user_message
+    elif any(word in message_lower for word in ["user", "customer", "audience", "who", "people"]):
+        current_section = "target_users"
+        if not prd.target_users or len(prd.target_users) == 0:
+            updated_content = [user_message]
+    elif any(word in message_lower for word in ["requirement", "need", "must", "should", "feature"]):
+        current_section = "requirements"
+        if not prd.requirements or len(prd.requirements) == 0:
+            updated_content = [user_message]
+    elif any(word in message_lower for word in ["success", "metric", "measure", "kpi", "goal"]):
+        current_section = "success_metrics"
+        if not prd.success_metrics or len(prd.success_metrics) == 0:
+            updated_content = [user_message]
+    elif any(word in message_lower for word in ["timeline", "schedule", "deadline", "when", "time"]):
+        current_section = "timeline"
+        if not prd.timeline or prd.timeline.strip() == "":
+            updated_content = user_message
+    elif any(word in message_lower for word in ["story", "scenario", "as a", "i want"]):
+        current_section = "user_stories"
+        if not prd.user_stories or len(prd.user_stories) == 0:
+            updated_content = [user_message]
+    elif any(word in message_lower for word in ["criteria", "acceptance", "test", "verify"]):
+        current_section = "acceptance_criteria"
+        if not prd.acceptance_criteria or len(prd.acceptance_criteria) == 0:
+            updated_content = [user_message]
+    elif any(word in message_lower for word in ["technical", "tech", "api", "system", "architecture"]):
+        current_section = "technical_requirements"
+        if not prd.technical_requirements or len(prd.technical_requirements) == 0:
+            updated_content = [user_message]
+    
+    # Generate contextual response
+    if current_section and updated_content:
+        # Update the PRD with new content
+        if current_section == "problem_statement":
+            prd.problem_statement = updated_content
+        elif current_section == "target_users":
+            prd.target_users = updated_content
+        elif current_section == "requirements":
+            prd.requirements = updated_content
+        elif current_section == "success_metrics":
+            prd.success_metrics = updated_content
+        elif current_section == "timeline":
+            prd.timeline = updated_content
+        elif current_section == "user_stories":
+            prd.user_stories = updated_content
+        elif current_section == "acceptance_criteria":
+            prd.acceptance_criteria = updated_content
+        elif current_section == "technical_requirements":
+            prd.technical_requirements = updated_content
+        
+        # Recalculate completion
+        completion_data = calculate_prd_completion(prd)
+        
+        # Generate smart follow-up
+        if current_section == "problem_statement":
+            response_text = f"Perfect! I've captured your problem statement: **{user_message}**\n\nNow let's think about who this problem affects. Who are the main users or customers that experience this issue?"
+            suggestions = [
+                "Who are the primary users?",
+                "What types of customers face this problem?",
+                "Who would benefit from this solution?"
+            ]
+        elif current_section == "target_users":
+            response_text = f"Great! I've noted your target users: **{user_message}**\n\nNow let's define what this agent needs to do. What are the main requirements or features it should have?"
+            suggestions = [
+                "What are the core features needed?",
+                "What should the agent be able to do?",
+                "What are the main requirements?"
+            ]
+        elif current_section == "requirements":
+            response_text = f"Excellent! I've added that requirement: **{user_message}**\n\nNow let's think about how we'll know if this agent is successful. What metrics or outcomes would indicate success?"
+            suggestions = [
+                "How will we measure success?",
+                "What are the key performance indicators?",
+                "What outcomes indicate the agent is working?"
+            ]
+        elif current_section == "success_metrics":
+            response_text = f"Perfect! I've captured your success metric: **{user_message}**\n\nNow let's think about the timeline. When do you need this agent to be ready?"
+            suggestions = [
+                "What's the target completion date?",
+                "When do you need this deployed?",
+                "What's the project timeline?"
+            ]
+        elif current_section == "timeline":
+            response_text = f"Great! I've noted your timeline: **{user_message}**\n\nLet's think about the technical aspects. What technical requirements or constraints should we consider?"
+            suggestions = [
+                "What technical requirements are needed?",
+                "Are there any system constraints?",
+                "What APIs or integrations are required?"
+            ]
+        else:
+            response_text = f"Thanks! I've captured that information for the {current_section.replace('_', ' ')} section.\n\nWhat would you like to work on next?"
+            suggestions = [
+                "What's the next section to complete?",
+                "What else needs to be defined?",
+                "Are there other requirements?"
+            ]
+    else:
+        # Generic but helpful response
+        if "complete" in message_lower or "missing" in message_lower or "what" in message_lower:
+            completion_data = calculate_prd_completion(prd)
+            if missing_sections:
+                missing_list = ", ".join([s.replace("_", " ").replace(" (optional)", "") for s in missing_sections[:3]])
+                response_text = f"I can see you're at {completion_data['completion_percentage']}% completion. The main sections still needed are: **{missing_list}**\n\nLet's start with the most important one. What would you like to focus on first?"
+                suggestions = [
+                    f"Work on {missing_sections[0].replace('_', ' ').replace(' (optional)', '')}",
+                    "Tell me about the problem this solves",
+                    "Who are the target users?",
+                    "What are the main requirements?"
+                ]
+            else:
+                response_text = "Great! Your PRD looks complete. Is there anything specific you'd like to refine or add?"
+                suggestions = [
+                    "Review the problem statement",
+                    "Add more user stories",
+                    "Refine the requirements",
+                    "Update the timeline"
+                ]
+        else:
+            response_text = f"I understand you're discussing: **{user_message}**\n\nLet me help you think through this. Can you provide more specific details about what you're trying to achieve?"
+            suggestions = [
+                "Can you provide more details?",
+                "What's the main goal here?",
+                "Who would benefit from this?",
+                "What are the key requirements?"
+            ]
+    
+    return {
+        "response": response_text,
+        "suggestions": suggestions,
+        "updated_section": current_section,
+        "completion_percentage": completion_data["completion_percentage"] if 'completion_data' in locals() else calculate_prd_completion(prd)["completion_percentage"]
+    }
+
+def generate_prd_analysis(prd, missing_sections: list) -> dict:
+    """Generate intelligent analysis of the PRD"""
+    
+    # Analyze what's strong
+    strong_sections = []
+    if prd.problem_statement and len(prd.problem_statement.strip()) > 50:
+        strong_sections.append("Problem Statement - Clear and specific")
+    if prd.success_metrics and len(prd.success_metrics) > 0:
+        strong_sections.append("Success Metrics - Measurable and actionable")
+    if prd.user_stories and len(prd.user_stories) > 0:
+        strong_sections.append("User Stories - Well-defined personas and use cases")
+    if prd.requirements and len(prd.requirements) > 0:
+        strong_sections.append("Requirements - Detailed and specific")
+    if prd.technical_requirements and len(prd.technical_requirements) > 0:
+        strong_sections.append("Technical Requirements - Detailed and specific")
+    
+    # Analyze what could be enhanced
+    enhancement_areas = []
+    if not prd.target_users or len(prd.target_users) == 0:
+        enhancement_areas.append("Target Users - Could be more explicit about primary users")
+    if not prd.acceptance_criteria or len(prd.acceptance_criteria) == 0:
+        enhancement_areas.append("Acceptance Criteria - Could add specific testable criteria for each feature")
+    if not prd.timeline or prd.timeline.strip() == "":
+        enhancement_areas.append("Timeline - No specific dates or milestones mentioned")
+    
+    # Check for risk assessment
+    has_risk_assessment = any(word in (prd.description or "").lower() for word in ["risk", "mitigation", "assumption", "constraint"])
+    if not has_risk_assessment:
+        enhancement_areas.append("Risk Assessment - What could go wrong and mitigation strategies")
+    
+    # Check for dependencies
+    has_dependencies = any(word in (prd.technical_requirements or [] + [prd.description or ""]).lower() for word in ["dependency", "api", "integration", "access"])
+    if not has_dependencies:
+        enhancement_areas.append("Dependencies - API access, infrastructure requirements")
+    
+    # Build response
+    response_text = "## **Your PRD Analysis:**\n\n"
+    
+    if strong_sections:
+        response_text += "**✅ Strong Sections:**\n"
+        for section in strong_sections:
+            response_text += f"- {section}\n"
+        response_text += "\n"
+    
+    if enhancement_areas:
+        response_text += "**🔍 Areas We Could Enhance:**\n"
+        for area in enhancement_areas:
+            response_text += f"- {area}\n"
+        response_text += "\n"
+    
+    # Add specific recommendations
+    response_text += "**💡 Specific Recommendations:**\n"
+    
+    if not prd.target_users or len(prd.target_users) == 0:
+        response_text += "- **Define Primary Users**: Who are the main people who will use this agent? Be specific about roles, responsibilities, and pain points.\n"
+    
+    if not prd.acceptance_criteria or len(prd.acceptance_criteria) == 0:
+        response_text += "- **Add Acceptance Criteria**: For each major feature, define specific, testable criteria for success.\n"
+    
+    if not prd.timeline or prd.timeline.strip() == "":
+        response_text += "- **Set Timeline**: Add specific milestones, deadlines, and delivery dates.\n"
+    
+    if missing_sections:
+        response_text += f"- **Complete Missing Sections**: Focus on {missing_sections[0].replace('_', ' ').replace(' (optional)', '')} first.\n"
+    
+    response_text += "\n**What would you like to focus on first?**"
+    
+    suggestions = []
+    if not prd.target_users or len(prd.target_users) == 0:
+        suggestions.append("Define the primary users and their needs")
+    if not prd.acceptance_criteria or len(prd.acceptance_criteria) == 0:
+        suggestions.append("Add specific acceptance criteria")
+    if not prd.timeline or prd.timeline.strip() == "":
+        suggestions.append("Set a clear timeline with milestones")
+    if missing_sections:
+        suggestions.append(f"Work on {missing_sections[0].replace('_', ' ').replace(' (optional)', '')}")
+    
+    return {
+        "response": response_text,
+        "suggestions": suggestions,
+        "updated_section": None,
+        "completion_percentage": calculate_prd_completion(prd)["completion_percentage"]
+    }
+    
+    # Generate contextual response
+    if current_section and updated_content:
+        # Update the PRD with new content
+        if current_section == "problem_statement":
+            prd.problem_statement = updated_content
+        elif current_section == "target_users":
+            prd.target_users = updated_content
+        elif current_section == "requirements":
+            prd.requirements = updated_content
+        elif current_section == "success_metrics":
+            prd.success_metrics = updated_content
+        elif current_section == "timeline":
+            prd.timeline = updated_content
+        elif current_section == "user_stories":
+            prd.user_stories = updated_content
+        elif current_section == "acceptance_criteria":
+            prd.acceptance_criteria = updated_content
+        elif current_section == "technical_requirements":
+            prd.technical_requirements = updated_content
+        
+        # Recalculate completion
+        completion_data = calculate_prd_completion(prd)
+        
+        # Generate smart follow-up
+        if current_section == "problem_statement":
+            response_text = f"Perfect! I've captured your problem statement: **{user_message}**\n\nNow let's think about who this problem affects. Who are the main users or customers that experience this issue?"
+            suggestions = [
+                "Who are the primary users?",
+                "What types of customers face this problem?",
+                "Who would benefit from this solution?"
+            ]
+        elif current_section == "target_users":
+            response_text = f"Great! I've noted your target users: **{user_message}**\n\nNow let's define what this agent needs to do. What are the main requirements or features it should have?"
+            suggestions = [
+                "What are the core features needed?",
+                "What should the agent be able to do?",
+                "What are the main requirements?"
+            ]
+        elif current_section == "requirements":
+            response_text = f"Excellent! I've added that requirement: **{user_message}**\n\nNow let's think about how we'll know if this agent is successful. What metrics or outcomes would indicate success?"
+            suggestions = [
+                "How will we measure success?",
+                "What are the key performance indicators?",
+                "What outcomes indicate the agent is working?"
+            ]
+        elif current_section == "success_metrics":
+            response_text = f"Perfect! I've captured your success metric: **{user_message}**\n\nNow let's think about the timeline. When do you need this agent to be ready?"
+            suggestions = [
+                "What's the target completion date?",
+                "When do you need this deployed?",
+                "What's the project timeline?"
+            ]
+        elif current_section == "timeline":
+            response_text = f"Great! I've noted your timeline: **{user_message}**\n\nLet's think about the technical aspects. What technical requirements or constraints should we consider?"
+            suggestions = [
+                "What technical requirements are needed?",
+                "Are there any system constraints?",
+                "What APIs or integrations are required?"
+            ]
+        else:
+            response_text = f"Thanks! I've captured that information for the {current_section.replace('_', ' ')} section.\n\nWhat would you like to work on next?"
+            suggestions = [
+                "What's the next section to complete?",
+                "What else needs to be defined?",
+                "Are there other requirements?"
+            ]
+    else:
+        # Generic but helpful response
+        if "complete" in message_lower or "missing" in message_lower or "what" in message_lower:
+            if missing_sections:
+                missing_list = ", ".join([s.replace("_", " ").replace(" (optional)", "") for s in missing_sections[:3]])
+                response_text = f"I can see you're at {completion_data['completion_percentage']}% completion. The main sections still needed are: **{missing_list}**\n\nLet's start with the most important one. What would you like to focus on first?"
+                suggestions = [
+                    f"Work on {missing_sections[0].replace('_', ' ').replace(' (optional)', '')}",
+                    "Tell me about the problem this solves",
+                    "Who are the target users?",
+                    "What are the main requirements?"
+                ]
+            else:
+                response_text = "Great! Your PRD looks complete. Is there anything specific you'd like to refine or add?"
+                suggestions = [
+                    "Review the problem statement",
+                    "Add more user stories",
+                    "Refine the requirements",
+                    "Update the timeline"
+                ]
+        else:
+            response_text = f"I understand you're discussing: **{user_message}**\n\nLet me help you think through this. Can you provide more specific details about what you're trying to achieve?"
+            suggestions = [
+                "Can you provide more details?",
+                "What's the main goal here?",
+                "Who would benefit from this?",
+                "What are the key requirements?"
+            ]
+    
+    return {
+        "response": response_text,
+        "suggestions": suggestions,
+        "updated_section": current_section,
+        "completion_percentage": completion_data["completion_percentage"]
+    }
+
 # -----------------------------
 # Interactive PRD completion
 # -----------------------------
