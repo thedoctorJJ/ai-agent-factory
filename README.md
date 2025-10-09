@@ -19,6 +19,12 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [UI Integration & Transition Layer](./docs/06-ui-integration.md) — Next.js + shadcn dashboard for monitoring and execution.
 - [GitHub MCP Service](./docs/07-github-mcp-service.md) — automated repository creation for each new PRD.
 - [OpenAI Voice Workflow](./docs/11-openai-voice-workflow.md) — complete voice-to-agent workflow via ChatGPT/OpenAI.
+  
+#### New (Roadmap & PRD Enforcement)
+- Interactive PRD Completion Flow — guided Q&A until 100% completion
+- Strict PRD Enforcement — required sections validated (configurable)
+- PRD Types — `platform` vs `agent` streams with filters and views
+- Roadmap Dashboard — prioritization, kanban, analytics
 
 ### 3. Supporting / Visualization
 - [Platform Architecture Diagram](./docs/08-platform-architecture-diagram.md) — full architecture overview, data flow, and component interaction.
@@ -31,6 +37,46 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [Directory Reorganization](./DIRECTORY_REORGANIZATION.md) — summary of directory structure improvements and organization.
 - [Environment Organization](./ENVIRONMENT_ORGANIZATION.md) — comprehensive environment management system documentation.
 - [Architecture Review Summary](./ARCHITECTURE_REVIEW_SUMMARY.md) — detailed review of code and architecture improvements.
+
+---
+
+## 🚦 PRD Enforcement & Interactive Completion
+
+### Strict PRD Mode
+- Env flag: `STRICT_PRD=true` (default)
+- Blocks creation/update if required sections are missing
+- Prevents `status=submitted` unless completion is 100%
+
+Required sections and weights (for completion):
+- title (5), description (10), problem_statement (15), target_users (10), user_stories (10), requirements (15), acceptance_criteria (10), technical_requirements (10), success_metrics (10), timeline (5)
+
+### Interactive PRD Flow (guided questions)
+Endpoints:
+- `POST /api/v1/prds/interactive` — start a draft PRD for progressive fill-in
+- `GET /api/v1/prds/{id}/next-question` — get next missing section + prompt
+- `POST /api/v1/prds/{id}/answer` — submit an answer; auto-updates completion
+- `GET /api/v1/prds/schema` — JSON Schema for `PRDCreate`
+
+Behavior:
+- Asks required sections in best-practice order; then optional
+- Auto-submits when completion reaches 100%
+
+### PRD Types: Platform vs Agent
+- `prd_type` field: `platform` (build the factory) or `agent` (use the factory)
+- Frontend filters in PRDs and Roadmap tabs
+
+---
+
+## 🗺️ Product Roadmap Dashboard
+
+Features:
+- Filters: category, status, effort, prd_type; sorting by priority/date/title
+- Views: Roadmap list, Prioritization Matrix, Kanban, Analytics
+
+Endpoints:
+- `GET /api/v1/prds/roadmap/overview`
+- `GET /api/v1/prds/roadmap/prds?prd_type=platform|agent&...`
+- `GET /api/v1/prds/roadmap/prioritization-matrix`
 
 ---
 

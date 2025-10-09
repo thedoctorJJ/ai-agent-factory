@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Bot, FileText, Activity, Github, Download, Eye } from 'lucide-react'
+import { Plus, Bot, FileText, Activity, Github, Download, Eye, BarChart3 } from 'lucide-react'
 import DevinIntegration from '@/components/DevinIntegration'
+import RoadmapDashboard from '@/components/RoadmapDashboard'
 
 interface Agent {
   id: string
@@ -21,6 +22,7 @@ interface PRD {
   id: string
   title: string
   description: string
+  prd_type?: 'platform' | 'agent'
   status: string
   created_at: string
   completion_percentage?: number
@@ -31,6 +33,7 @@ export default function Dashboard() {
   const [agents, setAgents] = useState<Agent[]>([])
   const [prds, setPrds] = useState<PRD[]>([])
   const [loading, setLoading] = useState(true)
+  const [prdTypeFilter, setPrdTypeFilter] = useState<'all' | 'platform' | 'agent'>('all')
 
   const activeAgentsCount = useMemo(() => 
     agents.filter(a => a.status === 'active').length,
@@ -210,6 +213,7 @@ export default function Dashboard() {
         <TabsList>
           <TabsTrigger value="agents">Agents</TabsTrigger>
           <TabsTrigger value="prds">PRDs</TabsTrigger>
+          <TabsTrigger value="roadmap">Roadmap</TabsTrigger>
           <TabsTrigger value="devin">Devin AI</TabsTrigger>
           <TabsTrigger value="create">Create New</TabsTrigger>
         </TabsList>
@@ -268,14 +272,25 @@ export default function Dashboard() {
         <TabsContent value="prds" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">Product Requirements Documents</h2>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Submit PRD
-            </Button>
+            <div className="flex items-center gap-3">
+              <select
+                className="border rounded px-2 py-1 text-sm"
+                value={prdTypeFilter}
+                onChange={(e) => setPrdTypeFilter(e.target.value as any)}
+              >
+                <option value="all">All Types</option>
+                <option value="agent">Agent PRDs</option>
+                <option value="platform">Platform PRDs</option>
+              </select>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Submit PRD
+              </Button>
+            </div>
           </div>
           
           <div className="grid gap-4">
-            {prds.length === 0 ? (
+            {prds.filter(p => prdTypeFilter === 'all' ? true : (p.prd_type || 'agent') === prdTypeFilter).length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-8">
                   <FileText className="h-12 w-12 text-muted-foreground mb-4" />
@@ -287,13 +302,18 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             ) : (
-              prds.map((prd) => (
+              prds
+                .filter(p => prdTypeFilter === 'all' ? true : (p.prd_type || 'agent') === prdTypeFilter)
+                .map((prd) => (
                 <Card key={prd.id}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <CardTitle className="flex items-center gap-2">
                           {prd.title}
+                          {prd.prd_type && (
+                            <Badge variant="outline">{prd.prd_type}</Badge>
+                          )}
                           <Badge className={getStatusColor(prd.status)}>
                             {prd.status}
                           </Badge>
@@ -349,6 +369,10 @@ export default function Dashboard() {
               ))
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="roadmap" className="space-y-4">
+          <RoadmapDashboard />
         </TabsContent>
 
         <TabsContent value="devin" className="space-y-4">

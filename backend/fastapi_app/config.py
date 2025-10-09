@@ -81,6 +81,11 @@ class Config:
         origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001")
         return [origin.strip() for origin in origins.split(",")]
     
+    @property
+    def strict_prd(self) -> bool:
+        """Whether to enforce strict PRD validation"""
+        return os.getenv("STRICT_PRD", "true").lower() == "true"
+    
     def validate_config(self) -> dict:
         """Validate configuration and return status"""
         required_vars = [

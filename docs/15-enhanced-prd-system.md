@@ -24,6 +24,15 @@ For each missing section, the system provides:
 - **Real Examples**: Concrete examples to guide thinking
 - **Context**: Why this section matters for the project
 
+## Interactive Completion
+
+- Start a draft: `POST /api/v1/prds/interactive`
+- Get next question: `GET /api/v1/prds/{id}/next-question`
+- Submit answer: `POST /api/v1/prds/{id}/answer`
+- JSON Schema: `GET /api/v1/prds/schema`
+
+The flow asks required sections in a fixed sequence, then optional sections. When completion reaches 100%, status auto-transitions to `submitted`.
+
 ## PRD Structure
 
 ### Required Sections (100% completion needed)
@@ -137,6 +146,18 @@ For each missing section, the system provides:
 
 ### Completion Tracking
 - `GET /api/v1/prds/{id}/completion` - Get completion status and missing sections
+
+### Enforcement
+- Strict mode enabled by default: set `STRICT_PRD=true` (or override to `false`)
+- Creation/update validates required sections
+- `submitted` is blocked unless completion is 100%
+
+### PRD Types (Streams)
+
+- `prd_type` field distinguishes:
+  - `platform`: PRDs to build/evolve the Agent Factory
+  - `agent`: PRDs that the Factory uses to generate agents
+- Frontend provides filters and badges; roadmap supports `prd_type` query param
 
 ### Guided Questions
 - `GET /api/v1/prds/{id}/guided-questions` - Get questions for missing sections
