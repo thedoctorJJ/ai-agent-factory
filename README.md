@@ -37,6 +37,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [Unified MCP Setup Guide](./docs/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
 - [Enhanced PRD System](./docs/15-enhanced-prd-system.md) — comprehensive guide to the industry-best-practices PRD system with guided completion.
 - [Conversational PRD Completion](./docs/16-conversational-prd-completion.md) — AI chatbot interface for natural PRD completion through dialogue.
+- [Security Improvements](./docs/17-security-improvements.md) — security check fixes and GitHub sync improvements.
 
 ### 4. Project Management
 - [Directory Reorganization](./DIRECTORY_REORGANIZATION.md) — summary of directory structure improvements and organization.
@@ -224,10 +225,11 @@ The following file patterns are automatically excluded from git:
 5. **Commit only code changes** - Credentials stay local and organized
 
 ### **Security Tools**
-- **Pre-commit hook**: Automatically prevents sensitive files from being committed
-- **Secure commit script**: `./scripts/setup/secure-commit.sh "Your message"`
+- **Pre-commit hook**: Automatically prevents sensitive files from being committed with improved pattern matching
+- **Secure commit script**: `./scripts/setup/secure-commit.sh "Your message"` - Enhanced with better error handling
 - **Install security hook**: `./scripts/setup/install-pre-commit-hook.sh`
 - **Environment manager**: `./scripts/config/env-manager.sh` - Manage config files safely
+- **Improved Security Check**: Fixed regex patterns and error handling for reliable GitHub sync
 
 ### **If You Accidentally Commit Sensitive Files**
 ```bash
