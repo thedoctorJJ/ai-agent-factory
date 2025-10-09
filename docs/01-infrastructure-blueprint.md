@@ -8,8 +8,8 @@ Every component is designed to be reusable and scalable, enabling rapid deployme
 ```
 /end-cap-agent-factory
 │
-├── /docs
-├── /backend
+├── /docs                    # Comprehensive documentation
+├── /backend                 # FastAPI backend application
 │   ├── /fastapi_app
 │   │   ├── main.py
 │   │   ├── /routers
@@ -17,14 +17,26 @@ Every component is designed to be reusable and scalable, enabling rapid deployme
 │   │   ├── /agents
 │   │   └── /utils
 │   └── requirements.txt
-├── /frontend
+├── /frontend                # Next.js frontend application
 │   ├── /next-app
 │   │   ├── /components
 │   │   ├── /app
 │   │   ├── /lib
 │   │   └── /styles
 │   └── package.json
-├── /libraries
+├── /scripts                 # Organized automation scripts
+│   ├── /mcp                # MCP server scripts and configs
+│   ├── /config             # Configuration management scripts
+│   ├── /setup              # Development setup scripts
+│   ├── /deployment         # Deployment automation scripts
+│   └── /testing            # Test automation scripts
+├── /config                  # Configuration files and templates
+│   ├── /env                # Environment configuration files
+│   └── env.example         # Environment variables template
+├── /setup                   # Setup guides and checklists
+├── /tests                   # Test results and reports
+├── /reports                 # Project reports and analysis
+├── /libraries               # Agent, prompt, and tool libraries
 │   ├── /prompt-library
 │   ├── /agent-library
 │   └── /tool-library

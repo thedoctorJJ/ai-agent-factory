@@ -4,8 +4,35 @@
 This document describes the deployment pipeline and CI/CD workflow for the END_CAP Agent Factory.
 
 ## Local Development
-- Backend: `uvicorn main:app --reload`
-- Frontend: `npm run dev` inside `next-app`
+
+### Environment Setup
+```bash
+# Initialize environment configuration
+./scripts/config/env-manager.sh init
+
+# Start development environment
+./scripts/setup/dev-setup.sh
+```
+
+### Backend Development
+```bash
+cd backend
+source venv/bin/activate
+python -m uvicorn fastapi_app.main:app --reload --port 8000
+```
+
+### Frontend Development
+```bash
+cd frontend/next-app
+npm run dev
+```
+
+### Scripts Organization
+- **Setup**: `./scripts/setup/` - Development environment setup
+- **Configuration**: `./scripts/config/` - Environment and service configuration
+- **Deployment**: `./scripts/deployment/` - Deployment automation
+- **Testing**: `./scripts/testing/` - Test automation
+- **MCP**: `./scripts/mcp/` - MCP server management
 
 ## CI/CD
 - Use GitHub Actions to automate:

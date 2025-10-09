@@ -41,7 +41,9 @@ Use this checklist to ensure you have all accounts and APIs properly configured.
 ## 🔧 Configuration Checklist
 
 ### ✅ Environment Variables
-- [ ] Copy `env.example` to `.env`
+- [ ] Initialize environment: `./scripts/config/env-manager.sh init`
+- [ ] Edit `config/env/.env.local` with your actual values
+- [ ] Create backup: `./scripts/config/env-manager.sh backup`
 - [ ] Fill in all required values:
   - [ ] `DATABASE_URL`
   - [ ] `SUPABASE_URL`
