@@ -89,6 +89,8 @@ The flow asks required sections in a fixed sequence, then optional sections. Whe
   - What performance or scalability needs exist?
 - **Example**: "Must integrate with Gmail API, process 1000 emails/hour, support real-time streaming"
 
+> API Requirements: Identify required APIs, endpoints, credentials, scopes, and provisioning steps. Capture these here so the system can prepare access as soon as the PRD is approved.
+
 #### 9. **Success Metrics** (10%)
 - **Purpose**: How will you measure the agent's success?
 - **Guided Questions**:
@@ -158,6 +160,17 @@ The flow asks required sections in a fixed sequence, then optional sections. Whe
   - `platform`: PRDs to build/evolve the Agent Factory
   - `agent`: PRDs that the Factory uses to generate agents
 - Frontend provides filters and badges; roadmap supports `prd_type` query param
+
+### Architecture Agent and Decision Workflow
+
+- Architecture Agent continuously reviews platform and new PRDs for agent-centric design
+- Proposal flow: Architecture Agent → Devin AI (engineering review) → Platform Owner (approve/reject)
+- Approved proposals become roadmap items; implementation proceeds with Devin + Architecture Agent
+
+### Interactive Flow (Refine-Then-Approve)
+
+- The guided Q&A supports iterative drafting. Sections can be refined multiple times before saving.
+- Problem vs Solution separation enforced: Problem Statement describes pain; solution is captured via User Stories, Acceptance Criteria, and Technical Requirements.
 
 ### Guided Questions
 - `GET /api/v1/prds/{id}/guided-questions` - Get questions for missing sections

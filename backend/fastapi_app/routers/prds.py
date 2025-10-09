@@ -1113,6 +1113,9 @@ async def create_prd_interactive(payload: Dict[str, Optional[str]]):
             requirements = [r.strip() for r in requirements.split("\n") if r.strip()]
         temp_create = PRDCreate(title=title, description=description or "", requirements=requirements or [])
         completion_data = calculate_prd_completion(temp_create)
+        # Determine PRD type if provided; default to 'agent' for backwards compatibility
+        prd_type = (payload.get("prd_type") or "agent")
+
         new_prd = PRDResponse(
             id=prd_id,
             title=title,
@@ -1120,6 +1123,7 @@ async def create_prd_interactive(payload: Dict[str, Optional[str]]):
             requirements=requirements or [],
             voice_input=None,
             text_input=None,
+            prd_type=prd_type,
             status="draft",
             github_repo_url=None,
             created_at=now,

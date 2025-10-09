@@ -21,10 +21,11 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [OpenAI Voice Workflow](./docs/11-openai-voice-workflow.md) — complete voice-to-agent workflow via ChatGPT/OpenAI.
   
 #### New (Roadmap & PRD Enforcement)
-- Interactive PRD Completion Flow — guided Q&A until 100% completion
+- Interactive PRD Completion Flow — guided Q&A until 100% completion (refine-then-approve supported)
 - Strict PRD Enforcement — required sections validated (configurable)
 - PRD Types — `platform` vs `agent` streams with filters and views
 - Roadmap Dashboard — prioritization, kanban, analytics
+- Architecture Agent — continuous architecture review; proposals flow Architecture Agent → Devin AI → Platform Owner
 
 ### 3. Supporting / Visualization
 - [Platform Architecture Diagram](./docs/08-platform-architecture-diagram.md) — full architecture overview, data flow, and component interaction.
@@ -283,8 +284,10 @@ end-cap-agent-factory/
 The END_CAP Agent Factory includes a comprehensive PRD (Product Requirements Document) system that follows industry best practices:
 
 #### **17 Comprehensive Sections**
-- **Required Sections (10)**: Title, Description, Problem Statement, Target Users, User Stories, Requirements, Acceptance Criteria, Technical Requirements, Success Metrics, Timeline
+- **Required Sections (10)**: Title, Description, Problem Statement, Target Users, User Stories, Requirements, Acceptance Criteria, Technical Requirements (includes API Requirements capture), Success Metrics, Timeline
 - **Optional Sections (7)**: Performance Requirements, Security Requirements, Integration Requirements, Deployment Requirements, Dependencies, Risks, Assumptions
+
+Note: Technical Requirements explicitly captures API Requirements (needed APIs, credentials, endpoints) so provisioning is ready once the PRD is approved.
 
 #### **Smart Completion Tracking**
 - **Automatic Calculation**: System calculates completion percentage based on filled sections
