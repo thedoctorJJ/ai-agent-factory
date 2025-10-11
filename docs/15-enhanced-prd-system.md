@@ -6,9 +6,9 @@ The END_CAP Agent Factory includes a comprehensive Product Requirements Document
 
 ## Key Features
 
-### 🎯 **Voice-First Design**
-- **Unified Input**: Whether you speak or type, you get the same professional PRD format
-- **Natural Language Processing**: Voice input is preserved and integrated into the final document
+### 🎯 **PRD-Driven Design**
+- **Completed PRD Input**: Receives completed, formatted PRDs from external sources
+- **Structured Processing**: PRDs are validated and processed for agent creation
 - **Devin-Ready Output**: Standardized markdown files optimized for Devin AI implementation
 
 ### 📊 **Smart Completion Tracking**

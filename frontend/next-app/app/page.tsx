@@ -195,7 +195,7 @@ export default function Dashboard() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">AI Agent Factory</h1>
         <p className="text-muted-foreground mt-2">
-          A repeatable, voice-first, AI-driven platform for creating modular agents
+          A repeatable, AI-driven platform for creating modular agents from completed PRDs
         </p>
       </div>
 

@@ -1,6 +1,6 @@
 # AI Agent Factory
 
-Welcome to the **AI Agent Factory** — a repeatable, voice-first, AI-driven platform for creating modular agents with fully automated orchestration and deployment.
+Welcome to the **AI Agent Factory** — a repeatable, AI-driven platform for creating modular agents from completed PRDs with fully automated orchestration and deployment.
 
 This repository contains all core infrastructure, libraries, and documentation to build, orchestrate, and deploy AI agents efficiently.
 
@@ -370,8 +370,8 @@ For each missing section, the system provides:
 - **Real Examples**: Concrete examples to guide thinking
 - **Context**: Why this section matters for the project
 
-#### **Voice-First Workflow**
-- **Unified Output**: Whether you speak or type, you get the same professional PRD format
+#### **PRD-Driven Workflow**
+- **Completed PRD Input**: Receives completed, formatted PRDs from external sources
 - **Devin-Ready**: Markdown files are optimized for Devin AI with clear implementation phases
 - **Complete Specifications**: Includes all technical details, repository structure, and deployment instructions
 - **Easy Sharing**: One-click download or view in browser

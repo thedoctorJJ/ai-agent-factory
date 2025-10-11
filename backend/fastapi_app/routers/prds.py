@@ -361,8 +361,8 @@ async def download_prd_markdown(prd_id: str):
 def generate_prd_markdown(prd: PRDResponse) -> str:
     """Generate standardized markdown PRD for Devin AI"""
     
-    # Determine input source
-    input_source = "Voice Input" if prd.voice_input else "Text Input"
+    # Determine input source (legacy field - now all PRDs are completed and formatted)
+    input_source = "Completed PRD"
     original_input = prd.voice_input or prd.text_input or "No original input provided"
     
     markdown = f"""# Product Requirements Document (PRD)
@@ -413,9 +413,10 @@ def generate_prd_markdown(prd: PRDResponse) -> str:
             markdown += f"- {story}\n"
         markdown += "\n"
     
-    # Add original input
-    markdown += f"""### 📝 **Original Input**
-*This section contains the original voice or text input that generated this PRD*
+    # Add original input (if available)
+    if original_input and original_input != "No original input provided":
+        markdown += f"""### 📝 **Original Input**
+*This section contains the original input that generated this PRD*
 
 ```
 {original_input}

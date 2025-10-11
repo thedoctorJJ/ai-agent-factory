@@ -1,7 +1,7 @@
 # Voice-Driven Workflow Design
 
 ## Overview
-Enables agent creation through voice conversations in ChatGPT, with completed PRDs uploaded to the AI Agent Factory for automated agent generation.
+**Note**: This document describes the external workflow where voice conversations in ChatGPT create PRDs that are then uploaded to the AI Agent Factory. The AI Agent Factory itself does not handle voice input - it receives completed PRDs for agent generation.
 
 ## Workflow Stages
 | Stage | Description |
@@ -31,7 +31,8 @@ Enables agent creation through voice conversations in ChatGPT, with completed PR
 ```
 
 ## Principles
-- Voice conversations happen in ChatGPT, not in AI Agent Factory
-- AI Agent Factory focuses on agent creation from completed PRDs
+- **Voice conversations happen in ChatGPT, not in AI Agent Factory**
+- **AI Agent Factory receives completed PRDs and focuses on agent creation**
+- **No voice input or PRD creation within the AI Agent Factory application**
 - End-to-end automation with real-time feedback
 - Modular and repeatable

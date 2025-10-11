@@ -2,9 +2,9 @@
 
 ## Overview
 
-This guide explains how to set up the workflow where users create AI agents through voice OR text conversations in ChatGPT, which then export completed PRDs for upload to the AI Agent Factory. 
+This guide explains the external workflow where users create AI agents through voice OR text conversations in ChatGPT, which then export completed PRDs for upload to the AI Agent Factory. 
 
-**Important Note**: Voice conversations in ChatGPT work great for creative ideation, but the template conversion and PRD formatting work best in text mode. The AI Agent Factory receives completed PRDs and focuses on agent creation.
+**Important Note**: This workflow happens entirely outside the AI Agent Factory application. The AI Agent Factory receives completed PRDs and focuses solely on agent creation and deployment.
 
 ## 🎯 **Complete Workflow**
 
