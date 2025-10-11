@@ -1,6 +1,6 @@
 # Accounts and APIs Setup Guide
 
-This guide walks you through setting up all the necessary accounts, APIs, and MCP servers for the END_CAP Agent Factory.
+This guide walks you through setting up all the necessary accounts, APIs, and MCP servers for the AI Agent Factory Agent Factory.
 
 ## 📋 Required Accounts & Services
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# END_CAP Agent Factory - Development Setup Script
+# AI Agent Factory Agent Factory - Development Setup Script
 
 set -e
 
-echo "🚀 Setting up END_CAP Agent Factory for development..."
+echo "🚀 Setting up AI Agent Factory Agent Factory for development..."
 
 # Check if Python 3.11+ is installed
 if ! command -v python3 &> /dev/null; then

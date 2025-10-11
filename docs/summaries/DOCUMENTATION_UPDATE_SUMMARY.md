@@ -86,7 +86,7 @@ cp config/env.example .env
 
 ## 🎉 **Final Status**
 
-The END_CAP Agent Factory now has:
+The AI Agent Factory Agent Factory now has:
 - ✅ **Comprehensive Documentation** - All files updated with latest information
 - ✅ **Professional Organization** - Clean directory structure and file organization
 - ✅ **Enhanced Security** - Proper environment management and credential handling

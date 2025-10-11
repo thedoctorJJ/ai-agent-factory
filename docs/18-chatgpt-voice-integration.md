@@ -60,7 +60,7 @@ This guide explains the external workflow where users create AI agents through v
 ```
 1. Voice Mode → Creative conversation and first draft
 2. Switch to Text Mode → Get template and convert to structured format
-3. Continue in Text Mode → Create PRD in END_CAP
+3. Continue in Text Mode → Create PRD in AI Agent Factory
 4. Return to Voice (optional) → Discuss next steps
 ```
 
@@ -94,7 +94,7 @@ This guide explains the external workflow where users create AI agents through v
 1. **Open ChatGPT** → Settings → Beta Features
 2. **Enable MCP** (Model Context Protocol)
 3. **Add MCP Server** with these settings:
-   - **Name**: `END_CAP Agent Factory`
+   - **Name**: `AI Agent Factory Agent Factory`
    - **Transport**: `STDIO`
    - **Command**: `python3`
    - **Arguments**: `/path/to/end-cap-agent-factory/scripts/mcp/openai-mcp-server.py`
@@ -164,7 +164,7 @@ ChatGPT: "That's brilliant! So it's like a smart filter and assistant. Let me he
 
 ### **Step 2: Get Template and Convert**
 ```
-ChatGPT: "Now that we have a great creative foundation, let me get the structured template from END_CAP to make sure we capture everything properly..."
+ChatGPT: "Now that we have a great creative foundation, let me get the structured template from AI Agent Factory to make sure we capture everything properly..."
 
 [ChatGPT calls get_prd_template - this may fail in voice mode]
 
@@ -192,12 +192,12 @@ If in text mode or MCP call succeeds:
 - Seamlessly escalate to human agents when appropriate
 - Provide sales team with predictive insights about customer intent
 
-Would you like me to continue mapping the other sections, or should I create the PRD in END_CAP now?"
+Would you like me to continue mapping the other sections, or should I create the PRD in AI Agent Factory now?"
 ```
 
 ### **Step 3: Create Structured PRD**
 ```
-ChatGPT: "Let me create your PRD in the END_CAP Agent Factory with all the structured information we've mapped..."
+ChatGPT: "Let me create your PRD in the AI Agent Factory Agent Factory with all the structured information we've mapped..."
 
 [ChatGPT calls create_prd_from_chatgpt with structured data]
 
@@ -216,7 +216,7 @@ ChatGPT: "Let me create your PRD in the END_CAP Agent Factory with all the struc
 - Timeline (need realistic delivery milestones)
 
 **Next Steps:**
-1. Visit your END_CAP dashboard to complete the remaining sections
+1. Visit your AI Agent Factory dashboard to complete the remaining sections
 2. Use the conversational completion feature to finish the PRD
 3. Once 100% complete, the agent will be ready for creation
 
@@ -241,13 +241,13 @@ The creative vision is preserved while now having the structure needed for succe
 - **Usage**: ChatGPT calls this after getting the template to understand how to structure the creative content
 
 #### **3. `create_prd_from_chatgpt`**
-- **Purpose**: Create PRD in END_CAP from ChatGPT conversation
+- **Purpose**: Create PRD in AI Agent Factory from ChatGPT conversation
 - **Input**: Structured PRD data and conversation summary
 - **Returns**: PRD ID, completion percentage, missing sections, next steps
 - **Usage**: ChatGPT calls this when PRD is ready for creation
 
 #### **4. `get_endcap_status`**
-- **Purpose**: Check if END_CAP is ready to receive PRDs
+- **Purpose**: Check if AI Agent Factory is ready to receive PRDs
 - **Returns**: System status and health information
 - **Usage**: ChatGPT calls this to verify connectivity
 
@@ -267,7 +267,7 @@ The creative vision is preserved while now having the structure needed for succe
 
 #### **1. MCP Server Not Responding**
 ```bash
-# Check if END_CAP is running
+# Check if AI Agent Factory is running
 curl http://localhost:8000/api/v1/health
 
 # Test MCP server directly
@@ -280,7 +280,7 @@ echo '{"method": "get_endcap_status"}' | python3 scripts/mcp/openai-mcp-server.p
 - Ensure Python environment has required dependencies
 
 #### **3. PRD Creation Fails**
-- Check END_CAP API connectivity
+- Check AI Agent Factory API connectivity
 - Verify environment variables are set correctly
 - Review MCP server logs for error details
 
@@ -308,7 +308,7 @@ echo '{"method": "get_endcap_status"}' | python3 scripts/mcp/openai-mcp-server.p
 
 ### **For Integration:**
 1. **Test regularly**: Verify MCP server connectivity and functionality
-2. **Monitor logs**: Check for errors in both ChatGPT and END_CAP
+2. **Monitor logs**: Check for errors in both ChatGPT and AI Agent Factory
 3. **Update templates**: Keep PRD templates current with best practices
 4. **User feedback**: Collect feedback to improve the conversation flow
 

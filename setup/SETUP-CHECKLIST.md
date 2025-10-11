@@ -1,4 +1,4 @@
-# 🚀 Setup Checklist for END_CAP Agent Factory
+# 🚀 Setup Checklist for AI Agent Factory Agent Factory
 
 Use this checklist to ensure you have all accounts and APIs properly configured.
 

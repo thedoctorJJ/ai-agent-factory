@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Environment Manager for END_CAP Agent Factory
+# Environment Manager for AI Agent Factory Agent Factory
 # Helps manage environment configuration files
 
 ENV_DIR="config/env"
@@ -32,7 +32,7 @@ print_error() {
 
 # Function to show help
 show_help() {
-    echo "Environment Manager for END_CAP Agent Factory"
+    echo "Environment Manager for AI Agent Factory Agent Factory"
     echo ""
     echo "Usage: $0 [COMMAND]"
     echo ""

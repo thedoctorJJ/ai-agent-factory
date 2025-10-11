@@ -1,4 +1,4 @@
-# Google Cloud Run configuration for END_CAP Agent Factory
+# Google Cloud Run configuration for AI Agent Factory Agent Factory
 
 # Backend Service
 apiVersion: serving.knative.dev/v1

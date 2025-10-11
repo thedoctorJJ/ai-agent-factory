@@ -83,8 +83,8 @@ Required sections and weights (for completion):
 **MCP Server Endpoints (for ChatGPT integration):**
 - `get_prd_template` — Get PRD template and guidance for converting creative drafts
 - `convert_draft_to_template` — Get guidance on mapping creative content to structured format
-- `create_prd_from_chatgpt` — Create PRD in END_CAP from ChatGPT conversation
-- `get_endcap_status` — Check if END_CAP is ready to receive PRDs
+- `create_prd_from_chatgpt` — Create PRD in AI Agent Factory from ChatGPT conversation
+- `get_ai_agent_factory_status` — Check if AI Agent Factory is ready to receive PRDs
 
 **Behavior:**
 - Agent creation guidance through natural dialogue

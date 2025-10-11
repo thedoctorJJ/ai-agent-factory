@@ -8,7 +8,7 @@
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   ChatGPT/      │    │   OpenAI MCP     │    │  END_CAP Agent  │    │   Devin AI      │
+│   ChatGPT/      │    │   OpenAI MCP     │    │  AI Agent Factory Agent  │    │   Devin AI      │
 │   OpenAI        │───▶│   Server         │───▶│   Factory       │───▶│   Deployment    │
 │   Conversation  │    │   (PRD Extract)  │    │   (API)         │    │   (MCP Servers) │
 └─────────────────┘    └──────────────────┘    └─────────────────┘    └─────────────────┘
@@ -26,7 +26,7 @@
          ▼                        ▼                        ▼                        ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │ Refine through  │    │ Deliver to       │    │ Generate        │    │ Integrated      │
-│ conversation    │    │ END_CAP API      │    │ Devin prompt    │    │ Agent ready     │
+│ conversation    │    │ AI Agent Factory API      │    │ Devin prompt    │    │ Agent ready     │
 │                 │    │ automatically    │    │ for copy-paste  │    │ for use         │
 └─────────────────┘    └──────────────────┘    └─────────────────┘    └─────────────────┘
 ```
@@ -49,7 +49,7 @@ ChatGPT: "Perfect! Here's your complete PRD: [structured requirements]"
 OpenAI MCP Server:
 ├── Extracts PRD from conversation
 ├── Structures requirements
-├── Delivers to END_CAP API
+├── Delivers to AI Agent Factory API
 └── Creates Devin AI task
 ```
 
@@ -59,13 +59,13 @@ Devin AI + MCP Servers:
 ├── GitHub: Creates repository
 ├── Supabase: Sets up database
 ├── Google Cloud: Deploys to Cloud Run
-└── Integration: Connects to END_CAP platform
+└── Integration: Connects to AI Agent Factory platform
 ```
 
 ### **Step 4: Agent Integration**
 ```
 Deployed Agent:
-├── Available in END_CAP dashboard
+├── Available in AI Agent Factory dashboard
 ├── Monitored and managed
 ├── Performance tracked
 └── Ready for production use
@@ -81,7 +81,7 @@ Deployed Agent:
 
 ## 🚀 **Ready to Use**
 
-Your END_CAP Agent Factory now supports the complete voice-to-agent workflow:
+Your AI Agent Factory Agent Factory now supports the complete voice-to-agent workflow:
 
 - ✅ **Voice conversations** in ChatGPT/OpenAI
 - ✅ **Automatic PRD extraction** and delivery

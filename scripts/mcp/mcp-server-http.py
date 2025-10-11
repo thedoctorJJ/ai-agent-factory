@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HTTP-based MCP Server for END_CAP Agent Factory
+HTTP-based MCP Server for AI Agent Factory Agent Factory
 Provides REST API endpoints for MCP protocol over HTTP.
 """
 
@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO, stream=sys.stderr,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = FastAPI(
-    title="END_CAP Agent Factory MCP Server",
+    title="AI Agent Factory Agent Factory MCP Server",
     description="HTTP-based MCP server for automated agent deployment",
     version="1.0.0"
 )
@@ -139,7 +139,7 @@ class MCPServer:
             },
             {
                 "name": "deliver_prd_to_endcap",
-                "description": "Deliver PRD to END_CAP platform",
+                "description": "Deliver PRD to AI Agent Factory platform",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -163,7 +163,7 @@ class MCPServer:
             },
             {
                 "name": "get_endcap_status",
-                "description": "Get END_CAP platform status",
+                "description": "Get AI Agent Factory platform status",
                 "inputSchema": {
                     "type": "object",
                     "properties": {}
@@ -182,7 +182,7 @@ class MCPServer:
                 }
             },
             "serverInfo": {
-                "name": "END_CAP Agent Factory MCP Server",
+                "name": "AI Agent Factory Agent Factory MCP Server",
                 "version": "1.0.0"
             }
         }
@@ -376,7 +376,7 @@ class MCPServer:
         }
 
     def _deliver_prd_to_endcap(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        """Deliver PRD to END_CAP platform."""
+        """Deliver PRD to AI Agent Factory platform."""
         prd = args.get('prd')
         conversation_id = args.get('conversation_id')
         
@@ -399,7 +399,7 @@ class MCPServer:
                 task_response = response.json()
                 return {
                     "status": "success",
-                    "message": "PRD delivered to END_CAP platform successfully",
+                    "message": "PRD delivered to AI Agent Factory platform successfully",
                     "task_id": task_response.get('task_id'),
                     "details": task_response
                 }
@@ -426,25 +426,25 @@ class MCPServer:
         }
 
     def _get_endcap_status(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        """Get END_CAP platform status."""
+        """Get AI Agent Factory platform status."""
         try:
             response = requests.get(f"{self.endcap_url}/api/v1/health")
             if response.status_code == 200:
                 return {
                     "status": "success",
-                    "message": "END_CAP platform is healthy",
+                    "message": "AI Agent Factory platform is healthy",
                     "details": response.json()
                 }
             else:
                 return {
                     "status": "warning",
-                    "message": f"END_CAP platform returned status {response.status_code}",
+                    "message": f"AI Agent Factory platform returned status {response.status_code}",
                     "details": response.text
                 }
         except Exception as e:
             return {
                 "status": "error",
-                "message": f"Failed to check END_CAP status: {str(e)}"
+                "message": f"Failed to check AI Agent Factory status: {str(e)}"
             }
 
 # Initialize MCP server
@@ -454,7 +454,7 @@ mcp_server = MCPServer()
 async def root():
     """Root endpoint with basic info."""
     return {
-        "service": "END_CAP Agent Factory MCP Server",
+        "service": "AI Agent Factory Agent Factory MCP Server",
         "version": "1.0.0",
         "status": "running",
         "endpoints": {
@@ -470,7 +470,7 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "service": "END_CAP Agent Factory MCP Server"
+        "service": "AI Agent Factory Agent Factory MCP Server"
     }
 
 @app.get("/tools")

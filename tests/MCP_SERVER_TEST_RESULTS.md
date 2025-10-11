@@ -129,7 +129,7 @@ Add these 6 secrets:
    - Required: No (has default), but recommended for clarity
 
 6. **ENDCAP_API_URL**
-   - Description: END_CAP Agent Factory backend API endpoint
+   - Description: AI Agent Factory Agent Factory backend API endpoint
    - Value: The URL where your backend is deployed
    - Required: Yes for MCP server to communicate with backend
 

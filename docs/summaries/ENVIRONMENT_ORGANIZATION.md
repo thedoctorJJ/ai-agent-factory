@@ -124,4 +124,4 @@ cp config/env.example .env
 
 ---
 
-*This organization provides a professional, secure, and maintainable environment management system for the END_CAP Agent Factory.*
+*This organization provides a professional, secure, and maintainable environment management system for the AI Agent Factory Agent Factory.*

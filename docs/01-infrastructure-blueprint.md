@@ -1,7 +1,7 @@
-# END_CAP Agent Factory — Infrastructure Blueprint
+# AI Agent Factory — Infrastructure Blueprint
 
 ## Overview
-The END_CAP Agent Factory is a repeatable, modular architecture that allows the creation of AI agents, each with its own module and attached tools.  
+The AI Agent Factory is a repeatable, modular architecture that allows the creation of AI agents, each with its own module and attached tools.  
 Every component is designed to be reusable and scalable, enabling rapid deployment of new agents without rebuilding the core infrastructure.
 
 ## Folder Structure

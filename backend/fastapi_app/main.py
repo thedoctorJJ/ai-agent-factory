@@ -9,7 +9,7 @@ from .config import config
 from .routers import agents, prds, health, devin_integration
 
 app = FastAPI(
-    title="END_CAP Agent Factory",
+    title="AI Agent Factory",
     description="A repeatable, voice-first, AI-driven platform for creating modular agents",
     version="1.0.0",
     docs_url="/docs",
@@ -34,7 +34,7 @@ app.include_router(devin_integration.router, prefix="/api/v1", tags=["devin"])
 @app.get("/")
 async def root():
     return {
-        "message": "Welcome to the END_CAP Agent Factory",
+        "message": "Welcome to the AI Agent Factory",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/api/v1/health"

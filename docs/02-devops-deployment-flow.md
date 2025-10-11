@@ -1,7 +1,7 @@
 # DevOps & Deployment Flow
 
 ## Overview
-This document describes the deployment pipeline and CI/CD workflow for the END_CAP Agent Factory.
+This document describes the deployment pipeline and CI/CD workflow for the AI Agent Factory Agent Factory.
 
 ## Local Development
 

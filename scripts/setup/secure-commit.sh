@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Secure commit script for END_CAP Agent Factory
+# Secure commit script for AI Agent Factory Agent Factory
 # This script ensures sensitive files are never committed
 
-echo "🔒 Secure Commit Script for END_CAP Agent Factory"
+echo "🔒 Secure Commit Script for AI Agent Factory Agent Factory"
 echo "=================================================="
 
 # Check for sensitive files in staging area

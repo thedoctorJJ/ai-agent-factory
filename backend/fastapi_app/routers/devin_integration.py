@@ -134,12 +134,12 @@ Please use your MCP servers to:
 - Configure authentication and permissions
 
 **Deployment MCP Server:**
-- Deploy the agent to the END_CAP Agent Factory platform
+- Deploy the agent to the AI Agent Factory platform
 - Configure environment variables and secrets
 - Set up monitoring and logging
 
 ### 3. **Integration Specifications**
-- **Platform**: END_CAP Agent Factory
+- **Platform**: AI Agent Factory
 - **Backend**: FastAPI (Python)
 - **Database**: Supabase (PostgreSQL)
 - **Frontend**: Next.js (TypeScript)
@@ -216,7 +216,7 @@ After completion, the agent should be:
 
 ## MCP Server Configuration
 Please ensure your MCP servers are configured with:
-- **GitHub**: Access to the END_CAP Agent Factory organization
+- **GitHub**: Access to the AI Agent Factory organization
 - **Supabase**: Connection to the platform database
 - **Google Cloud**: Deployment permissions for Cloud Run
 

@@ -1,5 +1,5 @@
 """
-Configuration management for END_CAP Agent Factory
+Configuration management for AI Agent Factory
 """
 import os
 from pathlib import Path

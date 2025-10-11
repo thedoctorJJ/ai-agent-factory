@@ -2,7 +2,7 @@
 
 set -e
 
-echo "🚀 Deploying END_CAP Agent Factory HTTP MCP Server to Google Cloud Run..."
+echo "🚀 Deploying AI Agent Factory Agent Factory HTTP MCP Server to Google Cloud Run..."
 
 # Configuration
 PROJECT_ID="agent-factory-474201"

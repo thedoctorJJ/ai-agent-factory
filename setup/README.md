@@ -1,6 +1,6 @@
 # Setup Documentation
 
-This directory contains setup guides and checklists for the END_CAP Agent Factory.
+This directory contains setup guides and checklists for the AI Agent Factory Agent Factory.
 
 ## Files
 

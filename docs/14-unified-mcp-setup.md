@@ -1,6 +1,6 @@
 # Unified MCP Server Setup Guide
 
-Your END_CAP Agent Factory now has a **single unified MCP server** that handles the complete voice-to-agent workflow!
+Your AI Agent Factory Agent Factory now has a **single unified MCP server** that handles the complete voice-to-agent workflow!
 
 ## 🎯 **What You Have Now**
 
@@ -24,7 +24,7 @@ Your END_CAP Agent Factory now has a **single unified MCP server** that handles 
 ### **Step 1: Update Your Existing MCP Server**
 
 1. **Go to Devin AI** → MCP Marketplace
-2. **Find your existing** "END_CAP Agent Factory" MCP server
+2. **Find your existing** "AI Agent Factory Agent Factory" MCP server
 3. **Click "Edit"** to update it
 
 ### **Step 2: Add New Secrets**
@@ -98,6 +98,6 @@ Your unified MCP server is now ready! You can:
 
 1. **Create agents through voice** conversations in ChatGPT
 2. **Automatically deploy** them through Devin AI
-3. **Monitor everything** in your END_CAP dashboard
+3. **Monitor everything** in your AI Agent Factory dashboard
 
 **The complete voice-to-agent workflow is now operational!** 🚀

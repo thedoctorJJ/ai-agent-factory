@@ -1,6 +1,6 @@
 # Scripts Directory
 
-This directory contains organized scripts for different aspects of the END_CAP Agent Factory.
+This directory contains organized scripts for different aspects of the AI Agent Factory Agent Factory.
 
 ## Subdirectories
 

@@ -1,7 +1,7 @@
 # Devin AI MCP Server Setup Guide
 
 ## Overview
-This guide helps you configure MCP (Model Context Protocol) servers in Devin AI to enable automatic deployment and integration with the END_CAP Agent Factory.
+This guide helps you configure MCP (Model Context Protocol) servers in Devin AI to enable automatic deployment and integration with the AI Agent Factory Agent Factory.
 
 ## 🎯 Streamlined Workflow
 With MCP servers configured, the workflow becomes:

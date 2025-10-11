@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple MCP Server for END_CAP Agent Factory
+Simple MCP Server for AI Agent Factory Agent Factory
 Handles basic MCP protocol without external dependencies
 """
 
@@ -101,7 +101,7 @@ class SimpleMCPServer:
             },
             {
                 "name": "deliver_prd_to_endcap",
-                "description": "Deliver PRD to END_CAP platform",
+                "description": "Deliver PRD to AI Agent Factory platform",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -125,7 +125,7 @@ class SimpleMCPServer:
             },
             {
                 "name": "get_endcap_status",
-                "description": "Get END_CAP platform status",
+                "description": "Get AI Agent Factory platform status",
                 "inputSchema": {
                     "type": "object",
                     "properties": {}
@@ -147,7 +147,7 @@ class SimpleMCPServer:
                 "result": {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {"listChanged": True}},
-                    "serverInfo": {"name": "END_CAP Simple MCP", "version": "1.0.0"}
+                    "serverInfo": {"name": "AI Agent Factory Simple MCP", "version": "1.0.0"}
                 }
             }
 
@@ -171,7 +171,7 @@ class SimpleMCPServer:
                         "status": "healthy",
                         "endcap_version": "1.0.0",
                         "environment": "development",
-                        "message": "END_CAP Agent Factory is running and ready",
+                        "message": "AI Agent Factory Agent Factory is running and ready",
                         "dependencies": {
                             "requests": REQUESTS_AVAILABLE,
                             "dotenv": DOTENV_AVAILABLE

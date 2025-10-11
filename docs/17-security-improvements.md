@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the security improvements made to the END_CAP Agent Factory, specifically addressing issues with the pre-commit security checks that were causing GitHub sync problems.
+This document outlines the security improvements made to the AI Agent Factory Agent Factory, specifically addressing issues with the pre-commit security checks that were causing GitHub sync problems.
 
 ## Problem Identified
 

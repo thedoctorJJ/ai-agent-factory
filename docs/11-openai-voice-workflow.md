@@ -16,7 +16,7 @@ This document describes the complete voice-driven workflow for creating AI agent
 
 ### **Step 2: Automatic PRD Delivery**
 1. **OpenAI MCP Server** extracts the PRD from your conversation
-2. **Automatically delivers** it to END_CAP Agent Factory
+2. **Automatically delivers** it to AI Agent Factory Agent Factory
 3. **Creates a Devin AI task** with optimized prompts
 
 ### **Step 3: Devin AI Deployment**
@@ -28,7 +28,7 @@ This document describes the complete voice-driven workflow for creating AI agent
    - Integrates with your platform
 
 ### **Step 4: Agent Integration**
-1. **Agent becomes available** in your END_CAP dashboard
+1. **Agent becomes available** in your AI Agent Factory dashboard
 2. **Monitor performance** and usage
 3. **Iterate and improve** as needed
 
@@ -45,7 +45,7 @@ This document describes the complete voice-driven workflow for creating AI agent
 
 #### **2. `deliver_prd_to_endcap`**
 - **Input**: PRD data
-- **Output**: Task ID in END_CAP
+- **Output**: Task ID in AI Agent Factory
 - **Usage**: Automatically create Devin AI task
 
 #### **3. `trigger_devin_workflow`**
@@ -55,7 +55,7 @@ This document describes the complete voice-driven workflow for creating AI agent
 
 #### **4. `get_endcap_status`**
 - **Input**: None
-- **Output**: END_CAP system status
+- **Output**: AI Agent Factory system status
 - **Usage**: Verify platform is ready
 
 ---
@@ -66,14 +66,14 @@ This document describes the complete voice-driven workflow for creating AI agent
 
 1. **Go to Devin AI** → MCP Marketplace
 2. **Create new MCP server** with these settings:
-   - **Name**: `END_CAP Agent Factory - OpenAI Integration`
+   - **Name**: `AI Agent Factory Agent Factory - OpenAI Integration`
    - **Transport**: `STDIO`
    - **Command**: `python3`
    - **Arguments**: `/Users/jason/Repositories/end-cap-agent-factory/scripts/openai-mcp-server.py`
 
 3. **Add secrets**:
    - `OPENAI_API_KEY`: Your OpenAI API key
-   - `ENDCAP_API_URL`: `http://localhost:8000` (or your END_CAP URL)
+   - `ENDCAP_API_URL`: `http://localhost:8000` (or your AI Agent Factory URL)
 
 ### **2. Test the Integration**
 
@@ -120,7 +120,7 @@ Requirements:
 
 ### **Automatic Delivery:**
 1. **MCP Server extracts** the PRD from conversation
-2. **Delivers to END_CAP** automatically
+2. **Delivers to AI Agent Factory** automatically
 3. **Creates Devin AI task** with optimized prompt
 4. **Ready for deployment** in minutes
 
@@ -139,7 +139,7 @@ Requirements:
 ## 🔄 **Complete Data Flow**
 
 ```
-[Voice/Text in ChatGPT] → [PRD Extraction] → [END_CAP API] → [Devin AI Task] → [MCP Servers] → [GitHub + Supabase + Cloud Run] → [Deployed Agent]
+[Voice/Text in ChatGPT] → [PRD Extraction] → [AI Agent Factory API] → [Devin AI Task] → [MCP Servers] → [GitHub + Supabase + Cloud Run] → [Deployed Agent]
 ```
 
 This workflow makes agent creation as simple as having a conversation! 🚀

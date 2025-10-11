@@ -2,7 +2,7 @@
 
 ## Overview
 
-The END_CAP Agent Factory includes a comprehensive Product Requirements Document (PRD) system that follows industry best practices and ensures complete, professional documentation for every AI agent project.
+The AI Agent Factory Agent Factory includes a comprehensive Product Requirements Document (PRD) system that follows industry best practices and ensures complete, professional documentation for every AI agent project.
 
 ## Key Features
 

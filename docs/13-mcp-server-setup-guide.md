@@ -6,7 +6,7 @@ This guide will walk you through setting up the OpenAI MCP Server in Devin AI to
 
 With this MCP server configured, you can:
 1. **Create agents through voice conversations** in ChatGPT/OpenAI
-2. **Automatically deliver PRDs** to your END_CAP Agent Factory
+2. **Automatically deliver PRDs** to your AI Agent Factory Agent Factory
 3. **Trigger Devin AI deployment** with optimized prompts
 4. **Complete the full workflow** from conversation to deployed agent
 
@@ -25,10 +25,10 @@ With this MCP server configured, you can:
 Fill out the MCP server configuration form:
 
 ```
-Server Name: END_CAP Agent Factory - OpenAI Integration
+Server Name: AI Agent Factory Agent Factory - OpenAI Integration
 Transport Type: STDIO
 Icon: 🤖
-Description: Automatically delivers PRDs from ChatGPT/OpenAI conversations to END_CAP Agent Factory and triggers Devin AI deployment workflow.
+Description: Automatically delivers PRDs from ChatGPT/OpenAI conversations to AI Agent Factory Agent Factory and triggers Devin AI deployment workflow.
 Enabled: ✅ (toggle ON)
 ```
 
@@ -43,11 +43,11 @@ Value: [Your OpenAI API Key]
 Description: OpenAI API key for ChatGPT integration
 ```
 
-#### **Secret 2: END_CAP API URL**
+#### **Secret 2: AI Agent Factory API URL**
 ```
 Name: ENDCAP_API_URL
 Value: http://localhost:8000
-Description: END_CAP Agent Factory API URL
+Description: AI Agent Factory Agent Factory API URL
 ```
 
 ### **Step 4: STDIO Configuration**
@@ -76,7 +76,7 @@ Arguments: /Users/jason/Repositories/end-cap-agent-factory/scripts/openai-mcp-se
 
 ## 🧪 **Testing the Setup**
 
-### **Test 1: Check END_CAP Status**
+### **Test 1: Check AI Agent Factory Status**
 ```json
 {
   "method": "get_endcap_status"
@@ -90,7 +90,7 @@ Arguments: /Users/jason/Repositories/end-cap-agent-factory/scripts/openai-mcp-se
   "status": "healthy",
   "endcap_version": "1.0.0",
   "environment": "development",
-  "message": "END_CAP Agent Factory is running and ready"
+  "message": "AI Agent Factory Agent Factory is running and ready"
 }
 ```
 
@@ -133,7 +133,7 @@ ChatGPT: "I'll help you create a customer support agent. Let me break this down 
 
 ### **2. MCP Server Automatically**
 - **Extracts the PRD** from your conversation
-- **Delivers it to END_CAP** via API
+- **Delivers it to AI Agent Factory** via API
 - **Creates a Devin AI task** with optimized prompts
 
 ### **3. Devin AI Deployment**
@@ -145,7 +145,7 @@ ChatGPT: "I'll help you create a customer support agent. Let me break this down 
   - Integrates with your platform
 
 ### **4. Agent Ready**
-- **Agent appears** in your END_CAP dashboard
+- **Agent appears** in your AI Agent Factory dashboard
 - **Monitor performance** and usage
 - **Iterate and improve** as needed
 
@@ -156,7 +156,7 @@ ChatGPT: "I'll help you create a customer support agent. Let me break this down 
 ### **Common Issues**
 
 #### **1. "Connection refused" Error**
-- **Check**: END_CAP Agent Factory is running (`http://localhost:8000`)
+- **Check**: AI Agent Factory Agent Factory is running (`http://localhost:8000`)
 - **Start**: `cd backend && PYTHONPATH=. python3 -m uvicorn fastapi_app.main:app --reload --port 8000`
 
 #### **2. "Module not found" Error**
@@ -177,7 +177,7 @@ ChatGPT: "I'll help you create a customer support agent. Let me break this down 
 # Test MCP server locally
 echo '{"method": "get_endcap_status"}' | python3 scripts/openai-mcp-server.py
 
-# Check END_CAP API
+# Check AI Agent Factory API
 curl http://localhost:8000/api/v1/health
 
 # Verify environment variables
@@ -192,7 +192,7 @@ Once your MCP server is configured:
 
 1. **Test the complete workflow** with a simple agent idea
 2. **Create your first agent** through voice conversation
-3. **Monitor the deployment** in your END_CAP dashboard
+3. **Monitor the deployment** in your AI Agent Factory dashboard
 4. **Iterate and improve** your agent creation process
 
 **Your voice-to-agent workflow is now ready!** 🚀
@@ -203,5 +203,5 @@ Once your MCP server is configured:
 
 - [OpenAI Voice Workflow Documentation](./11-openai-voice-workflow.md)
 - [Complete Workflow Diagram](./12-workflow-diagram.md)
-- [END_CAP Agent Factory README](../README.md)
+- [AI Agent Factory Agent Factory README](../README.md)
 - [Devin AI MCP Documentation](https://docs.devin.ai/mcp)

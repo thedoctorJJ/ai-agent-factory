@@ -33,19 +33,19 @@ class SimpleMCPServer:
             return {"error": str(e)}
     
     def get_endcap_status(self) -> Dict[str, Any]:
-        """Check if END_CAP is running"""
+        """Check if AI Agent Factory is running"""
         try:
             response = requests.get(f'{self.endcap_api_url}/api/v1/health', timeout=5)
             if response.status_code == 200:
                 return {
                     "success": True,
                     "status": "healthy",
-                    "message": "END_CAP Agent Factory is running and ready"
+                    "message": "AI Agent Factory Agent Factory is running and ready"
                 }
             else:
-                return {"error": f"END_CAP returned status {response.status_code}"}
+                return {"error": f"AI Agent Factory returned status {response.status_code}"}
         except Exception as e:
-            return {"error": f"Failed to connect to END_CAP: {str(e)}"}
+            return {"error": f"Failed to connect to AI Agent Factory: {str(e)}"}
     
     def get_prd_template(self) -> Dict[str, Any]:
         """Get PRD template"""
@@ -67,7 +67,7 @@ class SimpleMCPServer:
             return {"error": f"Failed to get template: {str(e)}"}
     
     def create_prd_from_chatgpt(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Create PRD in END_CAP"""
+        """Create PRD in AI Agent Factory"""
         try:
             prd_data = params.get("prd_data", {})
             
@@ -83,7 +83,7 @@ class SimpleMCPServer:
                 return {
                     "success": True,
                     "prd_id": prd["id"],
-                    "message": "PRD created successfully in END_CAP"
+                    "message": "PRD created successfully in AI Agent Factory"
                 }
             else:
                 return {"error": f"Failed to create PRD: {response.status_code}"}

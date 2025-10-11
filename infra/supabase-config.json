@@ -1,6 +1,6 @@
 {
   "project_id": "end-cap-agent-factory",
-  "name": "END_CAP Agent Factory",
+  "name": "AI Agent Factory Agent Factory",
   "organization_id": "your-org-id",
   "database": {
     "host": "db.your-project.supabase.co",
