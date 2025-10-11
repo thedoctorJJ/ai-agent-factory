@@ -145,6 +145,22 @@ npm run dev
   - **Tools List**: `/tools`
   - **MCP Protocol**: `/mcp` (JSON-RPC 2.0)
 
+## 🧪 **Testing the PRD Workflow**
+
+### **How to Test PRD Submission:**
+1. **Start the platform** (see Quick Start section below)
+2. **Navigate to the dashboard** at http://localhost:3000
+3. **Click "Create New" tab** to access PRD submission
+4. **Submit a test PRD** using the form or upload functionality
+5. **Verify PRD processing** in the PRDs tab
+6. **Test markdown export** for Devin AI integration
+7. **Review the roadmap** and prioritization features
+
+### **Sample PRDs Available:**
+- Run `python scripts/create-sample-prds.py` to populate the system with test PRDs
+- Includes 9 comprehensive PRDs covering infrastructure, features, and platform improvements
+- Perfect for testing the complete workflow from submission to processing
+
 ## 🎉 **Ready to Go!**
 
 Your AI Agent Factory is **fully configured** and ready for development:
@@ -348,14 +364,18 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 ### 🚧 In Progress
 - [ ] Advanced agent orchestration features
 - [ ] Production deployment to Google Cloud Run
+- [ ] Modular agent architecture implementation
+- [ ] PRD workflow testing and validation
 
 ### 📋 Next Steps
 1. ✅ **Set up accounts and APIs** - Complete! All services configured
 2. ✅ **Validate configuration** - All validations passing
-3. **Start development** - Platform is ready to run
-4. Build GitHub MCP service for repo creation
-5. Integrate Devin AI for agent orchestration
-6. Deploy to Google Cloud Run
+3. ✅ **Start development** - Platform is ready to run
+4. **Test PRD submission workflow** - Submit test PRDs and validate the process
+5. **UI/UX review and improvements** - Review and enhance the user interface
+6. **Build GitHub MCP service** for automated repo creation
+7. **Integrate Devin AI** for agent orchestration
+8. **Deploy to Google Cloud Run** for production use
 
 ## 🔗 Contacts / Contributors
 
