@@ -1,8 +1,8 @@
 # AI Agent Factory
 
-Welcome to the **AI Agent Factory** — a repeatable, AI-driven platform for creating modular agents from completed PRDs with fully automated orchestration and deployment.
+Welcome to the **AI Agent Factory** — a repeatable, AI-driven platform that receives completed, formatted PRDs and automatically creates modular agents with fully automated orchestration and deployment.
 
-This repository contains all core infrastructure, libraries, and documentation to build, orchestrate, and deploy AI agents efficiently.
+This repository contains all core infrastructure, libraries, and documentation to build, orchestrate, and deploy AI agents efficiently from completed PRDs.
 
 ---
 
@@ -15,17 +15,10 @@ This repository contains all core infrastructure, libraries, and documentation t
 
 ### 2. Specialized Integration
 - [Devin AI Integration Framework](./docs/04-devin-ai-integration.md) — autonomous agent orchestration and execution.
-- [Voice-Driven Workflow Design](./docs/05-voice-driven-workflow.md) — end-to-end PRD creation via voice or text.
 - [UI Integration & Transition Layer](./docs/06-ui-integration.md) — Next.js + shadcn dashboard for monitoring and execution.
 - [GitHub MCP Service](./docs/07-github-mcp-service.md) — automated repository creation for each new PRD.
-- [OpenAI Voice Workflow](./docs/11-openai-voice-workflow.md) — complete voice-to-agent workflow via ChatGPT/OpenAI.
   
-#### New (Roadmap & PRD Enforcement)
-- **Conversational PRD Completion** — AI chatbot interface for natural PRD completion through dialogue
-- **Intelligent PRD Analysis** — Automatic analysis of PRD quality with specific improvement suggestions
-- **Markdown PRD Import** — Paste existing PRDs and get conversational completion for missing sections
-- Interactive PRD Completion Flow — guided Q&A until 100% completion (refine-then-approve supported)
-- Strict PRD Enforcement — required sections validated (configurable)
+#### Roadmap & PRD Management
 - PRD Types — `platform` vs `agent` streams with filters and views
 - Roadmap Dashboard — prioritization, kanban, analytics
 - Architecture Agent — continuous architecture review; proposals flow Architecture Agent → Devin AI → Platform Owner
@@ -33,10 +26,8 @@ This repository contains all core infrastructure, libraries, and documentation t
 ### 3. Supporting / Visualization
 - [Platform Architecture Diagram](./docs/08-platform-architecture-diagram.md) — full architecture overview, data flow, and component interaction.
 - [Accounts and APIs Setup Guide](./docs/09-accounts-and-apis-setup.md) — complete guide for setting up all required accounts and APIs.
-- [MCP Server Setup Guide](./docs/13-mcp-server-setup-guide.md) — step-by-step guide for configuring the OpenAI MCP server in Devin AI.
+- [MCP Server Setup Guide](./docs/13-mcp-server-setup-guide.md) — step-by-step guide for configuring the MCP server in Devin AI.
 - [Unified MCP Setup Guide](./docs/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
-- [Enhanced PRD System](./docs/15-enhanced-prd-system.md) — comprehensive guide to the industry-best-practices PRD system with guided completion.
-- [Conversational PRD Completion](./docs/16-conversational-prd-completion.md) — AI chatbot interface for natural PRD completion through dialogue.
 - [Security Improvements](./docs/17-security-improvements.md) — security check fixes and GitHub sync improvements.
 - [Agent Repository Strategy](./docs/19-agent-repository-strategy.md) — comprehensive guide for separate repository strategy implementation.
 
@@ -47,49 +38,6 @@ This repository contains all core infrastructure, libraries, and documentation t
 
 ---
 
-## 🚦 PRD Enforcement & Interactive Completion
-
-### Strict PRD Mode
-- Env flag: `STRICT_PRD=true` (default)
-- Blocks creation/update if required sections are missing
-- Prevents `status=submitted` unless completion is 100%
-
-Required sections and weights (for completion):
-- title (5), description (10), problem_statement (15), target_users (10), user_stories (10), requirements (15), acceptance_criteria (10), technical_requirements (10), success_metrics (10), timeline (5)
-
-### Conversational PRD Completion
-**New AI Chatbot Interface:**
-- **Natural Dialogue** — Complete PRDs through conversational chat instead of rigid forms
-- **Intelligent Analysis** — Automatic analysis of PRD quality with specific improvement suggestions
-- **Smart Section Detection** — AI understands what section you're working on from your input
-- **Contextual Suggestions** — Provides relevant follow-up questions based on your responses
-- **Real-time Updates** — PRD is updated automatically as you provide information
-
-**Markdown Import Workflow:**
-- **Paste Existing PRDs** — Import well-structured PRDs and get conversational completion for missing sections
-- **Automatic Parsing** — Extracts all sections from markdown content
-- **Placeholder Filling** — Fills missing required sections with placeholders to satisfy validation
-- **Guided Completion** — Chatbot helps complete any missing or placeholder sections
-
-**API Endpoints:**
-- `GET /api/v1/prds/schema` — Get PRD template for ChatGPT to use in conversations
-- `POST /api/v1/prds/parse-completed-prd` — Parse completed PRD markdown for agent creation
-- `POST /api/v1/prds` — Create PRD from completed markdown
-- `POST /api/v1/prds/{id}/chat` — Chat with agent creation assistant
-- `POST /api/v1/prds/interactive` — start a draft PRD for progressive fill-in
-- `GET /api/v1/prds/{id}/next-question` — get next missing section + prompt
-- `POST /api/v1/prds/{id}/answer` — submit an answer; auto-updates completion
-
-**MCP Server Endpoints (for ChatGPT integration):**
-- `get_prd_template` — Get PRD template and guidance for converting creative drafts
-- `convert_draft_to_template` — Get guidance on mapping creative content to structured format
-- `create_prd_from_chatgpt` — Create PRD in AI Agent Factory from ChatGPT conversation
-- `get_ai_agent_factory_status` — Check if AI Agent Factory is ready to receive PRDs
-
-**Behavior:**
-- Agent creation guidance through natural dialogue
-- Intelligent analysis of PRD for agent generation
-- Ready for agent creation when PRD reaches 80% completion
 
 ### PRD Types: Platform vs Agent
 - `prd_type` field: `platform` (build the factory) or `agent` (use the factory)
@@ -139,25 +87,17 @@ The platform includes a comprehensive environment management system:
 
 ### 🔄 **Typical Workflow**
 
-1. **Creative Conversation in ChatGPT (Voice or Text)**: User freely explores their agent idea without constraints - be creative and open-ended about features, use cases, problems, and solutions
+1. **Upload Completed PRD**: User uploads or pastes a completed, formatted PRD into the platform
 
-2. **Create First Draft PRD**: ChatGPT helps create an initial, creative PRD based on the open conversation
+2. **PRD Processing**: Platform processes and validates the completed PRD
 
-3. **Get PRD Template**: ChatGPT calls our MCP server to get the structured PRD template and understand the required format
+3. **Agent Creation**: Our AI Factory automatically creates the AI agent based on the PRD specifications
 
-4. **Convert Draft to Template Format**: ChatGPT maps the creative content to the structured template sections, preserving the creative vision while adding necessary structure
+4. **Repository Creation**: GitHub repository is automatically created for the new agent
 
-5. **Export Completed PRD**: ChatGPT exports the completed, structured PRD as markdown
+5. **Deployment**: Agent is deployed and made available for use
 
-6. **Upload to AI Agent Factory**: User uploads the completed PRD to our platform
-
-7. **Agent Creation**: Our AI Factory automatically creates the AI agent based on the PRD specifications
-
-8. **Repository Creation**: GitHub repository is automatically created for the new agent
-
-9. **Deployment**: Agent is deployed and made available for use
-
-This workflow preserves creative freedom while ensuring structured requirements gathering. The AI Agent Factory focuses on **agent creation from completed PRDs**, not PRD creation or formatting.
+The AI Agent Factory focuses on **agent creation from completed PRDs** - it receives finished PRDs and moves directly to agent generation.
 
 ---
 
@@ -216,12 +156,8 @@ Your AI Agent Factory is **fully configured** and ready for development:
 - ✅ **HTTP MCP Server deployed** - Publicly accessible at `https://end-cap-mcp-server-http-fdqqqinvyq-uc.a.run.app`
 - ✅ **Configuration validated** (15/15 checks passing)
 - ✅ **Development environment ready**
-- ✅ **Enhanced PRD System** - Industry best practices with 17 sections and guided completion
-- ✅ **Conversational PRD Completion** - AI chatbot interface for natural PRD completion through dialogue
-- ✅ **Intelligent PRD Analysis** - Automatic analysis of PRD quality with specific improvement suggestions
-- ✅ **Markdown PRD Import** - Paste existing PRDs and get conversational completion for missing sections
+- ✅ **PRD System** - Comprehensive PRD creation and management
 - ✅ **PRD-First UI Design** - Home page prominently features PRD submission as primary entry point
-- ✅ **Voice-First PRD Creation** - Standardized markdown output for Devin AI
 - ✅ **Professional Environment Management** - Organized config files with automated backup system
 - ✅ **Optimized Directory Structure** - Clean, logical organization of all project files
 - ✅ **Environment Manager Tool** - Automated backup/restore and configuration management
@@ -231,7 +167,7 @@ Your AI Agent Factory is **fully configured** and ready for development:
 - ✅ **Enhanced Health Monitoring** - Detailed system status and service health checks
 - ✅ **Production-Ready Codebase** - All security vulnerabilities resolved, linting clean
 
-**Start creating agents through voice conversations** - no additional setup required!
+**Start creating agents** - no additional setup required!
 
 ## 🔒 Security & Credentials Management
 
@@ -312,20 +248,17 @@ ai-agent-factory/
 
 ### Backend (FastAPI)
 - **API Endpoints**: `/api/v1/agents`, `/api/v1/prds`, `/api/v1/health`, `/api/v1/devin`
-- **Enhanced PRD System**: Industry best practices with 17 sections and guided completion
-- **Models**: Pydantic models for agents and comprehensive PRDs
+- **PRD System**: Comprehensive PRD creation and management
+- **Models**: Pydantic models for agents and PRDs
 - **Database**: Supabase integration ready
 - **Devin AI Integration**: MCP server for automated deployment
 - **HTTP MCP Server**: Publicly deployed FastAPI server for external integrations
 - **Authentication**: JWT-based auth system
-- **PRD Completion Tracking**: Automatic calculation and missing section detection
-- **Guided Questions**: Interactive completion workflow for incomplete PRDs
 
 ### Frontend (Next.js 14)
 - **Dashboard**: Agent and PRD management interface
-- **Agent Creation Focus**: Home page prominently features uploading completed PRDs for agent creation
-- **Conversational Agent Assistant**: AI-powered agent creation guidance through natural dialogue
-- **PRD Upload Interface**: Upload completed PRDs and get intelligent agent creation assistance
+- **Agent Creation Focus**: Home page prominently features PRD creation for agent generation
+- **PRD Creation Interface**: Create comprehensive PRDs for agent creation
 - **Devin AI Tab**: Copy-paste workflow for agent creation
 - **Components**: shadcn/ui component library
 - **Styling**: Tailwind CSS with dark mode support
@@ -346,47 +279,30 @@ ai-agent-factory/
 
 ---
 
-## 📋 Enhanced PRD System
+## 📋 PRD System
 
-### **Industry Best Practices**
-The AI Agent Factory includes a comprehensive PRD (Product Requirements Document) system that follows industry best practices:
+### **Completed PRD Processing**
+The AI Agent Factory receives and processes completed, formatted PRDs:
 
-#### **17 Comprehensive Sections**
-- **Required Sections (10)**: Title, Description, Problem Statement, Target Users, User Stories, Requirements, Acceptance Criteria, Technical Requirements (includes API Requirements capture), Success Metrics, Timeline
-- **Optional Sections (7)**: Performance Requirements, Security Requirements, Integration Requirements, Deployment Requirements, Dependencies, Risks, Assumptions
+#### **PRD Sections**
+- **Core Sections**: Title, Description, Problem Statement, Target Users, User Stories, Requirements, Acceptance Criteria, Technical Requirements, Success Metrics, Timeline
+- **Optional Sections**: Performance Requirements, Security Requirements, Integration Requirements, Deployment Requirements, Dependencies, Risks, Assumptions
 
-Note: Technical Requirements explicitly captures API Requirements (needed APIs, credentials, endpoints) so provisioning is ready once the PRD is approved.
-
-#### **Smart Completion Tracking**
-- **Automatic Calculation**: System calculates completion percentage based on filled sections
-- **Weighted Scoring**: Important sections (like Problem Statement) have higher weights
-- **Status Management**: PRDs are marked as "draft" until 100% complete, then "submitted"
-- **Missing Section Detection**: Identifies exactly which sections need attention
-
-#### **Guided Questions System**
-For each missing section, the system provides:
-- **Main Question**: Direct, focused question about the section
-- **Sub-Questions**: 3-4 clarifying questions to help think through the topic
-- **Real Examples**: Concrete examples to guide thinking
-- **Context**: Why this section matters for the project
-
-#### **PRD-Driven Workflow**
-- **Completed PRD Input**: Receives completed, formatted PRDs from external sources
+#### **PRD-to-Agent Workflow**
+- **PRD Upload**: Upload or paste completed, formatted PRDs into the platform
 - **Devin-Ready**: Markdown files are optimized for Devin AI with clear implementation phases
 - **Complete Specifications**: Includes all technical details, repository structure, and deployment instructions
 - **Easy Sharing**: One-click download or view in browser
 
 ### **API Endpoints**
-- `POST /api/v1/prds` - Create PRD with automatic completion tracking
-- `GET /api/v1/prds/{id}/completion` - Get completion status and missing sections
-- `GET /api/v1/prds/{id}/guided-questions` - Get questions for missing sections
+- `POST /api/v1/prds` - Submit completed PRD for agent creation
 - `GET /api/v1/prds/{id}/markdown` - Export PRD as markdown for Devin AI
 - `GET /api/v1/prds/{id}/markdown/download` - Download PRD as .md file
 
 ## 🧩 Principles
 
 * **Modular & Repeatable**: Every new agent follows the same lifecycle.
-* **Voice-First & Automated**: PRDs can be created via voice, auto-triggering pipelines.
+* **Automated**: PRDs trigger automated agent creation and deployment pipelines.
 * **Auditable & Governed**: Supabase tracks metadata, logs, and version history.
 * **Integration Ready**: Frontend, backend, and libraries are plug-and-play.
 * **Complete & Professional**: Every PRD becomes a comprehensive document ready for Devin AI.
@@ -430,7 +346,6 @@ For each missing section, the system provides:
 - [x] **Production-Ready Codebase** - All security vulnerabilities resolved, linting clean
 
 ### 🚧 In Progress
-- [ ] Voice input processing implementation
 - [ ] Advanced agent orchestration features
 - [ ] Production deployment to Google Cloud Run
 
@@ -438,10 +353,9 @@ For each missing section, the system provides:
 1. ✅ **Set up accounts and APIs** - Complete! All services configured
 2. ✅ **Validate configuration** - All validations passing
 3. **Start development** - Platform is ready to run
-4. Implement voice-to-PRD conversion
-5. Build GitHub MCP service for repo creation
-6. Integrate Devin AI for agent orchestration
-7. Deploy to Google Cloud Run
+4. Build GitHub MCP service for repo creation
+5. Integrate Devin AI for agent orchestration
+6. Deploy to Google Cloud Run
 
 ## 🔗 Contacts / Contributors
 

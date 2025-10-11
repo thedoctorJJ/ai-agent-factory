@@ -7,7 +7,7 @@ Your AI Agent Factory Agent Factory now has a **single unified MCP server** that
 ### **Single MCP Server with 9 Tools:**
 
 #### **OpenAI Integration Tools:**
-- `create_prd_from_conversation` - Extract PRDs from ChatGPT conversations
+- `submit_prd_for_agent_creation` - Submit completed PRDs for agent creation
 - `deliver_prd_to_endcap` - Deliver PRDs to your platform
 - `trigger_devin_workflow` - Generate Devin AI prompts
 - `get_endcap_status` - Check platform health
@@ -52,7 +52,7 @@ Click **"Test listing tools"** - you should now see **9 tools** instead of 4:
 - setup_database
 - create_repository
 - get_repository_info
-- create_prd_from_conversation
+- submit_prd_for_agent_creation
 - deliver_prd_to_endcap
 - trigger_devin_workflow
 - get_endcap_status
@@ -62,7 +62,7 @@ Click **"Test listing tools"** - you should now see **9 tools** instead of 4:
 ### **Voice-to-Agent in 4 Steps:**
 
 1. **Start conversation** in ChatGPT/OpenAI
-2. **Use `create_prd_from_conversation`** to extract PRD
+2. **Use `submit_prd_for_agent_creation`** to submit completed PRD
 3. **Use `deliver_prd_to_endcap`** to create Devin AI task
 4. **Use `trigger_devin_workflow`** to get deployment prompt
 5. **Copy prompt to Devin AI** - it will use your deployment tools automatically
@@ -70,7 +70,7 @@ Click **"Test listing tools"** - you should now see **9 tools** instead of 4:
 ### **Example Usage:**
 
 ```
-1. create_prd_from_conversation({
+1. submit_prd_for_agent_creation({
    "conversation": "I need an email marketing agent...",
    "agent_type": "email"
 })

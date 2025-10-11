@@ -25,7 +25,7 @@ Since Devin AI's API is not yet publicly available, we use a manual copy-paste w
 ```
 
 ### 3. Streamlined Workflow Steps
-1. **Create PRD** in the platform
+1. **Upload completed PRD** to the platform
 2. **Generate optimized prompt** for Devin AI with MCP instructions
 3. **Copy prompt** to Devin AI web interface
 4. **Devin AI + MCP Servers** automatically:

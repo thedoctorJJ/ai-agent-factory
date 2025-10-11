@@ -66,7 +66,7 @@ Arguments: /Users/jason/Repositories/end-cap-agent-factory/scripts/openai-mcp-se
 1. **Click "Save changes"**
 2. **Click "Test listing tools"** to verify the server is working
 3. **You should see these tools**:
-   - `create_prd_from_conversation`
+   - `submit_prd_for_agent_creation`
    - `deliver_prd_to_endcap`
    - `trigger_devin_workflow`
    - `get_endcap_status`
@@ -94,10 +94,10 @@ Arguments: /Users/jason/Repositories/end-cap-agent-factory/scripts/openai-mcp-se
 }
 ```
 
-### **Test 2: Create PRD from Conversation**
+### **Test 2: Submit PRD for Agent Creation**
 ```json
 {
-  "method": "create_prd_from_conversation",
+  "method": "submit_prd_for_agent_creation",
   "params": {
     "conversation": "I need an email marketing agent that can send personalized campaigns and track open rates.",
     "agent_type": "email"

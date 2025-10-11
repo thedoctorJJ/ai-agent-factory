@@ -29,7 +29,7 @@ Completed PRD → Agent Creation → Repository Creation → Deployment → Regi
 
 ### ✅ **Supported Input Methods**
 1. **Markdown PRD Upload** - Upload completed PRDs as markdown
-2. **Manual PRD Creation** - Create PRDs using the form (alternative method)
+2. **Manual PRD Entry** - Enter completed PRDs using the form (alternative method)
 3. **API Integration** - Receive PRDs via API endpoints
 
 ## 🚫 **What AI Agent Factory Does NOT Do**
@@ -45,7 +45,7 @@ Completed PRD → Agent Creation → Repository Creation → Deployment → Regi
 ## 🏗️ **Architecture Boundaries**
 
 ### **External Components (Outside AI Agent Factory)**
-- **ChatGPT Voice/Text Conversations** - User ideation and PRD creation
+- **ChatGPT Voice/Text Conversations** - User ideation and PRD development (external)
 - **PRD Template Application** - Converting creative drafts to structured format
 - **PRD Export** - Generating markdown files for upload
 
@@ -132,7 +132,7 @@ Completed PRD → Agent Creation → Repository Creation → Deployment → Regi
 
 ### **🎯 Ready for Production**
 The AI Agent Factory is now architecturally consistent and ready for production use with the correct workflow:
-1. **External PRD Creation** - Users create PRDs outside the application
+1. **External PRD Development** - Users develop PRDs outside the application
 2. **PRD Upload** - Users upload completed PRDs to the application
 3. **Agent Creation** - Application creates agents from PRD specifications
 4. **Deployment & Management** - Application deploys and manages agents

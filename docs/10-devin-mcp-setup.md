@@ -139,7 +139,7 @@ With MCP servers configured, the workflow becomes:
 6. **Monitoring**: All monitoring and logging is configured automatically
 
 ### What You Need to Do:
-1. **Create PRD** in the platform
+1. **Upload completed PRD** to the platform
 2. **Copy prompt** to Devin AI
 3. **Wait for completion** (usually 5-15 minutes)
 4. **Verify deployment** in the platform dashboard

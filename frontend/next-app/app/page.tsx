@@ -9,8 +9,6 @@ import { Plus, Bot, FileText, Activity, Github, Download, Eye, BarChart3, Upload
 import DevinIntegration from '@/components/DevinIntegration'
 import RoadmapDashboard from '@/components/RoadmapDashboard'
 import PRDCreationForm from '@/components/PRDCreationForm'
-import MarkdownPRDImporter from '@/components/MarkdownPRDImporter'
-import PRDChatbot from '@/components/PRDChatbot'
 
 interface Agent {
   id: string
@@ -39,8 +37,6 @@ interface PRD {
   prd_type?: 'platform' | 'agent'
   status: string
   created_at: string
-  completion_percentage?: number
-  missing_sections?: string[]
 }
 
 export default function Dashboard() {
@@ -49,9 +45,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [prdTypeFilter, setPrdTypeFilter] = useState<'all' | 'platform' | 'agent'>('all')
   const [showPRDForm, setShowPRDForm] = useState(false)
-  const [showMarkdownImporter, setShowMarkdownImporter] = useState(false)
-  const [showPRDChatbot, setShowPRDChatbot] = useState(false)
-  const [activeChatPRDId, setActiveChatPRDId] = useState<string | null>(null)
 
   const activeAgentsCount = useMemo(() => 
     agents.filter(a => a.status === 'active').length,
@@ -90,24 +83,8 @@ export default function Dashboard() {
     }
   }
 
-  const handlePRDSuccess = (prdId?: string) => {
+  const handlePRDSuccess = () => {
     fetchData() // Refresh the data to show the new PRD
-    if (prdId) {
-      setActiveChatPRDId(prdId)
-      setShowPRDChatbot(true)
-    }
-  }
-
-  const handleMarkdownImportSuccess = (prdId: string) => {
-    fetchData()
-    setActiveChatPRDId(prdId)
-    setShowPRDChatbot(true)
-  }
-
-
-  const startPRDChat = (prdId: string) => {
-    setActiveChatPRDId(prdId)
-    setShowPRDChatbot(true)
   }
 
   const downloadPRDMarkdown = async (prdId: string, title: string) => {
@@ -195,7 +172,7 @@ export default function Dashboard() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">AI Agent Factory</h1>
         <p className="text-muted-foreground mt-2">
-          A repeatable, AI-driven platform for creating modular agents from completed PRDs
+          A repeatable, AI-driven platform for creating modular agents from completed, formatted PRDs
         </p>
       </div>
 
@@ -391,15 +368,6 @@ export default function Dashboard() {
                   <Plus className="h-4 w-4 mr-2" />
                   Submit PRD
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowMarkdownImporter(true)}
-                  className="ml-2"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import Markdown
-                </Button>
               </div>
             </div>
           </div>
@@ -439,20 +407,6 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {prd.completion_percentage !== undefined && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">Completion:</span>
-                          <div className="flex-1 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${prd.completion_percentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm text-muted-foreground">
-                            {prd.completion_percentage}%
-                          </span>
-                        </div>
-                      )}
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground">
                           Submitted: {new Date(prd.created_at).toLocaleDateString()}
@@ -475,14 +429,6 @@ export default function Dashboard() {
                           >
                             <Download className="h-3 w-3" />
                             Download
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => startPRDChat(prd.id)}
-                            className="flex items-center gap-1"
-                          >
-                            <Bot className="h-3 w-3" />
-                            Chat to Complete
                           </Button>
                         </div>
                       </div>
@@ -510,8 +456,8 @@ export default function Dashboard() {
           <div className="text-center space-y-4">
             <h2 className="text-3xl font-bold">Create Your AI Agent</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Upload your completed PRD and let our AI Factory create and deploy your custom AI agent 
-              with all the specifications and requirements you've defined.
+              Upload your completed, formatted PRD and let our AI Factory automatically create and deploy your custom AI agent 
+              with all the specifications and requirements you've already defined.
             </p>
           </div>
 
@@ -522,9 +468,9 @@ export default function Dashboard() {
                 <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mb-4">
                   <Bot className="h-10 w-10 text-green-600" />
                 </div>
-                <CardTitle className="text-2xl text-green-800">Agent Creation from PRD</CardTitle>
+                <CardTitle className="text-2xl text-green-800">Agent Creation from Completed PRD</CardTitle>
                 <CardDescription className="text-base text-green-700">
-                  Upload your completed PRD and create your AI agent automatically
+                  Upload your completed, formatted PRD and create your AI agent automatically
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -532,13 +478,13 @@ export default function Dashboard() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
                     <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
-                    Upload Your PRD
+                    Upload Completed PRD
                   </h4>
                   <p className="text-blue-700 text-sm mb-3">
-                    Upload your completed PRD that has been refined and formatted by your GPT.
+                    Upload or paste your completed, formatted PRD to start agent creation.
                   </p>
                   <Button 
-                    onClick={() => setShowMarkdownImporter(true)}
+                    onClick={() => setShowPRDForm(true)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     size="lg"
                   >
@@ -623,9 +569,9 @@ export default function Dashboard() {
                   <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                     <FileText className="h-6 w-6 text-gray-600" />
                   </div>
-                  <h4 className="font-medium mb-2">Manual PRD Creation</h4>
+                  <h4 className="font-medium mb-2">Manual PRD Entry</h4>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Create a PRD using our form if you don't have one ready
+                    Enter your completed PRD using our form interface
                   </p>
                   <Button 
                     onClick={() => setShowPRDForm(true)}
@@ -634,7 +580,7 @@ export default function Dashboard() {
                     className="w-full"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Create PRD
+                    Enter PRD
                   </Button>
                 </CardContent>
               </Card>
@@ -667,26 +613,6 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Markdown PRD Importer Modal */}
-      {showMarkdownImporter && (
-        <MarkdownPRDImporter
-          onClose={() => setShowMarkdownImporter(false)}
-          onSuccess={handleMarkdownImportSuccess}
-        />
-      )}
-
-      {/* PRD Chatbot Modal */}
-      {showPRDChatbot && activeChatPRDId && (
-        <PRDChatbot
-          prdId={activeChatPRDId}
-          onClose={() => setShowPRDChatbot(false)}
-          onComplete={() => {
-            setShowPRDChatbot(false)
-            setActiveChatPRDId(null)
-            fetchData()
-          }}
-        />
-      )}
 
     </div>
   )

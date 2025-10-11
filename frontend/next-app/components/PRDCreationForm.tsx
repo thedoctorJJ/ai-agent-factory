@@ -90,10 +90,10 @@ export default function PRDCreationForm({ onClose, onSuccess }: PRDCreationFormP
           <div>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Create New PRD
+              Enter Completed PRD
             </CardTitle>
             <CardDescription>
-              Submit a Product Requirements Document for your AI agent
+              Enter your completed, formatted Product Requirements Document for agent creation
             </CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -254,7 +254,7 @@ export default function PRDCreationForm({ onClose, onSuccess }: PRDCreationFormP
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create PRD'}
+                {isSubmitting ? 'Submitting...' : 'Submit PRD'}
               </Button>
             </div>
           </form>
