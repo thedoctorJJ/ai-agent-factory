@@ -1,6 +1,6 @@
 {
-  "name": "END_CAP Agent Factory",
-  "description": "Complete END_CAP Agent Factory integration. Handles OpenAI conversation PRD extraction, GitHub repository creation, Supabase database setup, Google Cloud Run deployment, and Devin AI workflow automation.",
+  "name": "AI Agent Factory",
+  "description": "Complete AI Agent Factory integration. Handles OpenAI conversation PRD extraction, GitHub repository creation, Supabase database setup, Google Cloud Run deployment, and Devin AI workflow automation.",
   "icon": "🤖",
   "transport": "stdio",
   "command": "python3",
@@ -11,7 +11,7 @@
     "GCP_SERVICE_ACCOUNT_KEY": "Your Google Cloud service account key",
     "GITHUB_ORG_NAME": "GitHub organization name (default: thedoctorJJ)",
     "OPENAI_API_KEY": "OpenAI API key for ChatGPT integration",
-    "ENDCAP_API_URL": "END_CAP Agent Factory API URL (default: http://localhost:8000)"
+    "ENDCAP_API_URL": "AI Agent Factory API URL (default: http://localhost:8000)"
   },
   "capabilities": [
     "create_agent",

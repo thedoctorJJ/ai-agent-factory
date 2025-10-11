@@ -279,10 +279,12 @@ git filter-branch --force --index-filter \
 ## 📁 Directory Structure
 
 ```
-end-cap-agent-factory/
+ai-agent-factory/
 ├── backend/              # FastAPI backend application
 ├── frontend/             # Next.js frontend application
 ├── docs/                 # Comprehensive documentation
+│   ├── summaries/        # Project summaries and status reports
+│   └── [18 guide files]  # Detailed documentation guides
 ├── scripts/              # Organized automation scripts
 │   ├── mcp/             # MCP server scripts and configs
 │   ├── config/          # Configuration management scripts
@@ -294,8 +296,13 @@ end-cap-agent-factory/
 │   └── env.example      # Environment variables template
 ├── setup/                # Setup guides and checklists
 ├── tests/                # Test results and reports
+│   └── samples/         # Test sample files
 ├── reports/              # Project reports and analysis
 ├── libraries/            # Agent, prompt, and tool libraries
+│   ├── agent-library/   # Reusable agent templates
+│   ├── prompt-library/  # Reusable prompts and templates
+│   ├── tool-library/    # Reusable tools and utilities
+│   └── mcp-service-template/ # MCP service templates
 ├── infra/                # Infrastructure and deployment configs
 └── README.md             # This file
 ```

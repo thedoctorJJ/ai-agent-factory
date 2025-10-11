@@ -1,8 +1,8 @@
 {
-  "name": "END_CAP Agent Factory - OpenAI Integration",
+  "name": "AI Agent Factory - OpenAI Integration",
   "transport_type": "STDIO",
   "icon": "🤖",
-  "description": "Automatically delivers PRDs from ChatGPT/OpenAI conversations to END_CAP Agent Factory and triggers Devin AI deployment workflow.",
+  "description": "Automatically delivers PRDs from ChatGPT/OpenAI conversations to AI Agent Factory and triggers Devin AI deployment workflow.",
   "secrets": [
     {
       "name": "OPENAI_API_KEY",
@@ -10,7 +10,7 @@
     },
     {
       "name": "ENDCAP_API_URL",
-      "description": "END_CAP Agent Factory API URL (default: http://localhost:8000)"
+      "description": "AI Agent Factory API URL (default: http://localhost:8000)"
     }
   ],
   "stdio_config": {
@@ -22,7 +22,7 @@
   "tools": [
     {
       "name": "create_prd_from_conversation",
-      "description": "Extract PRD from OpenAI conversation and format for END_CAP",
+      "description": "Extract PRD from OpenAI conversation and format for AI Agent Factory",
       "parameters": {
         "conversation": "string - The conversation text from ChatGPT/OpenAI",
         "agent_type": "string - Type of agent (e.g., 'email', 'data', 'content')"
@@ -30,7 +30,7 @@
     },
     {
       "name": "deliver_prd_to_endcap",
-      "description": "Deliver extracted PRD to END_CAP Agent Factory",
+      "description": "Deliver extracted PRD to AI Agent Factory",
       "parameters": {
         "prd": "object - The PRD data extracted from conversation"
       }
@@ -39,12 +39,12 @@
       "name": "trigger_devin_workflow",
       "description": "Trigger Devin AI deployment workflow",
       "parameters": {
-        "task_id": "string - The task ID from END_CAP"
+        "task_id": "string - The task ID from AI Agent Factory"
       }
     },
     {
       "name": "get_endcap_status",
-      "description": "Check if END_CAP Agent Factory is running and ready",
+      "description": "Check if AI Agent Factory is running and ready",
       "parameters": {}
     }
   ]
