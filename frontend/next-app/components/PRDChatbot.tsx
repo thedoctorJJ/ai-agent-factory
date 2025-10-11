@@ -55,11 +55,11 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
         setCompletionPercentage(completion.completion_percentage || 0)
         
         // Start with a welcoming message and context
-        let welcomeContent = `Hi! I'm here to help you complete your PRD: **${prd.title}**\n\n`
+        let welcomeContent = `Hi! I'm here to help you create your AI agent from your PRD: **${prd.title}**\n\n`
         
-        // For well-structured PRDs, provide analysis
+        // For well-structured PRDs, provide agent creation analysis
         if (completion.completion_percentage > 60) {
-          welcomeContent += `I can see you have a well-structured PRD at ${completion.completion_percentage}% completion. Let me analyze what you have so far and suggest improvements.\n\n`
+          welcomeContent += `I can see you have a well-structured PRD at ${completion.completion_percentage}% completion. Let me analyze what you have and guide you through agent creation.\n\n`
           welcomeContent += `**✅ Strong Sections:**\n`
           
           if (prd.problem_statement && prd.problem_statement.length > 50) {
@@ -78,7 +78,7 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
             welcomeContent += `- Technical Requirements - Detailed and specific\n`
           }
           
-          welcomeContent += `\n**🔍 Areas We Could Enhance:**\n`
+          welcomeContent += `\n**🔍 Areas to Review for Agent Creation:**\n`
           
           if (!prd.target_users || prd.target_users.length === 0) {
             welcomeContent += `- Target Users - Could be more explicit about primary users\n`
@@ -90,13 +90,13 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
             welcomeContent += `- Timeline - No specific dates or milestones mentioned\n`
           }
           
-          welcomeContent += `\n**What would you like to focus on first?**`
+          welcomeContent += `\n**Ready to create your agent? What would you like to focus on first?**`
         } else if (completion.completion_percentage === 0) {
-          welcomeContent += `I can see this is a fresh PRD. Let's start from the beginning and build this out together through conversation.\n\nWhat problem are you trying to solve with this agent?`
+          welcomeContent += `I can see this is a fresh PRD. Let's start from the beginning and build this out together for agent creation.\n\nWhat problem are you trying to solve with this agent?`
         } else if (completion.completion_percentage < 50) {
-          welcomeContent += `I can see you're at ${completion.completion_percentage}% completion. We have a good start! Let's continue building this out.\n\nWhat would you like to work on next?`
+          welcomeContent += `I can see you're at ${completion.completion_percentage}% completion. We have a good start! Let's continue building this out for agent creation.\n\nWhat would you like to work on next?`
         } else {
-          welcomeContent += `Great progress! You're at ${completion.completion_percentage}% completion. We're almost there!\n\nWhat's the next section you'd like to focus on?`
+          welcomeContent += `Great progress! You're at ${completion.completion_percentage}% completion. We're almost ready for agent creation!\n\nWhat's the next section you'd like to focus on?`
         }
 
         const welcomeMessage: ChatMessage = {
@@ -105,15 +105,17 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
           content: welcomeContent,
           suggestions: completion.missing_sections && completion.missing_sections.length > 0 ? [
             `Work on ${completion.missing_sections[0].replace('_', ' ').replace(' (optional)', '')}`,
-            "Tell me about the problem this solves",
-            "Who are the target users?",
-            "What are the main requirements?",
-            "How will we measure success?"
+            "Tell me about the problem this agent solves",
+            "Who are the target users for this agent?",
+            "What are the main agent requirements?",
+            "How will we measure agent success?",
+            "Start agent generation process"
           ] : [
-            "Review the problem statement",
-            "Add more user stories", 
-            "Refine the requirements",
-            "Update the timeline"
+            "Review the agent problem statement",
+            "Add more user stories for the agent", 
+            "Refine the agent requirements",
+            "Update the agent timeline",
+            "Start agent generation process"
           ],
           timestamp: new Date()
         }
@@ -184,14 +186,14 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
           setCompletionPercentage(data.completion_percentage)
         }
 
-        // Check if PRD is complete
-        if (data.completion_percentage >= 100) {
+        // Check if PRD is ready for agent creation
+        if (data.completion_percentage >= 80) {
           setTimeout(() => {
             const completeMessage: ChatMessage = {
               id: 'complete',
               type: 'system',
-              content: '🎉 Congratulations! Your PRD is now complete and ready for agent creation.',
-              suggestions: ['View the completed PRD', 'Start creating the agent', 'Export as markdown'],
+              content: '🎉 Congratulations! Your PRD is ready for agent creation. Let\'s generate your AI agent!',
+              suggestions: ['Start agent generation', 'Review agent specifications', 'Configure deployment settings'],
               timestamp: new Date()
             }
             setMessages(prev => [...prev, completeMessage])
@@ -241,29 +243,31 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-4xl h-[80vh] flex flex-col">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
+      <Card className="w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b bg-gradient-to-r from-blue-50 to-green-50">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <Bot className="h-5 w-5 text-blue-600" />
+              </div>
               PRD Completion Assistant
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-base">
               Let's complete your PRD together through conversation
             </CardDescription>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Progress:</span>
-              <div className="w-24 bg-gray-200 rounded-full h-2">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 bg-white rounded-lg px-3 py-2 shadow-sm">
+              <span className="text-sm font-medium text-gray-700">Progress:</span>
+              <div className="w-32 bg-gray-200 rounded-full h-3">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500"
                   style={{ width: `${completionPercentage}%` }}
                 ></div>
               </div>
-              <span className="text-sm font-medium">{completionPercentage}%</span>
+              <span className="text-sm font-bold text-blue-600 min-w-[3rem]">{completionPercentage}%</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-white/50">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -295,15 +299,16 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
                   message.type === 'user' ? 'order-first' : ''
                 }`}>
                   <div
-                    className={`p-3 rounded-lg ${
+                    className={`p-4 rounded-2xl shadow-sm ${
                       message.type === 'user'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white ml-auto'
                         : message.type === 'assistant'
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
+                        ? 'bg-white border border-gray-200 text-gray-900'
+                        : 'bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-800 border border-yellow-200'
                     }`}
                   >
                     <div
+                      className="prose prose-sm max-w-none"
                       dangerouslySetInnerHTML={{
                         __html: formatMessage(message.content)
                       }}
@@ -311,14 +316,14 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
                   </div>
                   
                   {message.suggestions && message.suggestions.length > 0 && (
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       {message.suggestions.map((suggestion, index) => (
                         <Button
                           key={index}
                           variant="outline"
                           size="sm"
                           onClick={() => handleSuggestionClick(suggestion)}
-                          className="text-xs h-auto py-1 px-2 mr-2 mb-1"
+                          className="text-xs h-auto py-2 px-3 bg-white hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800 transition-colors"
                         >
                           <Lightbulb className="h-3 w-3 mr-1" />
                           {suggestion}
@@ -358,33 +363,44 @@ export default function PRDChatbot({ prdId, onClose, onComplete }: PRDChatbotPro
           </div>
           
           {/* Input Area */}
-          <div className="border-t p-4 bg-white">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(inputValue)}
-                placeholder="Type your response or ask a question..."
-                className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={isLoading}
-                autoFocus
-              />
+          <div className="border-t p-4 bg-gradient-to-r from-gray-50 to-blue-50">
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(inputValue)}
+                  placeholder="Type your response or ask a question..."
+                  className="w-full p-4 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
+                  disabled={isLoading}
+                  autoFocus
+                />
+                {inputValue.length > 0 && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  </div>
+                )}
+              </div>
               <Button
                 onClick={() => sendMessage(inputValue)}
                 disabled={!inputValue.trim() || isLoading}
-                size="sm"
-                className="px-4"
+                size="lg"
+                className="px-6 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
               >
-                <Send className="h-4 w-4" />
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </div>
             
-            {completionPercentage >= 100 && (
+            {completionPercentage >= 80 && (
               <div className="mt-3 flex justify-end">
                 <Button onClick={onComplete} className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4" />
-                  Complete & Close
+                  Create Agent
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>

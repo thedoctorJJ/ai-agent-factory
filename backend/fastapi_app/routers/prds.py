@@ -142,6 +142,14 @@ roadmap_db = {
     }
 }
 
+@router.get("/prds/schema")
+async def get_prd_schema():
+    """Return JSON schema for PRDCreate to enforce standard format"""
+    try:
+        return PRDCreate.model_json_schema()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate PRD schema: {str(e)}")
+
 @router.get("/prds", response_model=List[PRDResponse])
 async def get_prds():
     """Get all PRDs"""
@@ -203,7 +211,7 @@ async def create_prd(prd: PRDCreate):
             voice_input=prd.voice_input,
             text_input=prd.text_input,
             prd_type=(prd.prd_type or "agent"),
-            status="draft" if completion_data["completion_percentage"] < 100 else "submitted",
+            status="ready_for_agent_creation" if completion_data["completion_percentage"] >= 80 else "needs_review",
             github_repo_url=None,
             created_at=now,
             updated_at=now,
@@ -1068,17 +1076,9 @@ async def get_prioritization_matrix():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get prioritization matrix: {str(e)}")
 
-@router.get("/prds/schema")
-async def get_prd_schema():
-    """Return JSON schema for PRDCreate to enforce standard format"""
-    try:
-        return PRDCreate.model_json_schema()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate PRD schema: {str(e)}")
-
 @router.post("/prds/{prd_id}/chat")
 async def chat_with_prd(prd_id: str, request: dict):
-    """Chat with PRD completion assistant"""
+    """Chat with agent creation assistant"""
     try:
         if prd_id not in prds_db:
             raise HTTPException(status_code=404, detail="PRD not found")
@@ -1091,22 +1091,22 @@ async def chat_with_prd(prd_id: str, request: dict):
         completion_data = calculate_prd_completion(prd)
         missing_sections = completion_data["missing_sections"]
         
-        # Analyze user input and provide intelligent response
-        response = generate_intelligent_response(prd, user_message, missing_sections, context)
+        # Analyze user input and provide agent creation guidance
+        response = generate_agent_creation_response(prd, user_message, missing_sections, context)
         
         return response
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to process chat: {str(e)}")
 
-def generate_intelligent_response(prd, user_message: str, missing_sections: list, context: dict) -> dict:
-    """Generate intelligent, contextual responses for PRD completion"""
+def generate_agent_creation_response(prd, user_message: str, missing_sections: list, context: dict) -> dict:
+    """Generate intelligent, contextual responses for agent creation guidance"""
     
     message_lower = user_message.lower()
     
-    # First, provide intelligent analysis if user asks for it
-    if any(phrase in message_lower for phrase in ["analyze", "review", "what do you think", "feedback", "assessment", "evaluation"]):
-        return generate_prd_analysis(prd, missing_sections)
+    # First, provide agent creation analysis if user asks for it
+    if any(phrase in message_lower for phrase in ["analyze", "review", "what do you think", "feedback", "assessment", "evaluation", "create agent", "generate agent"]):
+        return generate_agent_creation_analysis(prd, missing_sections)
     
     # Determine what section the user is likely working on
     current_section = None
@@ -1249,8 +1249,8 @@ def generate_intelligent_response(prd, user_message: str, missing_sections: list
         "completion_percentage": completion_data["completion_percentage"] if 'completion_data' in locals() else calculate_prd_completion(prd)["completion_percentage"]
     }
 
-def generate_prd_analysis(prd, missing_sections: list) -> dict:
-    """Generate intelligent analysis of the PRD"""
+def generate_agent_creation_analysis(prd, missing_sections: list) -> dict:
+    """Generate intelligent analysis for agent creation from the PRD"""
     
     # Analyze what's strong
     strong_sections = []
@@ -1285,7 +1285,7 @@ def generate_prd_analysis(prd, missing_sections: list) -> dict:
         enhancement_areas.append("Dependencies - API access, infrastructure requirements")
     
     # Build response
-    response_text = "## **Your PRD Analysis:**\n\n"
+    response_text = "## **Agent Creation Analysis:**\n\n"
     
     if strong_sections:
         response_text += "**✅ Strong Sections:**\n"
@@ -1299,32 +1299,39 @@ def generate_prd_analysis(prd, missing_sections: list) -> dict:
             response_text += f"- {area}\n"
         response_text += "\n"
     
-    # Add specific recommendations
-    response_text += "**💡 Specific Recommendations:**\n"
+    # Add agent creation recommendations
+    response_text += "**🤖 Agent Creation Recommendations:**\n"
     
     if not prd.target_users or len(prd.target_users) == 0:
-        response_text += "- **Define Primary Users**: Who are the main people who will use this agent? Be specific about roles, responsibilities, and pain points.\n"
+        response_text += "- **Define Primary Users**: Who are the main people who will use this agent? This helps determine the agent's personality and interaction style.\n"
     
     if not prd.acceptance_criteria or len(prd.acceptance_criteria) == 0:
-        response_text += "- **Add Acceptance Criteria**: For each major feature, define specific, testable criteria for success.\n"
+        response_text += "- **Add Acceptance Criteria**: Define specific, testable criteria for agent behavior and performance.\n"
     
     if not prd.timeline or prd.timeline.strip() == "":
-        response_text += "- **Set Timeline**: Add specific milestones, deadlines, and delivery dates.\n"
+        response_text += "- **Set Timeline**: Add specific milestones for agent development and deployment.\n"
     
     if missing_sections:
-        response_text += f"- **Complete Missing Sections**: Focus on {missing_sections[0].replace('_', ' ').replace(' (optional)', '')} first.\n"
+        response_text += f"- **Complete Missing Sections**: Focus on {missing_sections[0].replace('_', ' ').replace(' (optional)', '')} first for better agent creation.\n"
     
-    response_text += "\n**What would you like to focus on first?**"
+    response_text += "\n**Ready to create your agent? Let's start the generation process!**"
     
     suggestions = []
     if not prd.target_users or len(prd.target_users) == 0:
-        suggestions.append("Define the primary users and their needs")
+        suggestions.append("Define the primary users for the agent")
     if not prd.acceptance_criteria or len(prd.acceptance_criteria) == 0:
-        suggestions.append("Add specific acceptance criteria")
+        suggestions.append("Add agent behavior criteria")
     if not prd.timeline or prd.timeline.strip() == "":
-        suggestions.append("Set a clear timeline with milestones")
+        suggestions.append("Set agent development timeline")
     if missing_sections:
-        suggestions.append(f"Work on {missing_sections[0].replace('_', ' ').replace(' (optional)', '')}")
+        suggestions.append(f"Complete {missing_sections[0].replace('_', ' ').replace(' (optional)', '')} for agent creation")
+    
+    # Add agent creation specific suggestions
+    suggestions.extend([
+        "Start agent generation process",
+        "Review agent specifications",
+        "Configure agent deployment settings"
+    ])
     
     return {
         "response": response_text,
@@ -1543,6 +1550,135 @@ async def get_next_question(prd_id: str):
         "prompt": q,
         "expected_type": expected_type
     }
+
+
+@router.post("/prds/parse-completed-prd")
+async def parse_completed_prd_endpoint(request: dict):
+    """Parse completed PRD markdown and extract structured information for agent creation"""
+    try:
+        markdown_content = request.get("markdown_content", "")
+        if not markdown_content.strip():
+            raise HTTPException(status_code=400, detail="Markdown content is required")
+        
+        # Parse the completed PRD to extract structured information
+        parsed_prd = parse_completed_prd(markdown_content)
+        
+        return {
+            "success": True,
+            "parsed_prd": parsed_prd,
+            "message": "PRD parsed successfully and ready for agent creation"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse PRD: {str(e)}")
+
+def parse_completed_prd(markdown_content: str) -> dict:
+    """Parse completed PRD markdown and extract structured information for agent creation"""
+    lines = markdown_content.split('\n')
+    prd_data = {}
+    
+    # Enhanced parsing for completed PRDs with proper structure
+    current_section = None
+    current_content = []
+    
+    for line in lines:
+        line = line.strip()
+        
+        # Look for section headers (## format)
+        if line.startswith('##'):
+            # Save previous section
+            if current_section and current_content:
+                _save_section_data(prd_data, current_section, current_content)
+            
+            # Start new section
+            section_name = line.replace('##', '').strip().lower()
+            current_section = _normalize_section_name(section_name)
+            current_content = []
+            
+        elif line.startswith('#'):
+            # Main title
+            if not prd_data.get('title'):
+                prd_data['title'] = line.replace('#', '').strip()
+                
+        elif line.startswith('-') or line.startswith('*'):
+            # List item
+            if current_section and current_content is not None:
+                current_content.append(line[1:].strip())
+                
+        elif line and current_section and current_content is not None:
+            # Regular content
+            current_content.append(line)
+    
+    # Save last section
+    if current_section and current_content:
+        _save_section_data(prd_data, current_section, current_content)
+    
+    # Ensure required fields are present
+    if 'title' not in prd_data:
+        prd_data['title'] = 'AI Agent from Completed PRD'
+    if 'description' not in prd_data:
+        prd_data['description'] = 'Generated from completed PRD'
+    if 'requirements' not in prd_data:
+        prd_data['requirements'] = ['Requirements extracted from PRD']
+    
+    # Set PRD type based on content analysis
+    prd_data['prd_type'] = _determine_prd_type(prd_data)
+    
+    return prd_data
+
+def _normalize_section_name(section_name: str) -> str:
+    """Normalize section names to match our data model"""
+    section_mapping = {
+        'problem statement': 'problem_statement',
+        'target users': 'target_users',
+        'user stories': 'user_stories',
+        'requirements': 'requirements',
+        'acceptance criteria': 'acceptance_criteria',
+        'technical requirements': 'technical_requirements',
+        'performance requirements': 'performance_requirements',
+        'security requirements': 'security_requirements',
+        'integration requirements': 'integration_requirements',
+        'deployment requirements': 'deployment_requirements',
+        'success metrics': 'success_metrics',
+        'timeline': 'timeline',
+        'dependencies': 'dependencies',
+        'risks': 'risks',
+        'assumptions': 'assumptions',
+        'business value': 'business_value',
+        'technical complexity': 'technical_complexity',
+        'effort estimate': 'effort_estimate',
+        'priority score': 'priority_score',
+        'category': 'category',
+        'assignee': 'assignee',
+        'target sprint': 'target_sprint'
+    }
+    return section_mapping.get(section_name, section_name.replace(' ', '_'))
+
+def _save_section_data(prd_data: dict, section: str, content: list):
+    """Save section data in appropriate format"""
+    if not content:
+        return
+        
+    # List fields that should be arrays
+    list_fields = {
+        'target_users', 'user_stories', 'requirements', 'acceptance_criteria',
+        'technical_requirements', 'security_requirements', 'integration_requirements',
+        'deployment_requirements', 'success_metrics', 'dependencies', 'risks', 'assumptions'
+    }
+    
+    if section in list_fields:
+        prd_data[section] = content
+    else:
+        prd_data[section] = ' '.join(content)
+
+def _determine_prd_type(prd_data: dict) -> str:
+    """Determine if this is an agent or platform PRD based on content"""
+    content = ' '.join(str(v) for v in prd_data.values()).lower()
+    
+    platform_keywords = ['platform', 'infrastructure', 'system', 'architecture', 'framework']
+    if any(keyword in content for keyword in platform_keywords):
+        return 'platform'
+    return 'agent'
 
 @router.post("/prds/{prd_id}/answer", response_model=PRDResponse)
 async def submit_answer(prd_id: str, payload: Dict[str, Optional[object]]):

@@ -71,16 +71,24 @@ Required sections and weights (for completion):
 - **Guided Completion** — Chatbot helps complete any missing or placeholder sections
 
 **API Endpoints:**
-- `POST /api/v1/prds/{id}/chat` — Chat with PRD completion assistant
+- `GET /api/v1/prds/schema` — Get PRD template for ChatGPT to use in conversations
+- `POST /api/v1/prds/parse-completed-prd` — Parse completed PRD markdown for agent creation
+- `POST /api/v1/prds` — Create PRD from completed markdown
+- `POST /api/v1/prds/{id}/chat` — Chat with agent creation assistant
 - `POST /api/v1/prds/interactive` — start a draft PRD for progressive fill-in
 - `GET /api/v1/prds/{id}/next-question` — get next missing section + prompt
 - `POST /api/v1/prds/{id}/answer` — submit an answer; auto-updates completion
-- `GET /api/v1/prds/schema` — JSON Schema for `PRDCreate`
+
+**MCP Server Endpoints (for ChatGPT integration):**
+- `get_prd_template` — Get PRD template and guidance for converting creative drafts
+- `convert_draft_to_template` — Get guidance on mapping creative content to structured format
+- `create_prd_from_chatgpt` — Create PRD in END_CAP from ChatGPT conversation
+- `get_endcap_status` — Check if END_CAP is ready to receive PRDs
 
 **Behavior:**
-- Conversational completion through natural dialogue
-- Intelligent analysis and suggestions for improvement
-- Auto-submits when completion reaches 100%
+- Agent creation guidance through natural dialogue
+- Intelligent analysis of PRD for agent generation
+- Ready for agent creation when PRD reaches 80% completion
 
 ### PRD Types: Platform vs Agent
 - `prd_type` field: `platform` (build the factory) or `agent` (use the factory)
@@ -127,6 +135,30 @@ The platform includes a comprehensive environment management system:
 # Clean old backups
 ./scripts/config/env-manager.sh clean
 ```
+
+### 🔄 **Typical Workflow**
+
+1. **Creative Conversation in ChatGPT (Voice or Text)**: User freely explores their agent idea without constraints - be creative and open-ended about features, use cases, problems, and solutions
+
+2. **Create First Draft PRD**: ChatGPT helps create an initial, creative PRD based on the open conversation
+
+3. **Get PRD Template**: ChatGPT calls our MCP server to get the structured PRD template and understand the required format
+
+4. **Convert Draft to Template Format**: ChatGPT maps the creative content to the structured template sections, preserving the creative vision while adding necessary structure
+
+5. **Export Completed PRD**: ChatGPT exports the completed, structured PRD as markdown
+
+6. **Upload to END_CAP Agent Factory**: User uploads the completed PRD to our platform
+
+7. **Agent Creation**: Our AI Factory automatically creates the AI agent based on the PRD specifications
+
+8. **Repository Creation**: GitHub repository is automatically created for the new agent
+
+9. **Deployment**: Agent is deployed and made available for use
+
+This workflow preserves creative freedom while ensuring structured requirements gathering. The END_CAP Agent Factory focuses on **agent creation from completed PRDs**, not PRD creation or formatting.
+
+---
 
 ## ⚙️ Quick Start
 
@@ -283,9 +315,9 @@ end-cap-agent-factory/
 
 ### Frontend (Next.js 14)
 - **Dashboard**: Agent and PRD management interface
-- **PRD-First Design**: Home page prominently features PRD submission via markdown import or manual form
-- **Conversational Chatbot**: AI-powered PRD completion through natural dialogue
-- **Markdown PRD Importer**: Paste existing PRDs and get intelligent completion assistance
+- **Agent Creation Focus**: Home page prominently features uploading completed PRDs for agent creation
+- **Conversational Agent Assistant**: AI-powered agent creation guidance through natural dialogue
+- **PRD Upload Interface**: Upload completed PRDs and get intelligent agent creation assistance
 - **Devin AI Tab**: Copy-paste workflow for agent creation
 - **Components**: shadcn/ui component library
 - **Styling**: Tailwind CSS with dark mode support

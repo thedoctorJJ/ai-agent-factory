@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Bot, FileText, Activity, Github, Download, Eye, BarChart3, Upload, ChevronDown } from 'lucide-react'
+import { Plus, Bot, FileText, Activity, Github, Download, Eye, BarChart3, Upload, ChevronDown, CheckCircle } from 'lucide-react'
 import DevinIntegration from '@/components/DevinIntegration'
 import RoadmapDashboard from '@/components/RoadmapDashboard'
 import PRDCreationForm from '@/components/PRDCreationForm'
@@ -92,6 +92,7 @@ export default function Dashboard() {
     setActiveChatPRDId(prdId)
     setShowPRDChatbot(true)
   }
+
 
   const startPRDChat = (prdId: string) => {
     setActiveChatPRDId(prdId)
@@ -430,113 +431,153 @@ export default function Dashboard() {
 
         <TabsContent value="create" className="space-y-6">
           <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold">Start Your Agent Journey</h2>
+            <h2 className="text-3xl font-bold">Create Your AI Agent</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Submit a Product Requirements Document (PRD) to begin creating your AI agent. 
-              Our conversational assistant will help you complete any missing sections through natural dialogue.
+              Upload your completed PRD and let our AI Factory create and deploy your custom AI agent 
+              with all the specifications and requirements you've defined.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Markdown Import - Primary Option */}
-            <Card className="border-2 border-blue-200 hover:border-blue-300 transition-colors">
-              <CardHeader className="text-center">
-                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                  <Upload className="h-6 w-6 text-blue-600" />
+          {/* Primary Workflow - ChatGPT Voice Integration */}
+          <div className="max-w-4xl mx-auto">
+            <Card className="border-2 border-green-200 hover:border-green-300 transition-all duration-200 shadow-lg">
+              <CardHeader className="text-center pb-4">
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mb-4">
+                  <Bot className="h-10 w-10 text-green-600" />
                 </div>
-                <CardTitle className="text-xl">Import from Markdown</CardTitle>
-                <CardDescription>
-                  Paste your existing PRD markdown content and we'll parse it automatically
+                <CardTitle className="text-2xl text-green-800">Agent Creation from PRD</CardTitle>
+                <CardDescription className="text-base text-green-700">
+                  Upload your completed PRD and create your AI agent automatically
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>✓ Automatic parsing of all PRD sections</p>
-                  <p>✓ Conversational completion with AI assistant</p>
-                  <p>✓ Professional markdown format support</p>
+              <CardContent className="space-y-6">
+                {/* How it works section */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                    <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
+                    Upload Your PRD
+                  </h4>
+                  <p className="text-blue-700 text-sm mb-3">
+                    Upload your completed PRD that has been refined and formatted by your GPT.
+                  </p>
+                  <Button 
+                    onClick={() => setShowMarkdownImporter(true)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    size="lg"
+                  >
+                    <Upload className="h-5 w-5 mr-2" />
+                    Upload PRD
+                  </Button>
                 </div>
-                <Button 
-                  onClick={() => setShowMarkdownImporter(true)}
-                  className="w-full"
-                  size="lg"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import Markdown PRD
-                </Button>
-              </CardContent>
-            </Card>
 
-            {/* Manual Form - Secondary Option */}
-            <Card className="border-2 hover:border-gray-300 transition-colors">
-              <CardHeader className="text-center">
-                <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <FileText className="h-6 w-6 text-gray-600" />
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                    <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm">2</span>
+                    Agent Generation
+                  </h4>
+                  <p className="text-green-700 text-sm mb-3">
+                    Our AI Factory automatically generates your custom agent based on the PRD specifications.
+                  </p>
                 </div>
-                <CardTitle className="text-xl">Create New PRD</CardTitle>
-                <CardDescription>
-                  Fill out our comprehensive form to create a new PRD from scratch
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>✓ Step-by-step guided form</p>
-                  <p>✓ Conversational completion with AI assistant</p>
-                  <p>✓ Real-time completion tracking</p>
+
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                    <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">3</span>
+                    Deploy & Monitor
+                  </h4>
+                  <p className="text-purple-700 text-sm">
+                    Your agent is deployed and ready to use. Monitor its performance and make adjustments as needed.
+                  </p>
                 </div>
-                <Button 
-                  onClick={() => setShowPRDForm(true)}
-                  variant="outline"
-                  className="w-full"
-                  size="lg"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New PRD
-                </Button>
+
+                {/* Benefits */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Automated Generation</p>
+                      <p className="text-xs text-muted-foreground">No manual coding required</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">PRD-Driven</p>
+                      <p className="text-xs text-muted-foreground">Built from your specifications</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Ready to Deploy</p>
+                      <p className="text-xs text-muted-foreground">Immediately usable agents</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">Performance Monitoring</p>
+                      <p className="text-xs text-muted-foreground">Track and optimize</p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Additional Options */}
+          {/* Alternative Options */}
           <div className="max-w-4xl mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">Other Ways to Submit</CardTitle>
-                <CardDescription className="text-center">
-                  Additional methods for submitting PRDs to the platform
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center space-y-2">
-                    <div className="mx-auto w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                      <Bot className="h-5 w-5 text-green-600" />
-                    </div>
-                    <h4 className="font-medium">API Integration</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Submit PRDs programmatically via REST API
-                    </p>
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-muted-foreground">Alternative Methods</h3>
+              <p className="text-sm text-muted-foreground">Other ways to create agents</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                    <FileText className="h-6 w-6 text-gray-600" />
                   </div>
-                  <div className="text-center space-y-2">
-                    <div className="mx-auto w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Github className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <h4 className="font-medium">GitHub Integration</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Import PRDs from GitHub repositories
-                    </p>
+                  <h4 className="font-medium mb-2">Manual PRD Creation</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Create a PRD using our form if you don't have one ready
+                  </p>
+                  <Button 
+                    onClick={() => setShowPRDForm(true)}
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create PRD
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <div className="mx-auto w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3">
+                    <Github className="h-6 w-6 text-purple-600" />
                   </div>
-                  <div className="text-center space-y-2">
-                    <div className="mx-auto w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                      <Activity className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <h4 className="font-medium">Voice Input</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Coming soon: Voice-to-PRD conversion
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <h4 className="font-medium mb-2">API Integration</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Submit PRDs programmatically via REST API
+                  </p>
+                  <Button variant="outline" size="sm" disabled className="w-full">
+                    <Activity className="h-4 w-4 mr-2" />
+                    Coming Soon
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
@@ -569,6 +610,7 @@ export default function Dashboard() {
           }}
         />
       )}
+
     </div>
   )
 }

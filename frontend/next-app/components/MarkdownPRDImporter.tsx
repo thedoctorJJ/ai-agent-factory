@@ -4,7 +4,8 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { X, Upload, FileText, Bot, Building, CheckCircle, AlertCircle } from 'lucide-react'
+import { X, Upload, FileText, Bot, Building, CheckCircle, AlertCircle, MessageSquare } from 'lucide-react'
+import PRDChatbot from './PRDChatbot'
 
 interface ParsedPRD {
   title?: string
@@ -38,6 +39,8 @@ export default function MarkdownPRDImporter({ onClose, onSuccess }: MarkdownPRDI
   const [isParsing, setIsParsing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [parseError, setParseError] = useState('')
+  const [showConversationalReview, setShowConversationalReview] = useState(false)
+  const [prdId, setPrdId] = useState<string | null>(null)
 
   const parseMarkdownPRD = (markdown: string): ParsedPRD => {
     const lines = markdown.split('\n')
@@ -302,8 +305,8 @@ export default function MarkdownPRDImporter({ onClose, onSuccess }: MarkdownPRDI
       if (response.ok) {
         const newPRD = await response.json()
         console.log('PRD created successfully:', newPRD)
-        onSuccess(newPRD.id)
-        onClose()
+        setPrdId(newPRD.id)
+        setShowConversationalReview(true)
       } else {
         const error = await response.text()
         console.error('Error creating PRD:', error)
@@ -366,10 +369,10 @@ export default function MarkdownPRDImporter({ onClose, onSuccess }: MarkdownPRDI
           <div>
             <CardTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5" />
-              Import PRD from Markdown
+              Upload Completed PRD
             </CardTitle>
             <CardDescription>
-              Paste your markdown PRD and we'll parse it automatically, then guide you through any missing sections
+              Upload your completed PRD to create your AI agent automatically
             </CardDescription>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -380,15 +383,50 @@ export default function MarkdownPRDImporter({ onClose, onSuccess }: MarkdownPRDI
         <CardContent className="space-y-6">
           {!parsedPRD ? (
             // Step 1: Paste markdown
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Instructions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Upload your completed PRD
+                </h4>
+                <ol className="text-sm text-blue-700 space-y-1">
+                  <li>1. Your PRD should be completed and formatted by your GPT</li>
+                  <li>2. Copy the markdown content of your PRD</li>
+                  <li>3. Paste it in the text area below</li>
+                </ol>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium mb-2">Paste your markdown PRD:</label>
+                <label className="block text-sm font-medium mb-2">Paste your completed PRD markdown:</label>
                 <textarea
                   value={markdownContent}
                   onChange={(e) => setMarkdownContent(e.target.value)}
-                  className="w-full p-3 border rounded-md h-96 font-mono text-sm"
-                  placeholder="Paste your markdown PRD here..."
+                  className="w-full p-4 border rounded-lg h-96 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  placeholder="Paste your completed PRD markdown here...
+
+Example:
+# Project Management AI Agent
+
+## Problem Statement
+Small to medium teams struggle with task visibility and deadline management...
+
+## Target Users
+- Project managers in small to medium teams (5-20 people)
+- Team leads who need better visibility
+
+## Requirements
+- Real-time task tracking and status updates
+- Deadline reminders and notifications..."
                 />
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs text-muted-foreground">
+                    {markdownContent.length} characters
+                  </span>
+                  {markdownContent.length > 100 && (
+                    <span className="text-xs text-green-600">✓ Ready to parse</span>
+                  )}
+                </div>
               </div>
               
               {parseError && (
@@ -398,77 +436,112 @@ export default function MarkdownPRDImporter({ onClose, onSuccess }: MarkdownPRDI
                 </div>
               )}
               
-              <div className="flex justify-end">
-                <Button onClick={handleParse} disabled={isParsing || !markdownContent.trim()}>
-                  {isParsing ? 'Parsing...' : 'Parse & Import'}
+              <div className="flex justify-between">
+                <Button variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleParse} 
+                  disabled={isParsing || !markdownContent.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {isParsing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Parsing...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Parse & Import
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
           ) : (
             // Step 2: Review parsed content
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Badge variant={parsedPRD.prd_type === 'agent' ? 'default' : 'secondary'}>
-                    {parsedPRD.prd_type === 'agent' ? (
-                      <>
-                        <Bot className="h-3 w-3 mr-1" />
-                        Agent PRD
-                      </>
-                    ) : (
-                      <>
-                        <Building className="h-3 w-3 mr-1" />
-                        Platform PRD
-                      </>
-                    )}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    Completion: {getCompletionPercentage(parsedPRD)}%
-                  </span>
+              {/* Header with progress */}
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <Badge variant={parsedPRD.prd_type === 'agent' ? 'default' : 'secondary'} className="text-sm">
+                      {parsedPRD.prd_type === 'agent' ? (
+                        <>
+                          <Bot className="h-3 w-3 mr-1" />
+                          Agent PRD
+                        </>
+                      ) : (
+                        <>
+                          <Building className="h-3 w-3 mr-1" />
+                          Platform PRD
+                        </>
+                      )}
+                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Completion:</span>
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${getCompletionPercentage(parsedPRD)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-bold text-blue-600">
+                        {getCompletionPercentage(parsedPRD)}%
+                      </span>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setParsedPRD(null)}>
+                    Parse Again
+                  </Button>
                 </div>
-                <Button variant="outline" onClick={() => setParsedPRD(null)}>
-                  Parse Again
-                </Button>
+                <p className="text-sm text-muted-foreground">
+                  ✅ Successfully parsed your PRD! Review the extracted content below.
+                </p>
               </div>
 
               {/* Parsed Content Preview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="font-semibold">Parsed Content:</h3>
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Extracted Content
+                  </h3>
                   
                   {parsedPRD.title && (
-                    <div>
-                      <label className={`text-sm font-medium ${parsedPRD.title.includes('to be') ? 'text-orange-600' : 'text-green-600'}`}>
-                        {parsedPRD.title.includes('to be') ? '⚠️' : '✓'} Title
+                    <div className="bg-white border rounded-lg p-3">
+                      <label className={`text-sm font-medium flex items-center gap-2 ${parsedPRD.title.includes('to be') ? 'text-orange-600' : 'text-green-600'}`}>
+                        {parsedPRD.title.includes('to be') ? '⚠️' : '✅'} Title
                       </label>
-                      <p className="text-sm text-muted-foreground">{parsedPRD.title}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{parsedPRD.title}</p>
                     </div>
                   )}
                   
                   {parsedPRD.description && (
-                    <div>
-                      <label className={`text-sm font-medium ${parsedPRD.description.includes('to be') ? 'text-orange-600' : 'text-green-600'}`}>
-                        {parsedPRD.description.includes('to be') ? '⚠️' : '✓'} Description
+                    <div className="bg-white border rounded-lg p-3">
+                      <label className={`text-sm font-medium flex items-center gap-2 ${parsedPRD.description.includes('to be') ? 'text-orange-600' : 'text-green-600'}`}>
+                        {parsedPRD.description.includes('to be') ? '⚠️' : '✅'} Description
                       </label>
-                      <p className="text-sm text-muted-foreground">{parsedPRD.description}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{parsedPRD.description}</p>
                     </div>
                   )}
                   
                   {parsedPRD.problem_statement && (
-                    <div>
-                      <label className={`text-sm font-medium ${parsedPRD.problem_statement.includes('to be') ? 'text-orange-600' : 'text-green-600'}`}>
-                        {parsedPRD.problem_statement.includes('to be') ? '⚠️' : '✓'} Problem Statement
+                    <div className="bg-white border rounded-lg p-3">
+                      <label className={`text-sm font-medium flex items-center gap-2 ${parsedPRD.problem_statement.includes('to be') ? 'text-orange-600' : 'text-green-600'}`}>
+                        {parsedPRD.problem_statement.includes('to be') ? '⚠️' : '✅'} Problem Statement
                       </label>
-                      <p className="text-sm text-muted-foreground">{parsedPRD.problem_statement}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{parsedPRD.problem_statement}</p>
                     </div>
                   )}
                   
                   {parsedPRD.target_users && parsedPRD.target_users.length > 0 && (
-                    <div>
-                      <label className={`text-sm font-medium ${parsedPRD.target_users[0].includes('to be') ? 'text-orange-600' : 'text-green-600'}`}>
-                        {parsedPRD.target_users[0].includes('to be') ? '⚠️' : '✓'} Target Users
+                    <div className="bg-white border rounded-lg p-3">
+                      <label className={`text-sm font-medium flex items-center gap-2 ${parsedPRD.target_users[0].includes('to be') ? 'text-orange-600' : 'text-green-600'}`}>
+                        {parsedPRD.target_users[0].includes('to be') ? '⚠️' : '✅'} Target Users
                       </label>
-                      <ul className="text-sm text-muted-foreground list-disc list-inside">
+                      <ul className="text-sm text-muted-foreground list-disc list-inside mt-1">
                         {parsedPRD.target_users.map((user, i) => (
                           <li key={i}>{user}</li>
                         ))}
@@ -478,20 +551,50 @@ export default function MarkdownPRDImporter({ onClose, onSuccess }: MarkdownPRDI
                 </div>
                 
                 <div className="space-y-4">
-                  <h3 className="font-semibold">Status:</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-green-600">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Next Steps
+                  </h3>
+                  
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-green-600 mb-2">
                       <CheckCircle className="h-4 w-4" />
-                      <span className="text-sm">All required sections present</span>
+                      <span className="font-medium">Ready for Review</span>
                     </div>
-                    <div className="flex items-center gap-2 text-orange-600">
-                      <AlertCircle className="h-4 w-4" />
-                      <span className="text-sm">Some sections need completion</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Sections marked with ⚠️ contain placeholder content and will be completed through guided questions.
+                    <p className="text-sm text-green-700">
+                      Your PRD has been successfully parsed and is ready for agent creation.
                     </p>
                   </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-blue-600 mb-2">
+                      <MessageSquare className="h-4 w-4" />
+                      <span className="font-medium">Conversational Review</span>
+                    </div>
+                    <p className="text-sm text-blue-700">
+                      Our AI will generate your agent based on the PRD specifications.
+                    </p>
+                  </div>
+                  
+                  {getMissingSections(parsedPRD).length > 0 && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-orange-600 mb-2">
+                        <AlertCircle className="h-4 w-4" />
+                        <span className="font-medium">Sections to Complete</span>
+                      </div>
+                      <p className="text-sm text-orange-700 mb-2">
+                        These sections may need attention before agent creation:
+                      </p>
+                      <ul className="text-xs text-orange-600 list-disc list-inside">
+                        {getMissingSections(parsedPRD).slice(0, 3).map((section, i) => (
+                          <li key={i}>{section.replace('_', ' ')}</li>
+                        ))}
+                        {getMissingSections(parsedPRD).length > 3 && (
+                          <li>...and {getMissingSections(parsedPRD).length - 3} more</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -502,18 +605,69 @@ export default function MarkdownPRDImporter({ onClose, onSuccess }: MarkdownPRDI
                 </div>
               )}
 
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-between items-center pt-4 border-t">
                 <Button variant="outline" onClick={onClose}>
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting ? 'Creating PRD...' : 'Create PRD & Start Guided Questions'}
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  size="lg"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Creating Agent...
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="h-4 w-4 mr-2" />
+                      Create Agent
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Conversational Review Interface */}
+      {showConversationalReview && prdId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <MessageSquare className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">Create Your AI Agent</h2>
+                  <p className="text-gray-600">Let's create your AI agent based on your PRD specifications</p>
+                </div>
+              </div>
+              <Button variant="outline" onClick={() => {
+                setShowConversationalReview(false)
+                onSuccess(prdId)
+                onClose()
+              }}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <PRDChatbot 
+                prdId={prdId}
+                onClose={() => {
+                  setShowConversationalReview(false)
+                  onSuccess(prdId)
+                  onClose()
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

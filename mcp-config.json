@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "endcap-agent-factory": {
+      "command": "python3",
+      "args": ["/Users/jason/Repositories/end-cap-agent-factory/scripts/mcp/openai-mcp-server.py"],
+      "env": {
+        "ENDCAP_API_URL": "http://localhost:8000"
+      }
+    }
+  }
+}

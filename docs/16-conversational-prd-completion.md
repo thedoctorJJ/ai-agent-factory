@@ -1,48 +1,48 @@
-# Conversational PRD Completion System
+# Conversational Agent Creation System
 
 ## Overview
 
-The END_CAP Agent Factory now features a revolutionary **Conversational PRD Completion System** that transforms the traditional form-based PRD creation process into a natural, dialogue-driven experience. This system combines intelligent analysis, smart section detection, and contextual suggestions to guide users through PRD completion in a conversational manner.
+The END_CAP Agent Factory features a **Conversational Agent Creation System** that guides users through creating AI agents from completed PRDs. This system combines intelligent analysis, smart section detection, and contextual suggestions to help users prepare their PRDs for agent generation in a conversational manner.
 
 ## Key Features
 
-### 🤖 AI-Powered Chatbot Interface
-- **Natural Dialogue**: Complete PRDs through conversational chat instead of rigid forms
-- **Intelligent Analysis**: Automatic analysis of PRD quality with specific improvement suggestions
-- **Smart Section Detection**: AI understands what section you're working on from your input
-- **Contextual Suggestions**: Provides relevant follow-up questions based on your responses
+### 🤖 AI-Powered Agent Creation Assistant
+- **Natural Dialogue**: Guide agent creation through conversational chat
+- **Intelligent Analysis**: Automatic analysis of PRD for agent generation readiness
+- **Smart Section Detection**: AI understands what sections need attention for agent creation
+- **Contextual Suggestions**: Provides relevant guidance for agent development
 - **Real-time Updates**: PRD is updated automatically as you provide information
 
-### 📝 Markdown PRD Import
-- **Paste Existing PRDs**: Import well-structured PRDs and get conversational completion for missing sections
+### 📝 Completed PRD Upload
+- **Upload Completed PRDs**: Import well-structured PRDs from ChatGPT conversations
 - **Automatic Parsing**: Extracts all sections from markdown content
-- **Placeholder Filling**: Fills missing required sections with placeholders to satisfy validation
-- **Guided Completion**: Chatbot helps complete any missing or placeholder sections
+- **Agent Readiness Check**: Validates PRD completeness for agent creation
+- **Guided Agent Creation**: Chatbot helps prepare PRD for agent generation
 
-### 🎯 PRD-First UI Design
-- **Home Page Redesign**: PRD submission is now the primary entry point
-- **Markdown Import Prominence**: Featured as the main submission method
-- **Conversational Flow**: Seamless transition from import to completion
+### 🎯 Agent Creation Focus
+- **Home Page Redesign**: Agent creation is now the primary entry point
+- **PRD Upload Prominence**: Featured as the main submission method
+- **Conversational Flow**: Seamless transition from upload to agent creation
 
 ## How It Works
 
-### 1. PRD Submission
-Users can submit PRDs in two ways:
-- **Markdown Import** (Primary): Paste existing PRD content
-- **Manual Form** (Secondary): Fill out guided form from scratch
+### 1. PRD Upload
+Users upload completed PRDs in two ways:
+- **Markdown Import** (Primary): Upload completed PRD from ChatGPT
+- **Manual Form** (Secondary): Create PRD from scratch if needed
 
-### 2. Intelligent Analysis
+### 2. Agent Creation Analysis
 For well-structured PRDs (>60% completion), the system automatically provides:
 - **Strong Sections Analysis**: Identifies well-written sections
 - **Enhancement Areas**: Points out specific areas for improvement
 - **Contextual Suggestions**: Provides relevant next steps
 
-### 3. Conversational Completion
+### 3. Conversational Agent Creation
 The chatbot provides:
-- **Smart Section Detection**: Understands what you're working on
+- **Smart Section Detection**: Understands what sections need attention for agent creation
 - **Automatic Updates**: Updates PRD in real-time
-- **Contextual Follow-ups**: Guides you to the next logical section
-- **Progress Tracking**: Shows completion percentage
+- **Contextual Follow-ups**: Guides you to prepare PRD for agent generation
+- **Progress Tracking**: Shows agent creation readiness percentage
 
 ## API Endpoints
 

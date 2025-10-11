@@ -1,34 +1,37 @@
 # Voice-Driven Workflow Design
 
 ## Overview
-Enables PRD submission via voice or text, converted into structured JSON and sent to Devin AI for agent creation.
+Enables agent creation through voice conversations in ChatGPT, with completed PRDs uploaded to the END_CAP Agent Factory for automated agent generation.
 
 ## Workflow Stages
 | Stage | Description |
 |-------|-------------|
-| Voice Capture | User speaks into microphone or uploads audio |
-| Speech-to-Text | Whisper converts audio → text |
-| GPT-5 Refinement | Converts transcript → structured PRD |
-| PRD Storage | Supabase stores PRD and triggers MCP service |
-| Agent Orchestration | Devin AI reads PRD and creates agents |
-| Feedback | Optional TTS reads confirmation/status back to user |
+| Voice Conversation | User speaks with ChatGPT about their agent idea |
+| Creative Draft | ChatGPT helps create initial PRD based on conversation |
+| Template Application | ChatGPT applies structured template to the draft |
+| PRD Export | ChatGPT exports completed PRD as markdown |
+| PRD Upload | User uploads completed PRD to END_CAP Agent Factory |
+| Agent Generation | END_CAP creates AI agent from PRD specifications |
+| Repository Creation | GitHub repository automatically created |
+| Deployment | Agent deployed and ready for use |
 
 ## Data Flow
 ```
-[User Voice Input] --> Whisper
+[User Voice in ChatGPT] --> Creative Conversation
 ↓
-[Raw Text] --> GPT-5
+[ChatGPT] --> Structured PRD (Markdown)
 ↓
-[Structured PRD JSON] --> Supabase
+[User Upload] --> END_CAP Agent Factory
 ↓
-[Trigger MCP Service] --> New GitHub Repo
+[AI Factory] --> Agent Generation
 ↓
-[Devin AI] --> Agents & Orchestration
+[GitHub] --> Repository Creation
 ↓
-[FastAPI Backend] --> Next.js Dashboard
+[Deployment] --> Live Agent
 ```
 
 ## Principles
-- PRD data handled via APIs, not raw voice
+- Voice conversations happen in ChatGPT, not in END_CAP
+- END_CAP focuses on agent creation from completed PRDs
 - End-to-end automation with real-time feedback
 - Modular and repeatable

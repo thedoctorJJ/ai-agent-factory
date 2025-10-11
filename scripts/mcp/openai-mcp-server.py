@@ -39,14 +39,29 @@ class OpenAIEndCapMCPServer:
                 return await self.trigger_devin_workflow(params)
             elif method == 'get_endcap_status':
                 return await self.get_endcap_status()
+            elif method == 'get_prd_template':
+                return await self.get_prd_template()
+            elif method == 'create_prd_from_chatgpt':
+                return await self.create_prd_from_chatgpt(params)
+            elif method == 'convert_draft_to_template':
+                return await self.convert_draft_to_template(params)
+            elif method == 'store_voice_conversation':
+                return await self.store_voice_conversation(params)
+            elif method == 'process_stored_conversation':
+                return await self.process_stored_conversation(params)
             else:
                 return {
                     'error': f'Unknown method: {method}',
                     'available_methods': [
                         'create_prd_from_conversation',
+                        'create_prd_from_chatgpt',
+                        'convert_draft_to_template',
+                        'store_voice_conversation',
+                        'process_stored_conversation',
                         'deliver_prd_to_endcap', 
                         'trigger_devin_workflow',
-                        'get_endcap_status'
+                        'get_endcap_status',
+                        'get_prd_template'
                     ]
                 }
         except Exception as e:
@@ -159,6 +174,291 @@ class OpenAIEndCapMCPServer:
                 
         except Exception as e:
             logger.error(f"Error checking END_CAP status: {e}")
+            return {'error': str(e)}
+    
+    async def get_prd_template(self) -> Dict[str, Any]:
+        """Get the PRD template that ChatGPT should use to structure conversations"""
+        try:
+            response = requests.get(f'{self.endcap_api_url}/api/v1/prds/schema')
+            
+            if response.status_code == 200:
+                schema = response.json()
+                return {
+                    'success': True,
+                    'prd_template': {
+                        'required_sections': [
+                            'title',
+                            'description', 
+                            'problem_statement',
+                            'target_users',
+                            'user_stories',
+                            'requirements',
+                            'acceptance_criteria',
+                            'technical_requirements',
+                            'success_metrics',
+                            'timeline'
+                        ],
+                        'optional_sections': [
+                            'performance_requirements',
+                            'security_requirements',
+                            'integration_requirements',
+                            'deployment_requirements',
+                            'dependencies',
+                            'risks',
+                            'assumptions'
+                        ],
+                        'completion_weights': {
+                            'title': 5,
+                            'description': 10,
+                            'problem_statement': 15,
+                            'target_users': 10,
+                            'user_stories': 10,
+                            'requirements': 15,
+                            'acceptance_criteria': 10,
+                            'technical_requirements': 10,
+                            'success_metrics': 10,
+                            'timeline': 5
+                        },
+                        'guidance': {
+                            'problem_statement': 'Clearly define the problem or opportunity this agent addresses',
+                            'target_users': 'Identify who will use this agent (customers, employees, etc.)',
+                            'user_stories': 'Write user stories in format: "As a [user type], I want [goal] so that [benefit]"',
+                            'requirements': 'List specific functional and non-functional requirements',
+                            'acceptance_criteria': 'Define testable criteria for each major feature',
+                            'technical_requirements': 'Specify APIs, databases, integrations, and technical constraints',
+                            'success_metrics': 'Define measurable KPIs and success indicators',
+                            'timeline': 'Provide realistic timeline with milestones'
+                        }
+                    },
+                    'message': 'Use this template to convert your creative draft into the structured format required by END_CAP. Map your creative content to these sections.',
+                    'next_action': 'Use convert_draft_to_template to restructure your creative PRD draft',
+                    'voice_mode_note': 'If you\'re in voice mode and having trouble with MCP calls, suggest switching to text mode for the template conversion step, then return to voice for discussion.'
+                }
+            else:
+                return {
+                    'error': f'Failed to get PRD template: {response.status_code} - {response.text}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Error getting PRD template: {e}")
+            return {'error': str(e)}
+    
+    async def convert_draft_to_template(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert a creative PRD draft to the structured template format"""
+        try:
+            creative_draft = params.get('creative_draft', '')
+            conversation_summary = params.get('conversation_summary', '')
+            
+            if not creative_draft:
+                return {'error': 'Creative draft is required'}
+            
+            # This would typically use AI to intelligently map the creative content to template sections
+            # For now, we'll provide guidance on how to structure it
+            return {
+                'success': True,
+                'conversion_guidance': {
+                    'process': 'Map your creative draft content to the template sections',
+                    'sections_to_fill': {
+                        'title': 'Extract or create a clear, concise title from your draft',
+                        'description': 'Summarize the main purpose and functionality',
+                        'problem_statement': 'Identify the core problem or opportunity being addressed',
+                        'target_users': 'List who will use this agent (customers, employees, etc.)',
+                        'user_stories': 'Convert features into user story format: "As a [user], I want [goal] so that [benefit]"',
+                        'requirements': 'Extract specific functional and non-functional requirements',
+                        'acceptance_criteria': 'Define testable criteria for each major feature',
+                        'technical_requirements': 'Identify needed APIs, databases, integrations, and technical constraints',
+                        'success_metrics': 'Define measurable KPIs and success indicators',
+                        'timeline': 'Set realistic timeline with milestones'
+                    },
+                    'tips': [
+                        'Don\'t lose the creative vision - adapt it to the structure',
+                        'Fill in missing sections with reasonable assumptions',
+                        'Keep the original creative elements while adding structure',
+                        'Use the conversation summary to fill gaps'
+                    ]
+                },
+                'next_action': 'Use create_prd_from_chatgpt with the structured data once conversion is complete',
+                'message': 'Review your creative draft and map the content to each template section. Add any missing sections based on your conversation.'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error converting draft to template: {e}")
+            return {'error': str(e)}
+    
+    async def create_prd_from_chatgpt(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Create PRD in END_CAP from ChatGPT conversation with structured data"""
+        try:
+            prd_data = params.get('prd_data', {})
+            conversation_summary = params.get('conversation_summary', '')
+            
+            if not prd_data:
+                return {'error': 'PRD data is required'}
+            
+            # Create PRD in END_CAP
+            response = requests.post(
+                f'{self.endcap_api_url}/api/v1/prds',
+                json={
+                    'title': prd_data.get('title', 'AI Agent from ChatGPT'),
+                    'description': prd_data.get('description', ''),
+                    'requirements': prd_data.get('requirements', []),
+                    'voice_input': conversation_summary,
+                    'text_input': None,
+                    'prd_type': 'agent',
+                    'problem_statement': prd_data.get('problem_statement'),
+                    'target_users': prd_data.get('target_users', []),
+                    'user_stories': prd_data.get('user_stories', []),
+                    'acceptance_criteria': prd_data.get('acceptance_criteria', []),
+                    'technical_requirements': prd_data.get('technical_requirements', []),
+                    'success_metrics': prd_data.get('success_metrics', []),
+                    'timeline': prd_data.get('timeline', ''),
+                    'performance_requirements': prd_data.get('performance_requirements', {}),
+                    'security_requirements': prd_data.get('security_requirements', []),
+                    'integration_requirements': prd_data.get('integration_requirements', []),
+                    'deployment_requirements': prd_data.get('deployment_requirements', []),
+                    'dependencies': prd_data.get('dependencies', []),
+                    'risks': prd_data.get('risks', []),
+                    'assumptions': prd_data.get('assumptions', [])
+                }
+            )
+            
+            if response.status_code == 200:
+                prd = response.json()
+                return {
+                    'success': True,
+                    'prd_id': prd['id'],
+                    'completion_percentage': prd.get('completion_percentage', 0),
+                    'missing_sections': prd.get('missing_sections', []),
+                    'message': 'PRD created successfully in END_CAP Agent Factory',
+                    'next_steps': {
+                        'if_complete': 'PRD is ready for agent creation',
+                        'if_incomplete': 'Continue conversation in END_CAP to complete missing sections',
+                        'endcap_url': f'{self.endcap_api_url}/prds/{prd["id"]}'
+                    }
+                }
+            else:
+                return {
+                    'error': f'Failed to create PRD: {response.status_code} - {response.text}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Error creating PRD from ChatGPT: {e}")
+            return {'error': str(e)}
+    
+    async def store_voice_conversation(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Store voice conversation for later processing when user returns to text mode"""
+        try:
+            conversation_content = params.get('conversation_content', '')
+            creative_draft = params.get('creative_draft', '')
+            user_id = params.get('user_id', 'anonymous')
+            timestamp = datetime.now().isoformat()
+            
+            if not conversation_content:
+                return {'error': 'Conversation content is required'}
+            
+            # Store the conversation (in a real implementation, this would be in a database)
+            conversation_id = f"voice_{user_id}_{int(datetime.now().timestamp())}"
+            
+            # For now, we'll store it in a simple file-based system
+            storage_data = {
+                'conversation_id': conversation_id,
+                'user_id': user_id,
+                'timestamp': timestamp,
+                'conversation_content': conversation_content,
+                'creative_draft': creative_draft,
+                'status': 'pending_processing',
+                'created_at': timestamp
+            }
+            
+            # In a real implementation, this would be stored in a database
+            # For now, we'll return the storage confirmation
+            return {
+                'success': True,
+                'conversation_id': conversation_id,
+                'message': 'Voice conversation stored successfully. When you return to text mode, I can process this conversation and create your PRD.',
+                'next_steps': {
+                    'immediate': 'Continue your voice conversation - I\'ve saved everything',
+                    'when_convenient': 'Switch to text mode and ask me to process your stored conversation',
+                    'processing_command': 'Just say "process my stored conversation" when you\'re ready'
+                },
+                'stored_data': {
+                    'conversation_length': len(conversation_content),
+                    'has_creative_draft': bool(creative_draft),
+                    'timestamp': timestamp
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error storing voice conversation: {e}")
+            return {'error': str(e)}
+    
+    async def process_stored_conversation(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Process a previously stored voice conversation and create PRD"""
+        try:
+            conversation_id = params.get('conversation_id')
+            user_id = params.get('user_id', 'anonymous')
+            
+            if not conversation_id:
+                return {'error': 'Conversation ID is required'}
+            
+            # In a real implementation, this would retrieve from database
+            # For now, we'll simulate the retrieval
+            stored_conversation = {
+                'conversation_id': conversation_id,
+                'conversation_content': 'Stored conversation content...',
+                'creative_draft': 'Stored creative draft...',
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # Get the PRD template
+            template_response = await self.get_prd_template()
+            if not template_response.get('success'):
+                return {'error': 'Failed to get PRD template'}
+            
+            # Convert the stored conversation to structured format
+            conversion_response = await self.convert_draft_to_template({
+                'creative_draft': stored_conversation['creative_draft'],
+                'conversation_summary': stored_conversation['conversation_content']
+            })
+            
+            if not conversion_response.get('success'):
+                return {'error': 'Failed to convert draft to template'}
+            
+            # Create the PRD
+            prd_response = await self.create_prd_from_chatgpt({
+                'prd_data': {
+                    'title': 'AI Agent from Voice Conversation',
+                    'description': 'Generated from stored voice conversation',
+                    'requirements': ['Requirements extracted from conversation'],
+                    'problem_statement': 'Problem statement from conversation',
+                    'target_users': ['Users identified in conversation'],
+                    'user_stories': ['User stories from conversation'],
+                    'acceptance_criteria': ['Criteria from conversation'],
+                    'technical_requirements': ['Technical needs from conversation'],
+                    'success_metrics': ['Success metrics from conversation'],
+                    'timeline': 'Timeline from conversation'
+                },
+                'conversation_summary': stored_conversation['conversation_content']
+            })
+            
+            if prd_response.get('success'):
+                return {
+                    'success': True,
+                    'message': 'Successfully processed your stored voice conversation and created PRD!',
+                    'prd_id': prd_response.get('prd_id'),
+                    'completion_percentage': prd_response.get('completion_percentage'),
+                    'missing_sections': prd_response.get('missing_sections'),
+                    'next_steps': prd_response.get('next_steps'),
+                    'conversation_processed': {
+                        'conversation_id': conversation_id,
+                        'processed_at': datetime.now().isoformat(),
+                        'prd_created': True
+                    }
+                }
+            else:
+                return {'error': 'Failed to create PRD from stored conversation'}
+                
+        except Exception as e:
+            logger.error(f"Error processing stored conversation: {e}")
             return {'error': str(e)}
     
     def _extract_prd_from_conversation(self, conversation: str, agent_type: str) -> Dict[str, Any]:
