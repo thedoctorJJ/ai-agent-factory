@@ -38,6 +38,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [Enhanced PRD System](./docs/15-enhanced-prd-system.md) — comprehensive guide to the industry-best-practices PRD system with guided completion.
 - [Conversational PRD Completion](./docs/16-conversational-prd-completion.md) — AI chatbot interface for natural PRD completion through dialogue.
 - [Security Improvements](./docs/17-security-improvements.md) — security check fixes and GitHub sync improvements.
+- [Agent Repository Strategy](./docs/19-agent-repository-strategy.md) — comprehensive guide for separate repository strategy implementation.
 
 ### 4. Project Management
 - [Directory Reorganization](./DIRECTORY_REORGANIZATION.md) — summary of directory structure improvements and organization.
