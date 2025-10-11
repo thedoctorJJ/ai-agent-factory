@@ -169,14 +169,47 @@ Create FastAPI endpoints:
 - `POST /api/v1/agents/{{agent_id}}/execute` - Execute agent
 - `GET /api/v1/agents/{{agent_id}}/status` - Get agent status
 - `GET /api/v1/agents/{{agent_id}}/metrics` - Get agent metrics
+- `GET /health` - Health check endpoint (required for platform integration)
+
+### 7. **Agent Registration with Platform**
+After successful deployment, register the agent with the AI Agent Factory platform:
+
+**Registration Endpoint:** `POST /api/v1/agents/register`
+
+**Required Registration Data:**
+```json
+{
+  "name": "{title}",
+  "description": "{description}",
+  "purpose": "Agent purpose from PRD",
+  "version": "1.0.0",
+  "repository_url": "https://github.com/thedoctorJJ/end-cap-agent-{title.lower().replace(' ', '-')}",
+  "deployment_url": "https://end-cap-agent-{title.lower().replace(' ', '-')}-hash.run.app",
+  "health_check_url": "https://end-cap-agent-{title.lower().replace(' ', '-')}-hash.run.app/health",
+  "prd_id": "{prd_id_from_platform}",
+  "devin_task_id": "{task_id_from_platform}",
+  "capabilities": ["capability1", "capability2"],
+  "configuration": {
+    "environment": "production",
+    "scaling": "auto"
+  }
+}
+```
+
+**Registration Steps:**
+1. **Call Registration Endpoint** with agent metadata
+2. **Verify Registration** - Check that agent appears in platform dashboard
+3. **Test Health Checks** - Ensure health monitoring is working
+4. **Update PRD Status** - Mark PRD as completed with deployed agent
 
 ## Expected Outcome
 After completion, the agent should be:
 1. ✅ **Fully deployed** and accessible via API
-2. ✅ **Integrated** with the END_CAP Agent Factory platform
+2. ✅ **Registered** with the AI Agent Factory platform
 3. ✅ **Monitored** with proper logging and metrics
 4. ✅ **Tested** with comprehensive test coverage
 5. ✅ **Documented** with clear usage instructions
+6. ✅ **Visible** in the platform dashboard with health status
 
 ## MCP Server Configuration
 Please ensure your MCP servers are configured with:

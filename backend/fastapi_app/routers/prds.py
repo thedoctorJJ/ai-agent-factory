@@ -645,8 +645,38 @@ Use the Deployment MCP server to:
 - Set up monitoring and alerting
 - Integrate with AI Agent Factory platform APIs
 
-#### **Phase 5: Integration**
-- Register agent with AI Agent Factory platform
+#### **Phase 5: Agent Registration**
+After successful deployment, register the agent with the AI Agent Factory platform:
+
+**Registration Endpoint:** `POST /api/v1/agents/register`
+
+**Required Registration Data:**
+```json
+{
+  "name": "{prd.title}",
+  "description": "{prd.description}",
+  "purpose": "Agent purpose from PRD",
+  "version": "1.0.0",
+  "repository_url": "https://github.com/thedoctorJJ/end-cap-agent-{prd.title.lower().replace(' ', '-')}",
+  "deployment_url": "https://end-cap-agent-{prd.title.lower().replace(' ', '-')}-hash.run.app",
+  "health_check_url": "https://end-cap-agent-{prd.title.lower().replace(' ', '-')}-hash.run.app/health",
+  "prd_id": "{prd.id}",
+  "devin_task_id": "{task_id_from_platform}",
+  "capabilities": ["capability1", "capability2"],
+  "configuration": {
+    "environment": "production",
+    "scaling": "auto"
+  }
+}
+```
+
+**Registration Steps:**
+1. **Call Registration Endpoint** with agent metadata
+2. **Verify Registration** - Check that agent appears in platform dashboard
+3. **Test Health Checks** - Ensure health monitoring is working
+4. **Update PRD Status** - Mark PRD as completed with deployed agent
+
+#### **Phase 6: Integration**
 - Test all API endpoints
 - Verify MCP server integration
 - Complete end-to-end testing
