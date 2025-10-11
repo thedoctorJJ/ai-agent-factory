@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OpenAI MCP Server for END_CAP Agent Factory
+OpenAI MCP Server for AI Agent Factory
 Receives PRDs from ChatGPT/OpenAI conversations and automatically delivers them to the platform
 """
 
@@ -69,7 +69,7 @@ class OpenAIEndCapMCPServer:
             return {'error': str(e)}
     
     async def create_prd_from_conversation(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract PRD from OpenAI conversation and format it for END_CAP"""
+        """Extract PRD from OpenAI conversation and format it for AI Agent Factory"""
         conversation = params.get('conversation', '')
         agent_type = params.get('agent_type', 'general')
         
@@ -86,14 +86,14 @@ class OpenAIEndCapMCPServer:
         }
     
     async def deliver_prd_to_endcap(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Deliver PRD to END_CAP Agent Factory via API"""
+        """Deliver PRD to AI Agent Factory via API"""
         prd_data = params.get('prd')
         
         if not prd_data:
             return {'error': 'PRD data is required'}
         
         try:
-            # Create Devin AI task in END_CAP
+            # Create Devin AI task in AI Agent Factory
             response = requests.post(
                 f'{self.endcap_api_url}/api/v1/devin/tasks',
                 json={
@@ -109,7 +109,7 @@ class OpenAIEndCapMCPServer:
                 return {
                     'success': True,
                     'task_id': task['id'],
-                    'message': 'PRD delivered to END_CAP Agent Factory successfully',
+                    'message': 'PRD delivered to AI Agent Factory successfully',
                     'next_step': 'Use trigger_devin_workflow to start deployment'
                 }
             else:
@@ -141,7 +141,7 @@ class OpenAIEndCapMCPServer:
                     'instructions': [
                         '1. Copy the devin_prompt to Devin AI',
                         '2. Devin AI will automatically deploy the agent',
-                        '3. Monitor progress in END_CAP dashboard'
+                        '3. Monitor progress in AI Agent Factory dashboard'
                     ]
                 }
             else:
@@ -154,7 +154,7 @@ class OpenAIEndCapMCPServer:
             return {'error': str(e)}
     
     async def get_endcap_status(self) -> Dict[str, Any]:
-        """Get the status of END_CAP Agent Factory"""
+        """Get the status of AI Agent Factory"""
         try:
             response = requests.get(f'{self.endcap_api_url}/api/v1/health')
             
@@ -165,15 +165,15 @@ class OpenAIEndCapMCPServer:
                     'status': 'healthy',
                     'endcap_version': health_data.get('version'),
                     'environment': health_data.get('environment'),
-                    'message': 'END_CAP Agent Factory is running and ready'
+                    'message': 'AI Agent Factory is running and ready'
                 }
             else:
                 return {
-                    'error': f'END_CAP Agent Factory is not responding: {response.status_code}'
+                    'error': f'AI Agent Factory is not responding: {response.status_code}'
                 }
                 
         except Exception as e:
-            logger.error(f"Error checking END_CAP status: {e}")
+            logger.error(f"Error checking AI Agent Factory status: {e}")
             return {'error': str(e)}
     
     async def get_prd_template(self) -> Dict[str, Any]:
@@ -230,7 +230,7 @@ class OpenAIEndCapMCPServer:
                             'timeline': 'Provide realistic timeline with milestones'
                         }
                     },
-                    'message': 'Use this template to convert your creative draft into the structured format required by END_CAP. Map your creative content to these sections.',
+                    'message': 'Use this template to convert your creative draft into the structured format required by AI Agent Factory. Map your creative content to these sections.',
                     'next_action': 'Use convert_draft_to_template to restructure your creative PRD draft',
                     'voice_mode_note': 'If you\'re in voice mode and having trouble with MCP calls, suggest switching to text mode for the template conversion step, then return to voice for discussion.'
                 }
@@ -286,7 +286,7 @@ class OpenAIEndCapMCPServer:
             return {'error': str(e)}
     
     async def create_prd_from_chatgpt(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Create PRD in END_CAP from ChatGPT conversation with structured data"""
+        """Create PRD in AI Agent Factory from ChatGPT conversation with structured data"""
         try:
             prd_data = params.get('prd_data', {})
             conversation_summary = params.get('conversation_summary', '')
@@ -294,7 +294,7 @@ class OpenAIEndCapMCPServer:
             if not prd_data:
                 return {'error': 'PRD data is required'}
             
-            # Create PRD in END_CAP
+            # Create PRD in AI Agent Factory
             response = requests.post(
                 f'{self.endcap_api_url}/api/v1/prds',
                 json={
@@ -328,10 +328,10 @@ class OpenAIEndCapMCPServer:
                     'prd_id': prd['id'],
                     'completion_percentage': prd.get('completion_percentage', 0),
                     'missing_sections': prd.get('missing_sections', []),
-                    'message': 'PRD created successfully in END_CAP Agent Factory',
+                    'message': 'PRD created successfully in AI Agent Factory',
                     'next_steps': {
                         'if_complete': 'PRD is ready for agent creation',
-                        'if_incomplete': 'Continue conversation in END_CAP to complete missing sections',
+                        'if_incomplete': 'Continue conversation in AI Agent Factory to complete missing sections',
                         'endcap_url': f'{self.endcap_api_url}/prds/{prd["id"]}'
                     }
                 }

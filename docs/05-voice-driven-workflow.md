@@ -1,7 +1,7 @@
 # Voice-Driven Workflow Design
 
 ## Overview
-Enables agent creation through voice conversations in ChatGPT, with completed PRDs uploaded to the END_CAP Agent Factory for automated agent generation.
+Enables agent creation through voice conversations in ChatGPT, with completed PRDs uploaded to the AI Agent Factory for automated agent generation.
 
 ## Workflow Stages
 | Stage | Description |
@@ -10,8 +10,8 @@ Enables agent creation through voice conversations in ChatGPT, with completed PR
 | Creative Draft | ChatGPT helps create initial PRD based on conversation |
 | Template Application | ChatGPT applies structured template to the draft |
 | PRD Export | ChatGPT exports completed PRD as markdown |
-| PRD Upload | User uploads completed PRD to END_CAP Agent Factory |
-| Agent Generation | END_CAP creates AI agent from PRD specifications |
+| PRD Upload | User uploads completed PRD to AI Agent Factory |
+| Agent Generation | AI Agent Factory creates AI agent from PRD specifications |
 | Repository Creation | GitHub repository automatically created |
 | Deployment | Agent deployed and ready for use |
 
@@ -21,7 +21,7 @@ Enables agent creation through voice conversations in ChatGPT, with completed PR
 ↓
 [ChatGPT] --> Structured PRD (Markdown)
 ↓
-[User Upload] --> END_CAP Agent Factory
+[User Upload] --> AI Agent Factory
 ↓
 [AI Factory] --> Agent Generation
 ↓
@@ -31,7 +31,7 @@ Enables agent creation through voice conversations in ChatGPT, with completed PR
 ```
 
 ## Principles
-- Voice conversations happen in ChatGPT, not in END_CAP
-- END_CAP focuses on agent creation from completed PRDs
+- Voice conversations happen in ChatGPT, not in AI Agent Factory
+- AI Agent Factory focuses on agent creation from completed PRDs
 - End-to-end automation with real-time feedback
 - Modular and repeatable

@@ -2,9 +2,9 @@
 
 ## Overview
 
-This guide explains how to set up the workflow where users create AI agents through voice OR text conversations in ChatGPT, which then export completed PRDs for upload to the END_CAP Agent Factory. 
+This guide explains how to set up the workflow where users create AI agents through voice OR text conversations in ChatGPT, which then export completed PRDs for upload to the AI Agent Factory. 
 
-**Important Note**: Voice conversations in ChatGPT work great for creative ideation, but the template conversion and PRD formatting work best in text mode. The END_CAP Agent Factory receives completed PRDs and focuses on agent creation.
+**Important Note**: Voice conversations in ChatGPT work great for creative ideation, but the template conversion and PRD formatting work best in text mode. The AI Agent Factory receives completed PRDs and focuses on agent creation.
 
 ## 🎯 **Complete Workflow**
 
@@ -29,18 +29,18 @@ This guide explains how to set up the workflow where users create AI agents thro
 ### **Step 4: Export Completed PRD**
 1. **ChatGPT exports the completed PRD** as markdown
 2. **User downloads/saves** the markdown file
-3. **User uploads PRD** to END_CAP Agent Factory
-4. **END_CAP parses** the completed PRD
+3. **User uploads PRD** to AI Agent Factory
+4. **AI Agent Factory parses** the completed PRD
 5. **System validates** PRD for agent creation readiness
 
 ### **Step 5: Agent Creation**
-1. **User continues** in END_CAP application
+1. **User continues** in AI Agent Factory application
 2. **Conversational agent creation** guidance
 3. **Real-time updates** and progress tracking
 4. **Agent creation** when PRD is ready
 
 ### **Step 6: Agent Generation & Deployment**
-1. **END_CAP generates** the AI agent from PRD
+1. **AI Agent Factory generates** the AI agent from PRD
 2. **Creates GitHub repository** automatically
 3. **Deploys agent** to production
 4. **Monitors performance** in dashboard

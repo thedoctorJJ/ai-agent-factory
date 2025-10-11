@@ -182,7 +182,7 @@ export default function Dashboard() {
     <div className="container mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">END_CAP Agent Factory</h1>
+        <h1 className="text-3xl font-bold tracking-tight">AI Agent Factory</h1>
         <p className="text-muted-foreground mt-2">
           A repeatable, voice-first, AI-driven platform for creating modular agents
         </p>

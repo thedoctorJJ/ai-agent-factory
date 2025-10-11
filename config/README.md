@@ -1,6 +1,6 @@
 # Configuration Files
 
-This directory contains configuration files and templates for the END_CAP Agent Factory.
+This directory contains configuration files and templates for the AI Agent Factory.
 
 ## Files
 

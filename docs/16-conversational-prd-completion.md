@@ -2,7 +2,7 @@
 
 ## Overview
 
-The END_CAP Agent Factory features a **Conversational Agent Creation System** that guides users through creating AI agents from completed PRDs. This system combines intelligent analysis, smart section detection, and contextual suggestions to help users prepare their PRDs for agent generation in a conversational manner.
+The AI Agent Factory features a **Conversational Agent Creation System** that guides users through creating AI agents from completed PRDs. This system combines intelligent analysis, smart section detection, and contextual suggestions to help users prepare their PRDs for agent generation in a conversational manner.
 
 ## Key Features
 

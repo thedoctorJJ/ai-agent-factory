@@ -1,6 +1,6 @@
-# END_CAP Agent Factory
+# AI Agent Factory
 
-Welcome to the **END_CAP Agent Factory** — a repeatable, voice-first, AI-driven platform for creating modular agents with fully automated orchestration and deployment.
+Welcome to the **AI Agent Factory** — a repeatable, voice-first, AI-driven platform for creating modular agents with fully automated orchestration and deployment.
 
 This repository contains all core infrastructure, libraries, and documentation to build, orchestrate, and deploy AI agents efficiently.
 
@@ -148,7 +148,7 @@ The platform includes a comprehensive environment management system:
 
 5. **Export Completed PRD**: ChatGPT exports the completed, structured PRD as markdown
 
-6. **Upload to END_CAP Agent Factory**: User uploads the completed PRD to our platform
+6. **Upload to AI Agent Factory**: User uploads the completed PRD to our platform
 
 7. **Agent Creation**: Our AI Factory automatically creates the AI agent based on the PRD specifications
 
@@ -156,7 +156,7 @@ The platform includes a comprehensive environment management system:
 
 9. **Deployment**: Agent is deployed and made available for use
 
-This workflow preserves creative freedom while ensuring structured requirements gathering. The END_CAP Agent Factory focuses on **agent creation from completed PRDs**, not PRD creation or formatting.
+This workflow preserves creative freedom while ensuring structured requirements gathering. The AI Agent Factory focuses on **agent creation from completed PRDs**, not PRD creation or formatting.
 
 ---
 
@@ -206,7 +206,7 @@ npm run dev
 
 ## 🎉 **Ready to Go!**
 
-Your END_CAP Agent Factory is **fully configured** and ready for development:
+Your AI Agent Factory is **fully configured** and ready for development:
 - ✅ **All APIs configured** (Supabase, OpenAI, Google Cloud, GitHub)
 - ✅ **Devin AI integration** with MCP server setup
 - ✅ **OpenAI voice workflow** - Create agents through ChatGPT conversations
@@ -341,7 +341,7 @@ end-cap-agent-factory/
 ## 📋 Enhanced PRD System
 
 ### **Industry Best Practices**
-The END_CAP Agent Factory includes a comprehensive PRD (Product Requirements Document) system that follows industry best practices:
+The AI Agent Factory includes a comprehensive PRD (Product Requirements Document) system that follows industry best practices:
 
 #### **17 Comprehensive Sections**
 - **Required Sections (10)**: Title, Description, Problem Statement, Target Users, User Stories, Requirements, Acceptance Criteria, Technical Requirements (includes API Requirements capture), Success Metrics, Timeline
