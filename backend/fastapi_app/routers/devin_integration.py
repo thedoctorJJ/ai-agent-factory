@@ -106,6 +106,9 @@ def generate_devin_prompt(title: str, description: str, requirements: List[str])
 {chr(10).join(f"- {req}" for req in requirements)}
 
 ## Task for Devin AI with MCP Integration
+
+**IMPORTANT**: You are receiving a **completed, formatted PRD** from the AI Agent Factory platform. This PRD has already been created, validated, and is ready for implementation. Your role is to implement the agent based on these specifications.
+
 Please create a complete AI agent implementation and deploy it automatically using your MCP servers:
 
 ### 1. **Agent Development**

@@ -11,13 +11,37 @@ Devin AI serves as the **execution engine** for the AI Agent Factory platform, r
 │   ChatGPT       │    │  AI Agent       │    │   Devin AI      │
 │   (Voice/Text)  │───▶│  Factory        │───▶│  (Execution)    │
 │   PRD Creation  │    │  Platform       │    │  Agent Creation │
+│   & Validation  │    │  PRD Processing │    │  from PRD       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │                        │
                                 ▼                        ▼
                        ┌─────────────────┐    ┌─────────────────┐
                        │   Dashboard     │    │  Agent          │
                        │   Management    │    │  Repositories   │
+                       │   & Monitoring  │    │  & Deployment   │
                        └─────────────────┘    └─────────────────┘
+```
+
+## 🔄 **Correct Workflow Sequence**
+
+### **Step 1: PRD Creation (Platform Handles)**
+```
+ChatGPT Voice/Text → PRD Creation → Platform Validation → Completed PRD
+```
+
+### **Step 2: Devin AI Receives Completed PRD**
+```
+Platform → Completed PRD → Devin AI → Implementation Planning
+```
+
+### **Step 3: Agent Implementation (Devin AI Handles)**
+```
+PRD → Repository Creation → Code Generation → Database Setup → Deployment
+```
+
+### **Step 4: Platform Integration**
+```
+Devin AI → Agent Registration → Platform Dashboard → Health Monitoring
 ```
 
 ## 📋 **Devin AI's Responsibilities**
@@ -58,11 +82,13 @@ Devin AI serves as the **execution engine** for the AI Agent Factory platform, r
 
 ### **❌ What Devin AI Does NOT Do**
 
-#### **1. PRD Creation**
+#### **1. PRD Creation or Modification**
 - **No PRD Generation**: Devin AI does not create PRDs
+- **No PRD Modification**: Devin AI does not modify or complete PRDs
 - **No Requirements Gathering**: Devin AI does not gather requirements
 - **No User Interaction**: Devin AI does not interact with end users
 - **No Voice Processing**: Devin AI does not handle voice conversations
+- **No PRD Validation**: Devin AI assumes PRDs are complete and valid
 
 #### **2. Platform Management**
 - **No Dashboard Management**: Devin AI does not manage the platform dashboard
@@ -85,10 +111,12 @@ Devin AI serves as the **execution engine** for the AI Agent Factory platform, r
 ## 🔄 **Complete Workflow**
 
 ### **Phase 1: PRD Reception**
-1. **Receive PRD**: Get PRD from AI Agent Factory platform
-2. **Validate PRD**: Ensure PRD is complete and valid
-3. **Parse Requirements**: Extract technical requirements
-4. **Plan Implementation**: Create implementation plan
+1. **Receive Completed PRD**: Get fully formatted PRD from AI Agent Factory platform
+2. **Validate PRD**: Ensure PRD is complete and ready for implementation
+3. **Parse Requirements**: Extract technical requirements from structured PRD
+4. **Plan Implementation**: Create implementation plan based on PRD specifications
+
+**Note**: Devin AI receives a **completed, formatted PRD** - it does NOT create or modify PRDs.
 
 ### **Phase 2: Agent Development**
 1. **Create Repository**: Use GitHub MCP server to create new repository
