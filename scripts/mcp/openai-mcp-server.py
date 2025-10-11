@@ -43,6 +43,8 @@ class OpenAIEndCapMCPServer:
                 return await self.get_prd_template()
             elif method == 'create_prd_from_chatgpt':
                 return await self.create_prd_from_chatgpt(params)
+            elif method == 'register_agent_with_platform':
+                return await self.register_agent_with_platform(params)
             elif method == 'convert_draft_to_template':
                 return await self.convert_draft_to_template(params)
             elif method == 'store_voice_conversation':
@@ -342,6 +344,43 @@ class OpenAIEndCapMCPServer:
                 
         except Exception as e:
             logger.error(f"Error creating PRD from ChatGPT: {e}")
+            return {'error': str(e)}
+    
+    async def register_agent_with_platform(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Register a deployed agent with the AI Agent Factory platform"""
+        try:
+            agent_data = params.get('agent_data', {})
+            
+            if not agent_data:
+                return {'error': 'Agent data is required'}
+            
+            # Make API call to register agent
+            response = requests.post(
+                f'{self.endcap_api_url}/api/v1/agents/register',
+                json=agent_data,
+                timeout=30.0
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return {
+                    'success': True,
+                    'message': 'Agent successfully registered with AI Agent Factory',
+                    'agent_id': result.get('id'),
+                    'agent_name': result.get('name'),
+                    'status': result.get('status'),
+                    'health_status': result.get('health_status'),
+                    'deployment_url': result.get('deployment_url'),
+                    'repository_url': result.get('repository_url')
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': f'Failed to register agent: {response.status_code} - {response.text}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Error registering agent: {e}")
             return {'error': str(e)}
     
     async def store_voice_conversation(self, params: Dict[str, Any]) -> Dict[str, Any]:

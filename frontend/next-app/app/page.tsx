@@ -17,8 +17,19 @@ interface Agent {
   name: string
   description: string
   purpose: string
+  version: string
   status: string
+  repository_url?: string
+  deployment_url?: string
+  health_check_url?: string
+  prd_id?: string
+  devin_task_id?: string
+  capabilities: string[]
+  configuration: Record<string, any>
+  last_health_check?: string
+  health_status?: string
   created_at: string
+  updated_at: string
 }
 
 interface PRD {
@@ -268,25 +279,91 @@ export default function Dashboard() {
               </Card>
             ) : (
               agents.map((agent) => (
-                <Card key={agent.id}>
+                <Card key={agent.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <CardTitle className="flex items-center gap-2 mb-2">
                           {agent.name}
                           <Badge className={getStatusColor(agent.status)}>
                             {agent.status}
                           </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            v{agent.version}
+                          </Badge>
                         </CardTitle>
-                        <CardDescription>{agent.description}</CardDescription>
+                        <CardDescription className="mb-2">{agent.description}</CardDescription>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant={agent.health_status === 'healthy' ? 'default' : 
+                                    agent.health_status === 'unhealthy' ? 'destructive' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {agent.health_status || 'unknown'}
+                          </Badge>
+                          {agent.last_health_check && (
+                            <span className="text-xs text-muted-foreground">
+                              Last check: {new Date(agent.last_health_check).toLocaleTimeString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <p className="text-sm text-muted-foreground mb-3">
                       <strong>Purpose:</strong> {agent.purpose}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    
+                    {agent.capabilities.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium mb-1">Capabilities:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {agent.capabilities.slice(0, 3).map((capability, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {capability}
+                            </Badge>
+                          ))}
+                          {agent.capabilities.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{agent.capabilities.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2 mb-3">
+                      {agent.repository_url && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={agent.repository_url} target="_blank" rel="noopener noreferrer">
+                            <Github className="h-4 w-4 mr-2" />
+                            Repository
+                          </a>
+                        </Button>
+                      )}
+                      {agent.deployment_url && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={agent.deployment_url} target="_blank" rel="noopener noreferrer">
+                            <Activity className="h-4 w-4 mr-2" />
+                            Deploy
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        Metrics
+                      </Button>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground mt-2">
                       Created: {new Date(agent.created_at).toLocaleDateString()}
                     </p>
                   </CardContent>
