@@ -15,6 +15,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [Devin AI Role and Boundaries](./docs/architecture/22-devin-ai-role-and-boundaries.md) — comprehensive guide for Devin AI integration boundaries.
 - [Architecture Clarification](./docs/architecture/23-architecture-clarification.md) — architecture decisions and clarifications.
 - [Codebase Refactoring](./docs/architecture/24-codebase-refactoring.md) — comprehensive documentation of the major architectural refactoring.
+- [File Organization](./docs/architecture/25-file-organization.md) — detailed documentation of file structure organization and cleanup.
 
 ### 🛠️ Setup & Configuration
 - [Accounts and APIs Setup Guide](./docs/setup/09-accounts-and-apis-setup.md) — complete guide for setting up all required accounts and APIs.
@@ -235,10 +236,27 @@ git filter-branch --force --index-filter \
 ```
 ai-agent-factory/
 ├── backend/              # FastAPI backend application
+│   ├── fastapi_app/     # Main application code
+│   │   ├── models/      # Pydantic data models (refactored)
+│   │   ├── services/    # Business logic layer (refactored)
+│   │   ├── routers/     # API routes (refactored)
+│   │   ├── utils/       # Error handling and validation
+│   │   └── archive/     # Archived old files
+│   └── requirements.txt # Python dependencies
 ├── frontend/             # Next.js frontend application
+│   └── next-app/        # Next.js application
+│       ├── components/  # React components
+│       │   ├── common/  # Reusable UI components (refactored)
+│       │   └── ui/      # shadcn/ui components
+│       ├── hooks/       # Custom React hooks (refactored)
+│       ├── lib/         # API client (refactored)
+│       ├── types/       # TypeScript definitions (refactored)
+│       └── archive/     # Archived old components
 ├── docs/                 # Comprehensive documentation
-│   ├── summaries/        # Project summaries and status reports
-│   └── [18 guide files]  # Detailed documentation guides
+│   ├── architecture/    # Architecture documentation
+│   ├── setup/           # Setup guides
+│   ├── guides/          # User guides
+│   └── summaries/       # Project summaries
 ├── scripts/              # Organized automation scripts
 │   ├── mcp/             # MCP server scripts and configs
 │   ├── config/          # Configuration management scripts
@@ -258,6 +276,7 @@ ai-agent-factory/
 │   ├── tool-library/    # Reusable tools and utilities
 │   └── mcp-service-template/ # MCP service templates
 ├── infra/                # Infrastructure and deployment configs
+├── .gitignore           # Git ignore rules
 └── README.md             # This file
 ```
 
@@ -397,6 +416,8 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 - [x] **🎯 Reusable Components** - Modular frontend components and custom React hooks
 - [x] **⚡ Improved Error Handling** - Custom exceptions and standardized error responses
 - [x] **📱 API Client Refactoring** - Centralized, type-safe API communication layer
+- [x] **🗂️ File Organization** - Clean folder structure with archived old files and proper .gitignore
+- [x] **🧹 Code Cleanup** - Removed duplicate files and organized refactored components
 
 ### 🚧 In Progress
 - [ ] Advanced agent orchestration features
