@@ -74,14 +74,23 @@ export default function Dashboard() {
       if (agentsRes.ok) {
         const agentsData = await agentsRes.json()
         setAgents(agentsData)
+      } else {
+        console.error('Failed to fetch agents:', agentsRes.status)
+        setAgents([]) // Clear agents if fetch fails
       }
       
       if (prdsRes.ok) {
         const prdsData = await prdsRes.json()
         setPrds(prdsData)
+      } else {
+        console.error('Failed to fetch PRDs:', prdsRes.status)
+        setPrds([]) // Clear PRDs if fetch fails
       }
     } catch (error) {
       console.error('Error fetching data:', error)
+      // Clear data on error to prevent stale state
+      setAgents([])
+      setPrds([])
     } finally {
       setLoading(false)
     }
@@ -120,9 +129,14 @@ export default function Dashboard() {
           // Remove the agent from the local state
           setAgents(agents.filter(agent => agent.id !== agentId))
         } else {
-          console.error('Failed to delete agent')
+          const errorData = await response.json().catch(() => ({}))
+          const errorMessage = errorData.detail || `Failed to delete agent (${response.status})`
+          alert(`Error: ${errorMessage}`)
+          console.error('Failed to delete agent:', errorMessage)
         }
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        alert(`Error deleting agent: ${errorMessage}`)
         console.error('Error deleting agent:', error)
       }
     }
