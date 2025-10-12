@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -18,7 +18,7 @@ interface Agent {
   created_at: string
 }
 
-export default function SuccessPage() {
+function SuccessPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [agent, setAgent] = useState<Agent | null>(null)
@@ -284,5 +284,22 @@ export default function SuccessPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 text-blue-500 animate-spin mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900">Loading...</h1>
+          </div>
+        </div>
+      </div>
+    }>
+      <SuccessPageContent />
+    </Suspense>
   )
 }

@@ -8,33 +8,35 @@ This repository contains all core infrastructure, libraries, and documentation t
 
 ## 📚 Documentation
 
-### 1. Core Platform
-- [Infrastructure Blueprint](./docs/01-infrastructure-blueprint.md) — folder structure, frontend/backend setup, hosting, AI core, and key principles.
-- [DevOps & Deployment Flow](./docs/02-devops-deployment-flow.md) — local dev, CI/CD, monitoring, and rollback.
-- [Agent Lifecycle Framework](./docs/03-agent-lifecycle-framework.md) — lifecycle stages, metadata, versioning, and governance.
+### 🏗️ Architecture
+- [Infrastructure Blueprint](./docs/architecture/01-infrastructure-blueprint.md) — folder structure, frontend/backend setup, hosting, AI core, and key principles.
+- [Platform Architecture Diagram](./docs/architecture/08-platform-architecture-diagram.md) — full architecture overview, data flow, and component interaction.
+- [Architectural Improvements Summary](./docs/architecture/21-architectural-improvements-summary.md) — detailed review of code and architecture improvements.
+- [Devin AI Role and Boundaries](./docs/architecture/22-devin-ai-role-and-boundaries.md) — comprehensive guide for Devin AI integration boundaries.
+- [Architecture Clarification](./docs/architecture/23-architecture-clarification.md) — architecture decisions and clarifications.
 
-### 2. Specialized Integration
-- [Devin AI Integration Framework](./docs/04-devin-ai-integration.md) — autonomous agent orchestration and execution.
-- [UI Integration & Transition Layer](./docs/06-ui-integration.md) — Next.js + shadcn dashboard for monitoring and execution.
-- [GitHub MCP Service](./docs/07-github-mcp-service.md) — automated repository creation for each new PRD.
-  
-#### Roadmap & PRD Management
-- PRD Types — `platform` vs `agent` streams with filters and views
-- Roadmap Dashboard — prioritization, kanban, analytics
-- Architecture Agent — continuous architecture review; proposals flow Architecture Agent → Devin AI → Platform Owner
+### 🛠️ Setup & Configuration
+- [Accounts and APIs Setup Guide](./docs/setup/09-accounts-and-apis-setup.md) — complete guide for setting up all required accounts and APIs.
+- [Devin MCP Setup Guide](./docs/setup/10-devin-mcp-setup.md) — step-by-step guide for configuring Devin AI MCP integration.
+- [MCP Server Setup Guide](./docs/setup/13-mcp-server-setup-guide.md) — comprehensive MCP server configuration guide.
+- [Unified MCP Setup Guide](./docs/setup/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
 
-### 3. Supporting / Visualization
-- [Platform Architecture Diagram](./docs/08-platform-architecture-diagram.md) — full architecture overview, data flow, and component interaction.
-- [Accounts and APIs Setup Guide](./docs/09-accounts-and-apis-setup.md) — complete guide for setting up all required accounts and APIs.
-- [MCP Server Setup Guide](./docs/13-mcp-server-setup-guide.md) — step-by-step guide for configuring the MCP server in Devin AI.
-- [Unified MCP Setup Guide](./docs/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
-- [Security Improvements](./docs/17-security-improvements.md) — security check fixes and GitHub sync improvements.
-- [Agent Repository Strategy](./docs/19-agent-repository-strategy.md) — comprehensive guide for separate repository strategy implementation.
+### 📖 Implementation Guides
+- [DevOps & Deployment Flow](./docs/guides/02-devops-deployment-flow.md) — local dev, CI/CD, monitoring, and rollback.
+- [Agent Lifecycle Framework](./docs/guides/03-agent-lifecycle-framework.md) — lifecycle stages, metadata, versioning, and governance.
+- [Devin AI Integration Framework](./docs/guides/04-devin-ai-integration.md) — autonomous agent orchestration and execution.
+- [UI Integration & Transition Layer](./docs/guides/06-ui-integration.md) — Next.js + shadcn dashboard for monitoring and execution.
+- [GitHub MCP Service](./docs/guides/07-github-mcp-service.md) — automated repository creation for each new PRD.
+- [Security Improvements](./docs/guides/17-security-improvements.md) — security check fixes and GitHub sync improvements.
+- [Agent Repository Strategy](./docs/guides/19-agent-repository-strategy.md) — comprehensive guide for separate repository strategy implementation.
+- [Repository Strategy Quick Reference](./docs/guides/20-repository-strategy-quick-reference.md) — quick reference for repository management.
 
-### 4. Project Management
-- [Directory Reorganization](./DIRECTORY_REORGANIZATION.md) — summary of directory structure improvements and organization.
-- [Environment Organization](./ENVIRONMENT_ORGANIZATION.md) — comprehensive environment management system documentation.
-- [Architecture Review Summary](./ARCHITECTURE_REVIEW_SUMMARY.md) — detailed review of code and architecture improvements.
+### 📊 Project Summaries
+- [Architecture Review Summary](./docs/summaries/ARCHITECTURE_REVIEW_SUMMARY.md) — detailed review of code and architecture improvements.
+- [Directory Reorganization](./docs/summaries/DIRECTORY_REORGANIZATION.md) — summary of directory structure improvements and organization.
+- [Documentation Update Summary](./docs/summaries/DOCUMENTATION_UPDATE_SUMMARY.md) — comprehensive documentation updates and improvements.
+- [Environment Organization](./docs/summaries/ENVIRONMENT_ORGANIZATION.md) — comprehensive environment management system documentation.
+- [Final Status Summary](./docs/summaries/FINAL_STATUS_SUMMARY.md) — current project status and next steps.
 
 ---
 
@@ -350,6 +352,8 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 - [x] **PRD-First UI Design** - Home page prominently features PRD submission as primary entry point
 - [x] **Guided Questions System** - Interactive completion workflow
 - [x] **Voice-First PRD Creation** - Standardized markdown output for Devin AI
+- [x] **Project Structure Cleanup** - Organized documentation, removed cache files, cleaned up codebase
+- [x] **Code Quality Improvements** - Fixed linting issues, removed unused imports, improved error handling
 - [x] **PRD Markdown Export** - Professional documentation ready for sharing
 - [x] **Directory Structure Optimization** - Clean, logical organization of all project files
 - [x] **Environment Management System** - Professional config file organization with backup system

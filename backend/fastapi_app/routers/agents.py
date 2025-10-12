@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from datetime import datetime
 import uuid
 import httpx
-import asyncio
 
 router = APIRouter()
 
