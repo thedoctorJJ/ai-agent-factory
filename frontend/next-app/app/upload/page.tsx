@@ -16,6 +16,8 @@ export default function UploadPage() {
   const [prdType, setPrdType] = useState<'agent' | 'platform'>('agent')
   const [detectedType, setDetectedType] = useState<'agent' | 'platform' | null>(null)
   const [copied, setCopied] = useState(false)
+  const [uploadedPRD, setUploadedPRD] = useState<any>(null)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const detectTypeFromContent = async (content: string) => {
@@ -129,8 +131,18 @@ export default function UploadPage() {
           setPrdType(result.prd_type)
         }
         
-        // Automatically create agent after PRD upload
-        await createAgentFromPRD(result)
+        // Store the uploaded PRD and show success
+        setUploadedPRD(result)
+        setShowSuccessMessage(true)
+        
+        // Clear the form
+        setSelectedFile(null)
+        setPastedContent('')
+        
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false)
+        }, 5000)
       } else {
         const error = await response.json()
         alert(`Upload failed: ${error.detail}`)
@@ -168,8 +180,18 @@ export default function UploadPage() {
           setPrdType(result.prd_type)
         }
         
-        // Automatically create agent after PRD upload
-        await createAgentFromPRD(result)
+        // Store the uploaded PRD and show success
+        setUploadedPRD(result)
+        setShowSuccessMessage(true)
+        
+        // Clear the form
+        setSelectedFile(null)
+        setPastedContent('')
+        
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false)
+        }, 5000)
       } else {
         const error = await response.json()
         alert(`Upload failed: ${error.detail}`)
@@ -218,53 +240,50 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* PRD Type Selection */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>PRD Type</CardTitle>
-              {detectedType && (
-                <Badge variant="secondary" className="text-xs">Auto-detected</Badge>
-              )}
-            </div>
-            <CardDescription>
-              {detectedType ? (
-                `Auto-detected as ${detectedType} PRD`
-              ) : (
-                "Select the type of PRD you're uploading"
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <Button
-                type="button"
-                variant={prdType === 'agent' ? 'default' : 'outline'}
-                onClick={() => setPrdType('agent')}
-                className="flex items-center gap-2"
-              >
-                <Bot className="h-4 w-4" />
-                Agent PRD
-                {detectedType === 'agent' && <Check className="h-3 w-3 ml-1" />}
-              </Button>
-              <Button
-                type="button"
-                variant={prdType === 'platform' ? 'default' : 'outline'}
-                onClick={() => setPrdType('platform')}
-                className="flex items-center gap-2"
-              >
-                <Building className="h-4 w-4" />
-                Platform PRD
-                {detectedType === 'platform' && <Check className="h-3 w-3 ml-1" />}
-              </Button>
-            </div>
-            {detectedType && (
-              <p className="text-sm text-muted-foreground mt-2">
-                💡 You can override the auto-detected type by clicking the other button above
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Success Message */}
+        {showSuccessMessage && uploadedPRD && (
+          <Card className="mb-6 border-green-200 bg-green-50">
+            <CardHeader>
+              <CardTitle className="text-green-800 flex items-center gap-2">
+                <Check className="h-5 w-5" />
+                PRD Uploaded Successfully!
+              </CardTitle>
+              <CardDescription className="text-green-700">
+                Your PRD has been uploaded and is now available in the PRDs tab.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-green-700 border-green-300">
+                    {uploadedPRD.prd_type || 'agent'} PRD
+                  </Badge>
+                  <span className="text-sm text-green-700">
+                    ID: {uploadedPRD.id}
+                  </span>
+                </div>
+                <p className="text-sm text-green-700">
+                  <strong>Title:</strong> {uploadedPRD.title}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => router.push('/?tab=prds')}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    View in PRDs Tab
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSuccessMessage(false)}
+                    className="border-green-300 text-green-700 hover:bg-green-100"
+                  >
+                    Continue Uploading
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* File Upload Option */}

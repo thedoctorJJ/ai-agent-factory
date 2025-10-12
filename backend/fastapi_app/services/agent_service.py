@@ -200,6 +200,18 @@ class AgentService:
 
     async def delete_agent(self, agent_id: str) -> Dict[str, str]:
         """Delete an agent."""
+        # Try to delete from database first
+        try:
+            if db_manager.is_connected():
+                success = await db_manager.delete_agent(agent_id)
+                if success:
+                    return {"message": "Agent deleted successfully"}
+                else:
+                    raise HTTPException(status_code=404, detail="Agent not found")
+        except Exception as e:
+            print(f"Database delete failed, trying in-memory storage: {e}")
+
+        # Fallback to in-memory storage
         if agent_id not in self._agents_db:
             raise HTTPException(status_code=404, detail="Agent not found")
 

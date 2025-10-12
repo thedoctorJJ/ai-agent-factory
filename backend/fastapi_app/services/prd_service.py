@@ -12,6 +12,7 @@ from ..models.prd import (
     PRDListResponse, PRDMarkdownResponse
 )
 from ..utils.database import db_manager
+from .prd_parser import PRDParser
 
 
 class PRDService:
@@ -24,6 +25,7 @@ class PRDService:
             "statuses": ["backlog", "planned", "in_progress", "review", "completed"],
             "priorities": ["low", "medium", "high", "critical"]
         }
+        self.parser = PRDParser()
 
     async def create_prd(self, prd_data: PRDCreate) -> PRDResponse:
         """Create a new PRD."""
@@ -236,7 +238,7 @@ class PRDService:
             )
 
         # Parse the file content
-        parsed_data = self._parse_prd_content(content_str)
+        parsed_data = self._parse_prd_content(content_str, file.filename)
 
         # Detect PRD type
         detected_type = self._detect_prd_type(content_str)
@@ -278,88 +280,42 @@ class PRDService:
             filename=filename
         )
 
-    def _parse_prd_content(self, content: str) -> Dict[str, Any]:
-        """Parse PRD content from markdown/text."""
-        lines = content.strip().split('\n')
-
-        # Initialize parsed data with defaults
-        parsed_data = {
-            "title": "Uploaded PRD",
-            "description": "",
-            "requirements": [],
-            "problem_statement": "",
-            "target_users": [],
-            "user_stories": [],
-            "acceptance_criteria": [],
-            "technical_requirements": [],
-            "performance_requirements": {},
-            "security_requirements": [],
-            "integration_requirements": [],
-            "deployment_requirements": [],
-            "success_metrics": [],
-            "timeline": "",
-            "dependencies": [],
-            "risks": [],
-            "assumptions": []
-        }
-
+    def _parse_prd_content(self, content: str, filename: str = None) -> Dict[str, Any]:
+        """Parse PRD content using comprehensive parser."""
         try:
-            # Extract title from first line or first heading
-            first_line = lines[0].strip() if lines else ""
-            if first_line.startswith('#'):
-                parsed_data["title"] = first_line[1:].strip()
-            elif first_line and not first_line.startswith('#'):
-                parsed_data["title"] = first_line[:100]  # Limit title length
-
-            # Extract description from content
-            description_lines = []
-            in_description = False
-
-            for line in lines:
-                line = line.strip()
-                if line.startswith('##') and 'description' in line.lower():
-                    in_description = True
-                    continue
-                elif line.startswith('##') and in_description:
-                    break
-                elif in_description and line:
-                    description_lines.append(line)
-
-            if description_lines:
-                parsed_data["description"] = ' '.join(description_lines)[:500]
-            else:
-                # Fallback: use first few lines as description
-                parsed_data["description"] = ' '.join(lines[:3])[:500]
-
-            # Extract requirements
-            requirements = []
-            in_requirements = False
-
-            for line in lines:
-                line = line.strip()
-                if 'requirement' in line.lower() and line.startswith('#'):
-                    in_requirements = True
-                    continue
-                elif line.startswith('##') and in_requirements:
-                    break
-                elif in_requirements and (
-                    line.startswith('-') or
-                    line.startswith('*') or
-                    line.startswith('1.')
-                ):
-                    req = re.sub(r'^[-*]\s*|\d+\.\s*', '', line).strip()
-                    if req:
-                        requirements.append(req)
-
-            # Limit to 10 requirements
-            parsed_data["requirements"] = requirements[:10]
-
-        except Exception:
+            # Use the comprehensive PRD parser
+            parsed_data = self.parser.parse_prd_content(content, filename)
+            
+            # Validate the parsed structure
+            validation = self.parser.validate_prd_structure(parsed_data)
+            
+            # Add validation info to parsed data
+            parsed_data['validation'] = validation
+            
+            return parsed_data
+        except Exception as e:
             # Return basic structure if parsing fails
-            parsed_data["description"] = content[:500] + \
-                "..." if len(content) > 500 else content
+            return {
+                "title": "Uploaded PRD",
+                "description": content[:500] + "..." if len(content) > 500 else content,
+                "requirements": [],
+                "problem_statement": "",
+                "target_users": [],
+                "user_stories": [],
+                "acceptance_criteria": [],
+                "technical_requirements": [],
+                "performance_requirements": {},
+                "security_requirements": [],
+                "integration_requirements": [],
+                "deployment_requirements": [],
+                "success_metrics": [],
+                "timeline": "",
+                "dependencies": [],
+                "risks": [],
+                "assumptions": [],
+                "validation": {"is_valid": False, "errors": [f"Parsing failed: {str(e)}"], "warnings": [], "completeness_score": 0}
+            }
 
-        return parsed_data
 
     def _detect_prd_type(self, content: str) -> str:
         """Detect if PRD is for platform or agent based on content."""

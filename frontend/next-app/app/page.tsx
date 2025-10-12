@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -40,17 +41,24 @@ interface PRD {
 }
 
 export default function Dashboard() {
+  const searchParams = useSearchParams()
   const [agents, setAgents] = useState<Agent[]>([])
   const [prds, setPrds] = useState<PRD[]>([])
   const [loading, setLoading] = useState(true)
   const [prdTypeFilter, setPrdTypeFilter] = useState<'all' | 'platform' | 'agent'>('all')
   const [prdStatusFilter, setPrdStatusFilter] = useState<string>('all')
   const [showQueueSection, setShowQueueSection] = useState(false)
+  const [showReadyForDevinSection, setShowReadyForDevinSection] = useState(false)
   const [showProcessedSection, setShowProcessedSection] = useState(false)
   const [showAgentsSection, setShowAgentsSection] = useState(false)
   const [showInProgressSection, setShowInProgressSection] = useState(false)
   const [showCompletedSection, setShowCompletedSection] = useState(false)
   const [showFailedSection, setShowFailedSection] = useState(false)
+  const [showSubmitPRDSection, setShowSubmitPRDSection] = useState(true)
+  const [activeTab, setActiveTab] = useState<string>('')
+  
+  // Get default tab from URL params
+  const defaultTab = searchParams.get('tab') || 'prds'
 
   const activeAgentsCount = useMemo(() => 
     Array.isArray(agents) ? agents.filter(a => a.status === 'active').length : 0,
@@ -103,6 +111,10 @@ export default function Dashboard() {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    setActiveTab(defaultTab)
+  }, [defaultTab])
+
   const fetchData = async () => {
     try {
       const [agentsRes, prdsRes] = await Promise.all([
@@ -135,6 +147,14 @@ export default function Dashboard() {
     }
   }
 
+  // Click handlers for metric cards
+  const handlePRDCardClick = () => {
+    setActiveTab('prds')
+  }
+
+  const handleAgentsCardClick = () => {
+    setActiveTab('agents')
+  }
 
   const downloadPRDMarkdown = async (prdId: string, title: string) => {
     try {
@@ -373,7 +393,10 @@ export default function Dashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={handlePRDCardClick}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total PRDs submitted</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -383,7 +406,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={handlePRDCardClick}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">PRDs Processed</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
@@ -395,7 +421,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={handleAgentsCardClick}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Agents Created</CardTitle>
             <Bot className="h-4 w-4 text-muted-foreground" />
@@ -409,118 +438,275 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <Tabs defaultValue="create" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="create">Submit PRD</TabsTrigger>
           <TabsTrigger value="prds">PRDs</TabsTrigger>
           <TabsTrigger value="devin">Create Agent</TabsTrigger>
           <TabsTrigger value="agents">Agents</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="create" className="space-y-6">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold">Submit Your PRD</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <TabsContent value="prds" className="space-y-6">
+          {/* Submit PRD Section - Collapsible */}
+          <div className="space-y-2">
+            <Button
+              variant="ghost"
+              onClick={() => setShowSubmitPRDSection(!showSubmitPRDSection)}
+              className="w-full justify-between p-4 h-auto bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-semibold text-green-800">Submit Your PRD</h2>
+                <Badge variant="secondary" className="bg-green-200 text-green-800">
+                  Upload & Workflow
+                </Badge>
+              </div>
+              {showSubmitPRDSection ? <ChevronUp className="h-4 w-4 text-green-600" /> : <ChevronDown className="h-4 w-4 text-green-600" />}
+            </Button>
+            <p className="text-muted-foreground">
               Upload your completed PRD and watch it automatically transform into a deployed AI agent. 
               Our streamlined workflow handles everything from parsing to deployment.
             </p>
           </div>
 
-          {/* Streamlined Workflow */}
-          <div className="max-w-4xl mx-auto">
-            <Card className="border-2 border-green-200 hover:border-green-300 transition-all duration-200 shadow-lg">
-              <CardHeader className="text-center pb-4">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mb-4">
-                  <Bot className="h-10 w-10 text-green-600" />
-                </div>
-                <CardTitle className="text-2xl text-green-800">Automated PRD-to-Agent Pipeline</CardTitle>
-                <CardDescription className="text-base text-green-700">
-                  One upload, fully automated agent creation and deployment
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Streamlined Process */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                    <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
-                    PRDs
-                  </h4>
-                   <p className="text-blue-700 text-sm mb-3">
-                     Upload your completed PRD file or paste the content. Your PRD will be added to the queue to create an AI agent.
-                   </p>
-                  <Button 
-                    onClick={() => window.location.href = '/upload'}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    size="lg"
-                  >
-                    <Upload className="h-5 w-5 mr-2" />
-                    Upload PRD
-                  </Button>
-                </div>
+          {showSubmitPRDSection && (
+            <div className="space-y-6">
+              {/* Streamlined Workflow */}
+              <div className="max-w-4xl mx-auto">
+                <Card className="border-2 border-green-200 hover:border-green-300 transition-all duration-200 shadow-lg">
+                  <CardHeader className="text-center pb-4">
+                    <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mb-4">
+                      <Bot className="h-10 w-10 text-green-600" />
+                    </div>
+                    <CardTitle className="text-2xl text-green-800">Automated PRD-to-Agent Pipeline</CardTitle>
+                    <CardDescription className="text-base text-green-700">
+                      One upload, fully automated agent creation and deployment
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Streamlined Process */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
+                        PRDs
+                      </h4>
+                       <p className="text-blue-700 text-sm mb-3">
+                         Upload your completed PRD file or paste the content. Your PRD will be added to the queue to create an AI agent.
+                       </p>
+                      <Button 
+                        onClick={() => window.location.href = '/upload'}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        size="lg"
+                      >
+                        <Upload className="h-5 w-5 mr-2" />
+                        Upload PRD
+                      </Button>
+                    </div>
 
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
-                    <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm">2</span>
-                    Create Agent
-                  </h4>
-                  <p className="text-green-700 text-sm mb-3">
-                    Select a PRD and let Devin AI automatically create your agent, set up the repository, and deploy it to the cloud. 
-                    Watch the progress in real-time with our progress bar.
-                  </p>
-                </div>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm">2</span>
+                        Create Agent
+                      </h4>
+                      <p className="text-green-700 text-sm mb-3">
+                        Select a PRD and let Devin AI automatically create your agent, set up the repository, and deploy it to the cloud. 
+                        Watch the progress in real-time with our progress bar.
+                      </p>
+                    </div>
 
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                    <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">3</span>
-                    Agents
-                  </h4>
-                  <p className="text-purple-700 text-sm">
-                    Your agent is deployed and ready to use! View it in the Agents tab with full traceability back to the original PRD.
-                  </p>
-                </div>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                        <span className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">3</span>
+                        Agents
+                      </h4>
+                      <p className="text-purple-700 text-sm">
+                        Your agent is deployed and ready to use! View it in the Agents tab with full traceability back to the original PRD.
+                      </p>
+                    </div>
 
-                {/* Key Benefits */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    {/* Key Benefits */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Zero-Click Deployment</p>
+                          <p className="text-xs text-muted-foreground">Fully automated from PRD to live agent</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Real-time Progress</p>
+                          <p className="text-xs text-muted-foreground">Watch agent creation with live updates</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Full Traceability</p>
+                          <p className="text-xs text-muted-foreground">PRD-to-Agent connection maintained</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">Repository Management</p>
+                          <p className="text-xs text-muted-foreground">Organized PRD queue and processed agents</p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">Zero-Click Deployment</p>
-                      <p className="text-xs text-muted-foreground">Fully automated from PRD to live agent</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Real-time Progress</p>
-                      <p className="text-xs text-muted-foreground">Watch agent creation with live updates</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Full Traceability</p>
-                      <p className="text-xs text-muted-foreground">PRD-to-Agent connection maintained</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">Repository Management</p>
-                      <p className="text-xs text-muted-foreground">Organized PRD queue and processed agents</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {/* PRD Repository Section */}
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold">PRD Repository</h2>
+            <p className="text-muted-foreground">
+              View your uploaded Product Requirements Documents organized by status. PRDs flow through the workflow:
+              Queue → Ready for Devin → In Progress → Completed (or Failed). Each status shows the current state of your PRDs in the agent creation process.
+            </p>
           </div>
+
+          {/* PRDs by Status */}
+          {Object.keys(prdsByStatus || {}).length > 0 ? (
+            Object.entries(prdsByStatus || {}).map(([status, statusPrds]) => {
+              const getToggleHandler = (status: string) => {
+                if (status === 'queue') return () => setShowQueueSection(!showQueueSection)
+                if (status === 'ready_for_devin') return () => setShowReadyForDevinSection(!showReadyForDevinSection)
+                if (status === 'in_progress') return () => setShowInProgressSection(!showInProgressSection)
+                if (status === 'completed') return () => setShowCompletedSection(!showCompletedSection)
+                if (status === 'failed') return () => setShowFailedSection(!showFailedSection)
+                return () => {}
+              }
+
+              const getShowState = (status: string) => {
+                if (status === 'queue') return showQueueSection
+                if (status === 'ready_for_devin') return showReadyForDevinSection
+                if (status === 'in_progress') return showInProgressSection
+                if (status === 'completed') return showCompletedSection
+                if (status === 'failed') return showFailedSection
+                return false
+              }
+
+              const getStatusConfig = (status: string) => {
+                const configs = {
+                  queue: { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: '⏳' },
+                  ready_for_devin: { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: '🤖' },
+                  in_progress: { color: 'bg-orange-100 text-orange-800 border-orange-200', icon: '⚙️' },
+                  completed: { color: 'bg-green-100 text-green-800 border-green-200', icon: '✅' },
+                  failed: { color: 'bg-red-100 text-red-800 border-red-200', icon: '❌' },
+                  processed: { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: '🎯' }
+                }
+                return configs[status as keyof typeof configs] || { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: '❓' }
+              }
+
+              const statusConfig = getStatusConfig(status)
+              const isExpanded = getShowState(status)
+
+              return (
+                <div key={status} className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    onClick={getToggleHandler(status)}
+                    className="w-full justify-between p-4 h-auto hover:bg-gray-50 border rounded-lg transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{statusConfig.icon}</span>
+                      <h3 className="text-lg font-semibold capitalize">
+                        {status.replace('_', ' ')} PRDs
+                      </h3>
+                      <Badge variant="secondary" className={statusConfig.color}>
+                        {statusPrds.length}
+                      </Badge>
+                    </div>
+                    {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                  
+                  {isExpanded && (
+                    <div className="grid gap-4">
+                      {statusPrds.map((prd) => (
+                        <Card key={prd.id} className="hover:shadow-md transition-shadow">
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <CardTitle className="flex items-center gap-2 mb-2">
+                                  {prd.title}
+                                  <Badge className={statusConfig.color}>
+                                    {prd.status}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {prd.prd_type}
+                                  </Badge>
+                                </CardTitle>
+                                <CardDescription className="mb-2">
+                                  {prd.description || 'No description available'}
+                                </CardDescription>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                  <span>ID: {prd.id}</span>
+                                  <span>Created: {new Date(prd.created_at).toLocaleDateString()}</span>
+                                  {prd.updated_at && (
+                                    <span>Updated: {new Date(prd.updated_at).toLocaleDateString()}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => viewPRDMarkdown(prd.id)}
+                                >
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                                {status === 'ready_for_devin' && (
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => markPRDReadyForDevin(prd.id)}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                  >
+                                    <Bot className="h-4 w-4 mr-1" />
+                                    Process with Devin
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => deletePRD(prd.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold mb-2">No PRDs Found</h3>
+              <p className="mb-4">Upload your first PRD to get started with the AI Agent Factory.</p>
+              <p className="text-sm text-gray-500 mb-4">PRDs should be uploaded through the upload interface.</p>
+              <Button onClick={() => window.location.href = '/upload'}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload PRD
+              </Button>
+            </div>
+          )}
 
         </TabsContent>
 
@@ -555,7 +741,6 @@ export default function Dashboard() {
                   <p className="text-muted-foreground text-center mb-4">
                     Create your first AI agent by submitting a PRD
                   </p>
-                  <Button>Create First Agent</Button>
                 </CardContent>
               </Card>
             ) : (
@@ -658,67 +843,6 @@ export default function Dashboard() {
                 </Card>
               ))
             )}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="prds" className="space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold">PRD Repository</h2>
-            <p className="text-muted-foreground">
-              View your uploaded Product Requirements Documents organized by status. PRDs flow through the workflow: 
-              Queue → In Progress → Completed (or Failed). Each status shows the current state of your PRDs in the agent creation process.
-            </p>
-          </div>
-          
-          {/* PRDs by Status */}
-          {Object.keys(prdsByStatus || {}).length > 0 ? (
-            Object.entries(prdsByStatus || {}).map(([status, statusPrds]) => {
-              const getToggleHandler = (status: string) => {
-                switch (status) {
-                  case 'queue': return () => setShowQueueSection(!showQueueSection)
-                  case 'in_progress': return () => setShowInProgressSection(!showInProgressSection)
-                  case 'completed': return () => setShowCompletedSection(!showCompletedSection)
-                  case 'failed': return () => setShowFailedSection(!showFailedSection)
-                  case 'processed': return () => setShowProcessedSection(!showProcessedSection)
-                  default: return () => {}
-                }
-              }
-
-              const getIsExpanded = (status: string) => {
-                switch (status) {
-                  case 'queue': return showQueueSection
-                  case 'in_progress': return showInProgressSection
-                  case 'completed': return showCompletedSection
-                  case 'failed': return showFailedSection
-                  case 'processed': return showProcessedSection
-                  default: return false
-                }
-              }
-
-              return (
-                <PRDStatusSection
-                  key={status}
-                  status={status}
-                  prds={statusPrds}
-                  isExpanded={getIsExpanded(status)}
-                  onToggle={getToggleHandler(status)}
-                  onDelete={deletePRD}
-                  onDownload={downloadPRDMarkdown}
-                  generateAgentDescription={generateAgentDescription}
-                />
-              )
-            })
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-semibold mb-2">No PRDs Found</h3>
-              <p className="mb-4">Upload your first PRD to get started with the AI Agent Factory.</p>
-              <p className="text-sm text-gray-500 mb-4">PRDs should be uploaded through the upload interface.</p>
-              <Button onClick={() => window.location.href = '/upload'}>
-                <Upload className="h-4 w-4 mr-2" />
-                Go to Upload Page
-              </Button>
             </div>
           )}
         </TabsContent>

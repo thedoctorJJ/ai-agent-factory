@@ -12,6 +12,7 @@ CREATE TYPE prd_priority AS ENUM ('low', 'medium', 'high', 'critical');
 CREATE TYPE prd_effort AS ENUM ('small', 'medium', 'large', 'epic');
 CREATE TYPE agent_status AS ENUM ('draft', 'active', 'inactive', 'deprecated', 'error');
 CREATE TYPE agent_health_status AS ENUM ('healthy', 'degraded', 'unhealthy', 'unknown');
+CREATE TYPE agent_type AS ENUM ('web_app', 'api_service', 'data_processor', 'automation_script', 'ai_model', 'integration', 'other');
 CREATE TYPE devin_task_status AS ENUM ('pending', 'in_devin', 'completed', 'failed', 'cancelled');
 
 -- PRDs Table
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS agents (
     name VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
     purpose TEXT NOT NULL,
+    agent_type agent_type NOT NULL DEFAULT 'other',
     version VARCHAR(50) NOT NULL DEFAULT '1.0.0',
     status agent_status NOT NULL DEFAULT 'draft',
     health_status agent_health_status NOT NULL DEFAULT 'unknown',

@@ -9,12 +9,11 @@ from enum import Enum
 
 class AgentStatus(str, Enum):
     """Agent status enumeration."""
-    PENDING = "pending"
-    DEPLOYED = "deployed"
-    RUNNING = "running"
-    STOPPED = "stopped"
-    FAILED = "failed"
-    MAINTENANCE = "maintenance"
+    DRAFT = "draft"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    DEPRECATED = "deprecated"
+    ERROR = "error"
 
 
 class AgentHealthStatus(str, Enum):

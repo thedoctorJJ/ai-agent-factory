@@ -258,10 +258,7 @@ export default function DevinIntegration({
         <CardContent className="space-y-4">
           {prds.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No PRDs available. Upload a PRD first.</p>
-              <Button onClick={() => window.location.href = '/upload'}>
-                Upload PRD
-              </Button>
+              <p className="text-muted-foreground mb-4">No PRDs available. Please upload a PRD in the PRDs tab first.</p>
             </div>
           ) : (
             <>
