@@ -14,6 +14,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [Architectural Improvements Summary](./docs/architecture/21-architectural-improvements-summary.md) — detailed review of code and architecture improvements.
 - [Devin AI Role and Boundaries](./docs/architecture/22-devin-ai-role-and-boundaries.md) — comprehensive guide for Devin AI integration boundaries.
 - [Architecture Clarification](./docs/architecture/23-architecture-clarification.md) — architecture decisions and clarifications.
+- [Codebase Refactoring](./docs/architecture/24-codebase-refactoring.md) — comprehensive documentation of the major architectural refactoring.
 
 ### 🛠️ Setup & Configuration
 - [Accounts and APIs Setup Guide](./docs/setup/09-accounts-and-apis-setup.md) — complete guide for setting up all required accounts and APIs.
@@ -262,24 +263,47 @@ ai-agent-factory/
 
 ## 🏗️ Architecture
 
-### Backend (FastAPI)
-- **API Endpoints**: `/api/v1/agents`, `/api/v1/prds`, `/api/v1/health`, `/api/v1/devin`
-- **PRD System**: Comprehensive PRD creation and management
-- **Models**: Pydantic models for agents and PRDs
-- **Database**: Supabase integration ready
-- **Devin AI Integration**: MCP server for automated deployment
-- **HTTP MCP Server**: Publicly deployed FastAPI server for external integrations
-- **Authentication**: JWT-based auth system
+### Backend (FastAPI) - Refactored Architecture
+- **📊 Data Models**: Comprehensive Pydantic models with validation and enums
+  - `models/prd.py` - PRD data structures with type safety
+  - `models/agent.py` - Agent data structures with health monitoring
+  - `models/devin.py` - Devin AI task management models
+- **🔧 Service Layer**: Clean separation of business logic from API routes
+  - `services/prd_service.py` - PRD operations and file parsing
+  - `services/agent_service.py` - Agent lifecycle management
+  - `services/devin_service.py` - Devin AI integration and task execution
+- **🛣️ API Routes**: Focused, single-responsibility endpoints
+  - `routers/prds_refactored.py` - PRD CRUD operations with filtering
+  - `routers/agents_refactored.py` - Agent management and health checks
+  - `routers/devin_refactored.py` - Devin AI task orchestration
+- **⚡ Utilities**: Error handling and validation utilities
+  - `utils/errors.py` - Custom exceptions and error responses
+  - `utils/validation.py` - Data validation and sanitization
+- **🗄️ Database**: Supabase integration for persistent storage
+- **🔐 Authentication**: JWT-based auth system
 
-### Frontend (Next.js 14)
-- **Streamlined Dashboard**: Clean, intuitive interface with collapsible sections
-- **Submit PRD Tab**: Upload or paste PRDs with automatic queue management
-- **PRD Repository**: Organized view of queued and processed PRDs
-- **Create Agent Tab**: Direct API integration with Devin AI for automated agent creation
-- **Agents Management**: Collapsible agent cards with full management capabilities
-- **Components**: shadcn/ui component library with modern design
-- **Styling**: Tailwind CSS with clean, professional styling
-- **State Management**: React hooks with optimized performance
+### Frontend (Next.js 14) - Refactored Architecture
+- **📱 Type System**: Comprehensive TypeScript definitions
+  - `types/index.ts` - All interfaces, enums, and type definitions
+- **🌐 API Client**: Centralized, type-safe API communication
+  - `lib/api.ts` - HTTP client with error handling and type safety
+- **🎣 Custom Hooks**: Reusable data fetching and state management
+  - `hooks/usePRDs.ts` - PRD operations with caching and error handling
+  - `hooks/useAgents.ts` - Agent management with health monitoring
+  - `hooks/useDevinTasks.ts` - Devin AI task orchestration
+- **🧩 Reusable Components**: Modular UI components
+  - `components/common/PRDCard.tsx` - Standardized PRD display
+  - `components/common/AgentCard.tsx` - Agent information display
+  - `components/common/LoadingSpinner.tsx` - Loading states
+  - `components/common/ErrorMessage.tsx` - Error handling UI
+- **🎨 UI/UX**: Modern, responsive interface
+  - **Streamlined Dashboard**: Clean, intuitive interface with collapsible sections
+  - **Submit PRD Tab**: Upload or paste PRDs with automatic queue management
+  - **PRD Repository**: Organized view of queued and processed PRDs
+  - **Create Agent Tab**: Direct API integration with Devin AI for automated agent creation
+  - **Agents Management**: Collapsible agent cards with full management capabilities
+  - **Components**: shadcn/ui component library with modern design
+  - **Styling**: Tailwind CSS with clean, professional styling
 
 ### Infrastructure
 - **Local Development**: Docker Compose with PostgreSQL & Redis
@@ -367,6 +391,12 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 - [x] **PRD Repository System** - Organized PRD management with queue and processed states
 - [x] **Agent Management Interface** - Collapsible agent cards with delete functionality
 - [x] **Automated Agent Creation** - Direct API integration with Devin AI for seamless agent creation
+- [x] **🏗️ Major Codebase Refactoring** - Complete architectural overhaul with separation of concerns
+- [x] **📊 Enhanced Type Safety** - Comprehensive TypeScript types and Pydantic models with validation
+- [x] **🔧 Service Layer Architecture** - Clean separation of business logic from API routes
+- [x] **🎯 Reusable Components** - Modular frontend components and custom React hooks
+- [x] **⚡ Improved Error Handling** - Custom exceptions and standardized error responses
+- [x] **📱 API Client Refactoring** - Centralized, type-safe API communication layer
 
 ### 🚧 In Progress
 - [ ] Advanced agent orchestration features
