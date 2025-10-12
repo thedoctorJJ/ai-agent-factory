@@ -13,8 +13,7 @@ app = FastAPI(
     description="A repeatable, voice-first, AI-driven platform for creating modular agents",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
-)
+    redoc_url="/redoc")
 
 # CORS middleware
 app.add_middleware(
@@ -30,6 +29,7 @@ app.include_router(health.router, prefix="/api/v1", tags=["health"])
 app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
 app.include_router(prds.router, prefix="/api/v1", tags=["prds"])
 app.include_router(devin_integration.router, prefix="/api/v1", tags=["devin"])
+
 
 @app.get("/")
 async def root():

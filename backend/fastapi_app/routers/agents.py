@@ -9,12 +9,15 @@ import asyncio
 router = APIRouter()
 
 # Pydantic models
+
+
 class AgentCreate(BaseModel):
     name: str
     description: str
     purpose: str
     tools: List[str] = []
     prompts: List[str] = []
+
 
 class AgentRegistration(BaseModel):
     """Model for Devin AI to register deployed agents"""
@@ -29,6 +32,7 @@ class AgentRegistration(BaseModel):
     devin_task_id: Optional[str] = None
     capabilities: List[str] = []
     configuration: dict = {}
+
 
 class AgentResponse(BaseModel):
     id: str
@@ -51,6 +55,7 @@ class AgentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class AgentUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
@@ -65,13 +70,16 @@ class AgentUpdate(BaseModel):
     capabilities: Optional[List[str]] = None
     configuration: Optional[dict] = None
 
+
 # In-memory storage for demo (replace with Supabase in production)
 agents_db = {}
+
 
 @router.get("/agents", response_model=List[AgentResponse])
 async def get_agents():
     """Get all agents"""
     return list(agents_db.values())
+
 
 @router.get("/agents/{agent_id}", response_model=AgentResponse)
 async def get_agent(agent_id: str):
@@ -80,12 +88,13 @@ async def get_agent(agent_id: str):
         raise HTTPException(status_code=404, detail="Agent not found")
     return agents_db[agent_id]
 
+
 @router.post("/agents", response_model=AgentResponse)
 async def create_agent(agent: AgentCreate):
     """Create a new agent"""
     agent_id = str(uuid.uuid4())
     now = datetime.utcnow()
-    
+
     new_agent = AgentResponse(
         id=agent_id,
         name=agent.name,
@@ -97,42 +106,45 @@ async def create_agent(agent: AgentCreate):
         created_at=now,
         updated_at=now
     )
-    
+
     agents_db[agent_id] = new_agent
     return new_agent
+
 
 @router.put("/agents/{agent_id}", response_model=AgentResponse)
 async def update_agent(agent_id: str, agent_update: AgentUpdate):
     """Update an existing agent"""
     if agent_id not in agents_db:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     existing_agent = agents_db[agent_id]
     update_data = agent_update.dict(exclude_unset=True)
-    
+
     for field, value in update_data.items():
         setattr(existing_agent, field, value)
-    
+
     existing_agent.updated_at = datetime.utcnow()
     agents_db[agent_id] = existing_agent
-    
+
     return existing_agent
+
 
 @router.delete("/agents/{agent_id}")
 async def delete_agent(agent_id: str):
     """Delete an agent"""
     if agent_id not in agents_db:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     del agents_db[agent_id]
     return {"message": "Agent deleted successfully"}
+
 
 @router.post("/agents/register", response_model=AgentResponse)
 async def register_agent(agent_registration: AgentRegistration):
     """Register an agent created by Devin AI"""
     agent_id = str(uuid.uuid4())
     now = datetime.utcnow()
-    
+
     # Create new agent from registration data
     new_agent = AgentResponse(
         id=agent_id,
@@ -155,38 +167,39 @@ async def register_agent(agent_registration: AgentRegistration):
         created_at=now,
         updated_at=now
     )
-    
+
     # Store agent
     agents_db[agent_id] = new_agent
-    
+
     # Perform initial health check
     await perform_health_check(agent_id)
-    
+
     return new_agent
+
 
 @router.get("/agents/{agent_id}/health")
 async def get_agent_health(agent_id: str):
     """Get health status of a deployed agent"""
     if agent_id not in agents_db:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     agent = agents_db[agent_id]
-    
+
     if not agent.health_check_url:
         return {
             "agent_id": agent_id,
             "status": "no_health_check_url",
             "message": "Agent has no health check URL configured"
         }
-    
+
     # Perform health check
     health_status = await check_agent_health(agent.health_check_url)
-    
+
     # Update agent health status
     agent.last_health_check = datetime.utcnow()
     agent.health_status = health_status["status"]
     agents_db[agent_id] = agent
-    
+
     return {
         "agent_id": agent_id,
         "agent_name": agent.name,
@@ -197,29 +210,31 @@ async def get_agent_health(agent_id: str):
         "response_time_ms": health_status.get("response_time_ms", 0)
     }
 
+
 @router.post("/agents/{agent_id}/health-check")
 async def trigger_health_check(agent_id: str):
     """Manually trigger a health check for an agent"""
     if agent_id not in agents_db:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     await perform_health_check(agent_id)
     agent = agents_db[agent_id]
-    
+
     return {
         "agent_id": agent_id,
         "status": agent.health_status,
         "last_checked": agent.last_health_check
     }
 
+
 @router.get("/agents/{agent_id}/metrics")
 async def get_agent_metrics(agent_id: str):
     """Get metrics for a deployed agent"""
     if agent_id not in agents_db:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     agent = agents_db[agent_id]
-    
+
     # This would typically fetch from the agent's metrics endpoint
     # For now, return basic metrics
     return {
@@ -236,24 +251,26 @@ async def get_agent_metrics(agent_id: str):
         "updated_at": agent.updated_at
     }
 
+
 async def perform_health_check(agent_id: str):
     """Perform health check and update agent status"""
     if agent_id not in agents_db:
         return
-    
+
     agent = agents_db[agent_id]
-    
+
     if not agent.health_check_url:
         agent.health_status = "no_health_check_url"
         agent.last_health_check = datetime.utcnow()
         agents_db[agent_id] = agent
         return
-    
+
     health_status = await check_agent_health(agent.health_check_url)
-    
+
     agent.last_health_check = datetime.utcnow()
     agent.health_status = health_status["status"]
     agents_db[agent_id] = agent
+
 
 async def check_agent_health(health_check_url: str) -> dict:
     """Check the health of an agent via its health check URL"""
@@ -262,9 +279,9 @@ async def check_agent_health(health_check_url: str) -> dict:
             start_time = datetime.utcnow()
             response = await client.get(health_check_url)
             end_time = datetime.utcnow()
-            
+
             response_time_ms = (end_time - start_time).total_seconds() * 1000
-            
+
             if response.status_code == 200:
                 try:
                     health_data = response.json()
@@ -273,7 +290,7 @@ async def check_agent_health(health_check_url: str) -> dict:
                         "details": health_data,
                         "response_time_ms": response_time_ms
                     }
-                except:
+                except BaseException:
                     return {
                         "status": "healthy",
                         "details": {"message": "Health check passed"},
@@ -282,9 +299,10 @@ async def check_agent_health(health_check_url: str) -> dict:
             else:
                 return {
                     "status": "unhealthy",
-                    "details": {"status_code": response.status_code, "message": "Health check failed"},
-                    "response_time_ms": response_time_ms
-                }
+                    "details": {
+                        "status_code": response.status_code,
+                        "message": "Health check failed"},
+                    "response_time_ms": response_time_ms}
     except httpx.TimeoutException:
         return {
             "status": "timeout",

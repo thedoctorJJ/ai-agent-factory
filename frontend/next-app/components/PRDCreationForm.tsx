@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { X, Plus, FileText, Bot, Building } from 'lucide-react'
+import { X, Plus, FileText, Bot, Building, Upload } from 'lucide-react'
 
 interface PRDCreationFormProps {
   onClose: () => void
@@ -26,9 +26,51 @@ export default function PRDCreationForm({ onClose, onSuccess }: PRDCreationFormP
     prd_type: 'agent' as 'agent' | 'platform'
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+    }
+  }
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      const response = await fetch('/api/v1/prds/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        onSuccess(result.id)
+      } else {
+        const error = await response.json()
+        alert(`Upload failed: ${error.detail}`)
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Upload failed. Please try again.')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,6 +165,66 @@ export default function PRDCreationForm({ onClose, onSuccess }: PRDCreationFormP
                 <Building className="h-4 w-4" />
                 Platform PRD
               </Button>
+            </div>
+
+            {/* File Upload Section */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <div className="space-y-4">
+                <div className="flex items-center justify-center">
+                  <Upload className="h-8 w-8 text-gray-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Upload PRD File</h3>
+                  <p className="text-sm text-gray-500">
+                    Upload a .md or .txt file and we'll automatically parse it for you
+                  </p>
+                </div>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".md,.txt"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                
+                {selectedFile ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                      <FileText className="h-4 w-4" />
+                      {selectedFile.name}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleFileUpload}
+                      disabled={isUploading}
+                      className="w-full"
+                    >
+                      {isUploading ? 'Uploading...' : 'Upload & Parse PRD'}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={triggerFileInput}
+                    className="w-full"
+                  >
+                    Choose File
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or fill out manually
+                </span>
+              </div>
             </div>
 
             {/* Title */}

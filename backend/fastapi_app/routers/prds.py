@@ -1,21 +1,24 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import Response
 from typing import List, Optional, Dict
 from pydantic import BaseModel
 from datetime import datetime
 import uuid
 import os
+import re
 from ..config import config
 
 router = APIRouter()
 
 # Pydantic models
+
+
 class PRDCreate(BaseModel):
     title: str
     description: str
     requirements: List[str]
     prd_type: Optional[str] = "agent"  # "platform" | "agent"
-    
+
     # Enhanced PRD sections
     problem_statement: Optional[str] = None
     target_users: Optional[List[str]] = None
@@ -31,7 +34,7 @@ class PRDCreate(BaseModel):
     dependencies: Optional[List[str]] = None
     risks: Optional[List[str]] = None
     assumptions: Optional[List[str]] = None
-    
+
     # Roadmap-specific fields
     category: Optional[str] = None
     priority_score: Optional[int] = None
@@ -41,6 +44,7 @@ class PRDCreate(BaseModel):
     dependencies_list: Optional[List[str]] = None
     assignee: Optional[str] = None
     target_sprint: Optional[str] = None
+
 
 class PRDResponse(BaseModel):
     id: str
@@ -52,7 +56,7 @@ class PRDResponse(BaseModel):
     github_repo_url: Optional[str]
     created_at: datetime
     updated_at: datetime
-    
+
     # Enhanced PRD sections
     problem_statement: Optional[str] = None
     target_users: Optional[List[str]] = None
@@ -68,8 +72,7 @@ class PRDResponse(BaseModel):
     dependencies: Optional[List[str]] = None
     risks: Optional[List[str]] = None
     assumptions: Optional[List[str]] = None
-    
-    
+
     # Roadmap-specific fields
     category: Optional[str] = None
     priority_score: Optional[int] = None
@@ -80,6 +83,11 @@ class PRDResponse(BaseModel):
     assignee: Optional[str] = None
     target_sprint: Optional[str] = None
 
+    # File upload fields
+    original_filename: Optional[str] = None
+    file_content: Optional[str] = None
+
+
 class PRDUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
@@ -87,6 +95,7 @@ class PRDUpdate(BaseModel):
     prd_type: Optional[str] = None
     status: Optional[str] = None
     github_repo_url: Optional[str] = None
+
 
 # In-memory storage for demo (replace with Supabase in production)
 prds_db = {}
@@ -101,7 +110,7 @@ roadmap_db = {
             "priority": 1
         },
         "production_readiness": {
-            "name": "Production Readiness", 
+            "name": "Production Readiness",
             "description": "Features needed for production deployment",
             "color": "#f97316",
             "priority": 2
@@ -142,7 +151,11 @@ async def get_prds():
     try:
         return list(prds_db.values())
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve PRDs: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve PRDs: {
+                str(e)}")
+
 
 @router.get("/prds/{prd_id}", response_model=PRDResponse)
 async def get_prd(prd_id: str):
@@ -151,25 +164,25 @@ async def get_prd(prd_id: str):
         raise HTTPException(status_code=404, detail="PRD not found")
     return prds_db[prd_id]
 
+
 @router.post("/prds", response_model=PRDResponse)
 async def create_prd(prd: PRDCreate):
     """Create a new PRD"""
     try:
         prd_id = str(uuid.uuid4())
         now = datetime.utcnow()
-        
-        
+
         new_prd = PRDResponse(
             id=prd_id,
             title=prd.title,
             description=prd.description,
             requirements=prd.requirements,
             prd_type=(prd.prd_type or "agent"),
-            status="ready_for_agent_creation",
+            status="queue",
             github_repo_url=None,
             created_at=now,
             updated_at=now,
-            
+
             # Enhanced PRD sections
             problem_statement=prd.problem_statement,
             target_users=prd.target_users,
@@ -185,8 +198,8 @@ async def create_prd(prd: PRDCreate):
             dependencies=prd.dependencies,
             risks=prd.risks,
             assumptions=prd.assumptions,
-            
-            
+
+
             # Roadmap-specific fields
             category=prd.category,
             priority_score=prd.priority_score,
@@ -197,81 +210,436 @@ async def create_prd(prd: PRDCreate):
             assignee=prd.assignee,
             target_sprint=prd.target_sprint
         )
-    
+
         prds_db[prd_id] = new_prd
-        
+
         # TODO: Trigger MCP service to create GitHub repo
         # TODO: Trigger Devin AI orchestration
-        
+
         return new_prd
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create PRD: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create PRD: {
+                str(e)}")
+
+
+@router.post("/prds/upload", response_model=PRDResponse)
+async def upload_prd_file(file: UploadFile = File(...)):
+    """Upload a PRD file and automatically parse its content"""
+
+    # Validate file type
+    if not file.filename.lower().endswith(('.md', '.txt')):
+        raise HTTPException(status_code=400,
+                            detail="Only .md and .txt files are supported")
+
+    try:
+        # Read file content
+        content = await file.read()
+
+        # Decode content
+        text_content = content.decode('utf-8')
+
+        # Parse the content
+        parsed_data = parse_prd_content(text_content)
+
+        # Create PRD from parsed data
+        prd_id = str(uuid.uuid4())
+        now = datetime.utcnow()
+
+        new_prd = PRDResponse(
+            id=prd_id,
+            title=parsed_data["title"] or file.filename.replace(
+                '.md', '').replace('.txt', ''),
+            description=parsed_data["description"],
+            requirements=parsed_data["requirements"],
+            prd_type=parsed_data["prd_type"],
+            status="queue",
+            github_repo_url=None,
+            created_at=now,
+            updated_at=now,
+
+            # Enhanced PRD sections
+            problem_statement=parsed_data["problem_statement"],
+            target_users=parsed_data["target_users"],
+            user_stories=parsed_data["user_stories"],
+            acceptance_criteria=parsed_data["acceptance_criteria"],
+            technical_requirements=parsed_data["technical_requirements"],
+            performance_requirements=parsed_data["performance_requirements"],
+            security_requirements=parsed_data["security_requirements"],
+            integration_requirements=parsed_data["integration_requirements"],
+            deployment_requirements=parsed_data["deployment_requirements"],
+            success_metrics=parsed_data["success_metrics"],
+            timeline=parsed_data["timeline"],
+            dependencies=parsed_data["dependencies"],
+            risks=parsed_data["risks"],
+            assumptions=parsed_data["assumptions"],
+
+            # Roadmap-specific fields with defaults
+            category="core_functionality",
+            priority_score=5,
+            effort_estimate="medium",
+            business_value=5,
+            technical_complexity=5,
+            dependencies_list=[],
+            assignee="System",
+            target_sprint="Sprint 1",
+
+            # Store original file info
+            original_filename=file.filename,
+            file_content=text_content
+        )
+
+        prds_db[prd_id] = new_prd
+
+        return new_prd
+
+    except UnicodeDecodeError:
+        raise HTTPException(
+            status_code=400,
+            detail="File encoding not supported. Please use UTF-8 encoded files.")
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error processing file: {
+                str(e)}")
+
 
 @router.put("/prds/{prd_id}", response_model=PRDResponse)
 async def update_prd(prd_id: str, prd_update: PRDUpdate):
     """Update an existing PRD"""
     if prd_id not in prds_db:
         raise HTTPException(status_code=404, detail="PRD not found")
-    
+
     existing_prd = prds_db[prd_id]
     update_data = prd_update.dict(exclude_unset=True)
-    
+
     for field, value in update_data.items():
         setattr(existing_prd, field, value)
-    
-    
+
     existing_prd.updated_at = datetime.utcnow()
     prds_db[prd_id] = existing_prd
-    
+
     return existing_prd
+
 
 @router.delete("/prds/{prd_id}")
 async def delete_prd(prd_id: str):
     """Delete a PRD"""
     if prd_id not in prds_db:
         raise HTTPException(status_code=404, detail="PRD not found")
-    
+
     del prds_db[prd_id]
     return {"message": "PRD deleted successfully"}
+
 
 @router.get("/prds/{prd_id}/markdown")
 async def get_prd_markdown(prd_id: str):
     """Get PRD as markdown for sharing with Devin AI"""
     if prd_id not in prds_db:
         raise HTTPException(status_code=404, detail="PRD not found")
-    
+
     prd = prds_db[prd_id]
     markdown_content = generate_prd_markdown(prd)
-    
+
     return {
         "prd_id": prd_id,
         "markdown": markdown_content,
         "filename": f"PRD_{prd.title.replace(' ', '_')}_{prd_id[:8]}.md"
     }
 
+
 @router.get("/prds/{prd_id}/markdown/download")
 async def download_prd_markdown(prd_id: str):
     """Download PRD as markdown file"""
     if prd_id not in prds_db:
         raise HTTPException(status_code=404, detail="PRD not found")
-    
+
     prd = prds_db[prd_id]
     markdown_content = generate_prd_markdown(prd)
     filename = f"PRD_{prd.title.replace(' ', '_')}_{prd_id[:8]}.md"
-    
+
     return Response(
         content=markdown_content,
         media_type="text/markdown",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
+
+def detect_prd_type(content: str) -> str:
+    """Detect if PRD is for platform or agent based on content analysis"""
+    content_lower = content.lower()
+
+    # Platform indicators (higher weight)
+    platform_keywords = [
+        'platform', 'infrastructure', 'architecture', 'system', 'framework',
+        'api', 'backend', 'frontend', 'database', 'deployment', 'scaling',
+        'microservices', 'kubernetes', 'docker', 'cloud', 'aws', 'azure',
+        'google cloud', 'monitoring', 'logging', 'security', 'authentication',
+        'authorization', 'middleware', 'service mesh', 'load balancing',
+        'ci/cd', 'devops', 'container', 'orchestration', 'networking',
+        'storage', 'caching', 'message queue', 'event streaming'
+    ]
+
+    # Agent indicators (higher weight)
+    agent_keywords = [
+        'agent',
+        'bot',
+        'chatbot',
+        'assistant',
+        'ai assistant',
+        'conversational',
+        'nlp',
+        'natural language',
+        'voice',
+        'speech',
+        'text processing',
+        'machine learning',
+        'ml model',
+        'training',
+        'inference',
+        'prediction',
+        'classification',
+        'recommendation',
+        'personalization',
+        'automation',
+        'workflow',
+        'task',
+        'action',
+        'decision',
+        'reasoning',
+        'knowledge',
+        'intelligence',
+        'cognitive',
+        'neural',
+        'deep learning',
+        'llm',
+        'language model',
+        'gpt',
+        'openai',
+        'anthropic',
+        'claude']
+
+    # Business/domain indicators (medium weight)
+    business_keywords = [
+        'customer',
+        'user',
+        'client',
+        'business',
+        'service',
+        'product',
+        'application',
+        'software',
+        'tool',
+        'utility',
+        'feature',
+        'functionality']
+
+    # Count keyword occurrences
+    platform_score = sum(
+        1 for keyword in platform_keywords if keyword in content_lower)
+    agent_score = sum(
+        1 for keyword in agent_keywords if keyword in content_lower)
+    business_score = sum(
+        1 for keyword in business_keywords if keyword in content_lower)
+
+    # Additional heuristics
+    # Check for specific patterns
+    if any(pattern in content_lower for pattern in [
+        'prd type', 'platform prd', 'agent prd', 'type:', 'category:'
+    ]):
+        if 'platform' in content_lower and 'agent' not in content_lower:
+            return 'platform'
+        elif 'agent' in content_lower and 'platform' not in content_lower:
+            return 'agent'
+
+    # Check title and description for clues
+    title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+    if title_match:
+        title = title_match.group(1).lower()
+        if any(
+            keyword in title for keyword in [
+                'platform',
+                'system',
+                'infrastructure',
+                'framework']):
+            platform_score += 3
+        elif any(keyword in title for keyword in ['agent', 'bot', 'assistant', 'ai']):
+            agent_score += 3
+
+    # Check requirements for technical vs business focus
+    requirements_match = re.search(
+        r'(?i)requirements?[:\s]*\n((?:[-*]\s*.+\n?)+)',
+        content,
+        re.MULTILINE)
+    if requirements_match:
+        requirements_text = requirements_match.group(1).lower()
+        if any(keyword in requirements_text for keyword in [
+            'api', 'database', 'deployment', 'scaling', 'infrastructure'
+        ]):
+            platform_score += 2
+        elif any(keyword in requirements_text for keyword in [
+            'nlp', 'ml', 'training', 'model', 'intelligence'
+        ]):
+            agent_score += 2
+
+    # Decision logic
+    if platform_score > agent_score:
+        return 'platform'
+    elif agent_score > platform_score:
+        return 'agent'
+    else:
+        # Default to agent if scores are equal or very low
+        return 'agent'
+
+
+def parse_prd_content(content: str) -> Dict:
+    """Parse PRD content from uploaded file and extract structured data"""
+    try:
+        # Initialize the parsed data structure
+        parsed_data = {
+            "title": "",
+            "description": "",
+            "requirements": [],
+            "problem_statement": "",
+            "target_users": [],
+            "user_stories": [],
+            "acceptance_criteria": [],
+            "technical_requirements": [],
+            "performance_requirements": {},
+            "security_requirements": [],
+            "integration_requirements": [],
+            "deployment_requirements": [],
+            "success_metrics": [],
+            "timeline": "",
+            "dependencies": [],
+            "risks": [],
+            "assumptions": [],
+            "prd_type": "agent"
+        }
+
+        # Extract title (look for # Title or similar patterns)
+        title_match = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+        if title_match:
+            parsed_data["title"] = title_match.group(1).strip()
+
+        # Extract description (look for description section)
+        desc_match = re.search(
+            r'(?i)description[:\s]*\n(.+?)(?=\n\n|\n#|\n##|\n###|\Z)',
+            content,
+            re.DOTALL)
+        if desc_match:
+            parsed_data["description"] = desc_match.group(1).strip()
+
+        # Extract problem statement
+        problem_match = re.search(
+            r'(?i)problem\s+statement[:\s]*\n(.+?)(?=\n\n|\n#|\n##|\n###|\Z)',
+            content,
+            re.DOTALL)
+        if problem_match:
+            parsed_data["problem_statement"] = problem_match.group(1).strip()
+
+        # Extract requirements (look for bullet points or numbered lists)
+        requirements_match = re.search(
+            r'(?i)requirements?[:\s]*\n((?:[-*]\s*.+\n?)+)',
+            content,
+            re.MULTILINE)
+        if requirements_match:
+            requirements_text = requirements_match.group(1)
+            parsed_data["requirements"] = [line.strip(
+                '- *').strip() for line in requirements_text.split('\n') if line.strip()]
+
+        # Extract user stories
+        stories_match = re.search(
+            r'(?i)user\s+stories?[:\s]*\n((?:[-*]\s*.+\n?)+)',
+            content,
+            re.MULTILINE)
+        if stories_match:
+            stories_text = stories_match.group(1)
+            parsed_data["user_stories"] = [
+                line.strip('- *').strip() for line in stories_text.split('\n') if line.strip()]
+
+        # Extract acceptance criteria
+        criteria_match = re.search(
+            r'(?i)acceptance\s+criteria[:\s]*\n((?:[-*]\s*.+\n?)+)',
+            content,
+            re.MULTILINE)
+        if criteria_match:
+            criteria_text = criteria_match.group(1)
+            parsed_data["acceptance_criteria"] = [
+                line.strip('- *').strip() for line in criteria_text.split('\n') if line.strip()]
+
+        # Extract technical requirements
+        tech_match = re.search(
+            r'(?i)technical\s+requirements?[:\s]*\n((?:[-*]\s*.+\n?)+)',
+            content,
+            re.MULTILINE)
+        if tech_match:
+            tech_text = tech_match.group(1)
+            parsed_data["technical_requirements"] = [
+                line.strip('- *').strip() for line in tech_text.split('\n') if line.strip()]
+
+        # Extract target users
+        users_match = re.search(
+            r'(?i)target\s+users?[:\s]*\n(.+?)(?=\n\n|\n#|\n##|\n###|\Z)',
+            content,
+            re.DOTALL)
+        if users_match:
+            users_text = users_match.group(1).strip()
+            parsed_data["target_users"] = [user.strip()
+                                           for user in users_text.split(',') if user.strip()]
+
+        # Extract timeline
+        timeline_match = re.search(
+            r'(?i)timeline[:\s]*\n(.+?)(?=\n\n|\n#|\n##|\n###|\Z)',
+            content,
+            re.DOTALL)
+        if timeline_match:
+            parsed_data["timeline"] = timeline_match.group(1).strip()
+
+        # Determine PRD type based on content analysis
+        parsed_data["prd_type"] = detect_prd_type(content)
+
+        # If no title found, try to extract from filename or first line
+        if not parsed_data["title"]:
+            first_line = content.split('\n')[0].strip()
+            if first_line and not first_line.startswith('#'):
+                parsed_data["title"] = first_line[:100]  # Limit title length
+
+        return parsed_data
+
+    except Exception as e:
+        # Return basic structure if parsing fails
+        return {
+            "title": "Uploaded PRD",
+            "description": content[:500] + "..." if len(content) > 500 else content,
+            "requirements": [],
+            "problem_statement": "",
+            "target_users": [],
+            "user_stories": [],
+            "acceptance_criteria": [],
+            "technical_requirements": [],
+            "performance_requirements": {},
+            "security_requirements": [],
+            "integration_requirements": [],
+            "deployment_requirements": [],
+            "success_metrics": [],
+            "timeline": "",
+            "dependencies": [],
+            "risks": [],
+            "assumptions": [],
+            "prd_type": "agent"
+        }
+
+
 def generate_prd_markdown(prd: PRDResponse) -> str:
     """Generate standardized markdown PRD for Devin AI"""
-    
-    # Determine input source (legacy field - now all PRDs are completed and formatted)
+
+    # Determine input source (legacy field - now all PRDs are completed and
+    # formatted)
     input_source = "Completed PRD"
     original_input = prd.voice_input or prd.text_input or "No original input provided"
-    
+
     markdown = f"""# Product Requirements Document (PRD)
 ## {prd.title}
 
@@ -293,7 +661,7 @@ def generate_prd_markdown(prd: PRDResponse) -> str:
 {prd.description}
 
 """
-    
+
     # Add problem statement if available
     if prd.problem_statement:
         markdown += f"""### 🎯 **Problem Statement**
@@ -301,7 +669,7 @@ def generate_prd_markdown(prd: PRDResponse) -> str:
 {prd.problem_statement}
 
 """
-    
+
     # Add target users if available
     if prd.target_users:
         markdown += f"""### 👥 **Target Users**
@@ -310,7 +678,7 @@ def generate_prd_markdown(prd: PRDResponse) -> str:
         for user in prd.target_users:
             markdown += f"- {user}\n"
         markdown += "\n"
-    
+
     # Add user stories if available
     if prd.user_stories:
         markdown += f"""### 📖 **User Stories**
@@ -319,7 +687,7 @@ def generate_prd_markdown(prd: PRDResponse) -> str:
         for story in prd.user_stories:
             markdown += f"- {story}\n"
         markdown += "\n"
-    
+
     # Add original input (if available)
     if original_input and original_input != "No original input provided":
         markdown += f"""### 📝 **Original Input**
@@ -336,11 +704,11 @@ def generate_prd_markdown(prd: PRDResponse) -> str:
 The following requirements must be implemented:
 
 """
-    
+
     # Add requirements as numbered list
     for i, requirement in enumerate(prd.requirements, 1):
         markdown += f"{i}. {requirement}\n"
-    
+
     # Add acceptance criteria if available
     if prd.acceptance_criteria:
         markdown += f"""
@@ -353,7 +721,7 @@ The following criteria must be met for successful completion:
 """
         for i, criteria in enumerate(prd.acceptance_criteria, 1):
             markdown += f"{i}. {criteria}\n"
-    
+
     # Add technical requirements if available
     if prd.technical_requirements:
         markdown += f"""
@@ -364,7 +732,7 @@ The following criteria must be met for successful completion:
 """
         for i, req in enumerate(prd.technical_requirements, 1):
             markdown += f"{i}. {req}\n"
-    
+
     # Add performance requirements if available
     if prd.performance_requirements:
         markdown += f"""
@@ -375,7 +743,7 @@ The following criteria must be met for successful completion:
 """
         for key, value in prd.performance_requirements.items():
             markdown += f"- **{key}**: {value}\n"
-    
+
     # Add security requirements if available
     if prd.security_requirements:
         markdown += f"""
@@ -386,7 +754,7 @@ The following criteria must be met for successful completion:
 """
         for i, req in enumerate(prd.security_requirements, 1):
             markdown += f"{i}. {req}\n"
-    
+
     # Add integration requirements if available
     if prd.integration_requirements:
         markdown += f"""
@@ -397,7 +765,7 @@ The following criteria must be met for successful completion:
 """
         for i, req in enumerate(prd.integration_requirements, 1):
             markdown += f"{i}. {req}\n"
-    
+
     # Add deployment requirements if available
     if prd.deployment_requirements:
         markdown += f"""
@@ -408,7 +776,7 @@ The following criteria must be met for successful completion:
 """
         for i, req in enumerate(prd.deployment_requirements, 1):
             markdown += f"{i}. {req}\n"
-    
+
     # Add success metrics if available
     if prd.success_metrics:
         markdown += f"""
@@ -421,7 +789,7 @@ The following metrics will be used to measure success:
 """
         for i, metric in enumerate(prd.success_metrics, 1):
             markdown += f"{i}. {metric}\n"
-    
+
     # Add timeline if available
     if prd.timeline:
         markdown += f"""
@@ -432,7 +800,7 @@ The following metrics will be used to measure success:
 {prd.timeline}
 
 """
-    
+
     # Add dependencies if available
     if prd.dependencies:
         markdown += f"""
@@ -445,7 +813,7 @@ The following dependencies are required:
 """
         for i, dep in enumerate(prd.dependencies, 1):
             markdown += f"{i}. {dep}\n"
-    
+
     # Add risks if available
     if prd.risks:
         markdown += f"""
@@ -458,7 +826,7 @@ The following risks have been identified:
 """
         for i, risk in enumerate(prd.risks, 1):
             markdown += f"{i}. {risk}\n"
-    
+
     # Add assumptions if available
     if prd.assumptions:
         markdown += f"""
@@ -471,7 +839,7 @@ The following assumptions are being made:
 """
         for i, assumption in enumerate(prd.assumptions, 1):
             markdown += f"{i}. {assumption}\n"
-    
+
     markdown += f"""
 ---
 
@@ -563,7 +931,7 @@ After successful deployment, register the agent with the AI Agent Factory platfo
 **Required Registration Data:**
 ```json
 {
-  "name": "{prd.title}",
+        "name": "{prd.title}",
   "description": "{prd.description}",
   "purpose": "Agent purpose from PRD",
   "version": "1.0.0",
@@ -574,7 +942,7 @@ After successful deployment, register the agent with the AI Agent Factory platfo
   "devin_task_id": "{task_id_from_platform}",
   "capabilities": ["capability1", "capability2"],
   "configuration": {
-    "environment": "production",
+            "environment": "production",
     "scaling": "auto"
   }
 }
@@ -629,10 +997,8 @@ For questions about this PRD or implementation:
 
 *This PRD was generated by the AI Agent Factory platform and is ready for implementation by Devin AI.*
 """
-    
+
     return markdown
-
-
 
 
 # Roadmap-specific endpoints
@@ -641,43 +1007,47 @@ async def get_roadmap_categories():
     """Get all roadmap categories"""
     return roadmap_db["categories"]
 
+
 @router.get("/roadmap/statuses")
 async def get_roadmap_statuses():
     """Get all roadmap statuses"""
     return roadmap_db["statuses"]
+
 
 @router.get("/roadmap/overview")
 async def get_roadmap_overview():
     """Get roadmap overview with statistics"""
     try:
         prds = list(prds_db.values())
-        
+
         # Calculate statistics
         total_prds = len(prds)
         by_status = {}
         by_category = {}
         by_effort = {}
-        
+
         for prd in prds:
             # Status breakdown
             status = prd.status if hasattr(prd, 'status') else 'backlog'
             by_status[status] = by_status.get(status, 0) + 1
-            
+
             # Category breakdown
             category = getattr(prd, 'category', 'uncategorized')
             by_category[category] = by_category.get(category, 0) + 1
-            
+
             # Effort breakdown
             effort = getattr(prd, 'effort_estimate', 'unknown')
             by_effort[effort] = by_effort.get(effort, 0) + 1
-        
+
         # Calculate priority scores
-        priority_prds = [prd for prd in prds if hasattr(prd, 'priority_score') and prd.priority_score]
+        priority_prds = [prd for prd in prds if hasattr(
+            prd, 'priority_score') and prd.priority_score]
         if priority_prds:
-            avg_priority = sum(prd.priority_score for prd in priority_prds) / len(priority_prds)
+            avg_priority = sum(
+                prd.priority_score for prd in priority_prds) / len(priority_prds)
         else:
             avg_priority = 0
-        
+
         return {
             "total_prds": total_prds,
             "by_status": by_status,
@@ -688,7 +1058,11 @@ async def get_roadmap_overview():
             "statuses": roadmap_db["statuses"]
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get roadmap overview: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get roadmap overview: {
+                str(e)}")
+
 
 @router.get("/roadmap/prds")
 async def get_roadmap_prds(
@@ -702,40 +1076,66 @@ async def get_roadmap_prds(
     """Get PRDs with roadmap filtering and sorting"""
     try:
         prds = list(prds_db.values())
-        
+
         # Apply filters
         if category:
-            prds = [prd for prd in prds if getattr(prd, 'category', None) == category]
-        
+            prds = [
+                prd for prd in prds if getattr(
+                    prd,
+                    'category',
+                    None) == category]
+
         if status:
-            prds = [prd for prd in prds if getattr(prd, 'status', 'backlog') == status]
-        
+            prds = [
+                prd for prd in prds if getattr(
+                    prd,
+                    'status',
+                    'backlog') == status]
+
         if effort:
-            prds = [prd for prd in prds if getattr(prd, 'effort_estimate', None) == effort]
-        
+            prds = [
+                prd for prd in prds if getattr(
+                    prd,
+                    'effort_estimate',
+                    None) == effort]
+
         if prd_type:
-            prds = [prd for prd in prds if getattr(prd, 'prd_type', 'agent') == prd_type]
-        
+            prds = [
+                prd for prd in prds if getattr(
+                    prd,
+                    'prd_type',
+                    'agent') == prd_type]
+
         # Apply sorting
         if sort_by == "priority_score":
-            prds.sort(key=lambda x: getattr(x, 'priority_score', 0), reverse=(sort_order == "desc"))
+            prds.sort(
+                key=lambda x: getattr(
+                    x, 'priority_score', 0), reverse=(
+                    sort_order == "desc"))
         elif sort_by == "created_at":
-            prds.sort(key=lambda x: x.created_at, reverse=(sort_order == "desc"))
+            prds.sort(
+                key=lambda x: x.created_at,
+                reverse=(
+                    sort_order == "desc"))
         elif sort_by == "title":
             prds.sort(key=lambda x: x.title, reverse=(sort_order == "desc"))
-        
+
         return prds
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get roadmap PRDs: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get roadmap PRDs: {
+                str(e)}")
+
 
 @router.put("/roadmap/prds/{prd_id}/priority")
 async def update_prd_priority(prd_id: str, priority_data: dict):
     """Update PRD priority and roadmap fields"""
     if prd_id not in prds_db:
         raise HTTPException(status_code=404, detail="PRD not found")
-    
+
     prd = prds_db[prd_id]
-    
+
     # Update roadmap fields
     if 'priority_score' in priority_data:
         prd.priority_score = priority_data['priority_score']
@@ -753,29 +1153,30 @@ async def update_prd_priority(prd_id: str, priority_data: dict):
         prd.target_sprint = priority_data['target_sprint']
     if 'status' in priority_data:
         prd.status = priority_data['status']
-    
+
     prd.updated_at = datetime.utcnow()
     prds_db[prd_id] = prd
-    
+
     return prd
+
 
 @router.get("/roadmap/prioritization-matrix")
 async def get_prioritization_matrix():
     """Get PRDs organized by business value vs technical complexity"""
     try:
         prds = list(prds_db.values())
-        
+
         matrix = {
             "high_value_low_complexity": [],  # Quick wins
             "high_value_high_complexity": [],  # Major projects
             "low_value_low_complexity": [],  # Fill-ins
             "low_value_high_complexity": []  # Question marks
         }
-        
+
         for prd in prds:
             business_value = getattr(prd, 'business_value', 5)
             technical_complexity = getattr(prd, 'technical_complexity', 5)
-            
+
             if business_value >= 7 and technical_complexity <= 4:
                 matrix["high_value_low_complexity"].append(prd)
             elif business_value >= 7 and technical_complexity >= 7:
@@ -784,13 +1185,10 @@ async def get_prioritization_matrix():
                 matrix["low_value_low_complexity"].append(prd)
             else:
                 matrix["low_value_high_complexity"].append(prd)
-        
+
         return matrix
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get prioritization matrix: {str(e)}")
-
-
-
-
-
-
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get prioritization matrix: {
+                str(e)}")

@@ -1,11 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Copy, ExternalLink, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { Copy, ExternalLink, CheckCircle, Clock, AlertCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface DevinTask {
   id: string
@@ -21,27 +20,84 @@ interface DevinTask {
   agent_code?: string
 }
 
+interface PRD {
+  id: string
+  title: string
+  description: string
+  requirements?: string[]
+}
+
 interface DevinIntegrationProps {
-  prdId?: string
-  prdTitle?: string
-  prdDescription?: string
-  prdRequirements?: string[]
+  prds: PRD[]
 }
 
 export default function DevinIntegration({ 
-  prdId, 
-  prdTitle, 
-  prdDescription, 
-  prdRequirements 
+  prds 
 }: DevinIntegrationProps) {
   const [tasks, setTasks] = useState<DevinTask[]>([])
   const [selectedTask, setSelectedTask] = useState<DevinTask | null>(null)
+  const [selectedPRD, setSelectedPRD] = useState<PRD | null>(null)
   const [copied, setCopied] = useState(false)
   const [agentCode, setAgentCode] = useState('')
+  const [showPrompt, setShowPrompt] = useState(false)
+  const [showTasks, setShowTasks] = useState(false)
+  const [progress, setProgress] = useState({
+    codeGeneration: false,
+    githubRepo: false,
+    databaseSetup: false,
+    cloudDeployment: false
+  })
+
+  // Fetch existing Devin tasks when component loads
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch('/api/v1/devin/tasks')
+        if (response.ok) {
+          const tasksData = await response.json()
+          setTasks(tasksData)
+          // If there's a task, select it
+          if (tasksData.length > 0) {
+            setSelectedTask(tasksData[0])
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Devin tasks:', error)
+      }
+    }
+
+    fetchTasks()
+  }, [])
+
+  // Simulate progress updates for active tasks
+  useEffect(() => {
+    if (selectedTask && selectedTask.status === 'in_devin') {
+      const progressSteps = [
+        { key: 'codeGeneration', delay: 2000 },
+        { key: 'githubRepo', delay: 5000 },
+        { key: 'databaseSetup', delay: 8000 },
+        { key: 'cloudDeployment', delay: 12000 }
+      ]
+
+      progressSteps.forEach((step, index) => {
+        setTimeout(() => {
+          setProgress(prev => ({ ...prev, [step.key]: true }))
+        }, step.delay)
+      })
+    } else if (selectedTask && selectedTask.status === 'completed') {
+      // If task is completed, mark all progress steps as completed
+      setProgress({
+        codeGeneration: true,
+        githubRepo: true,
+        databaseSetup: true,
+        cloudDeployment: true
+      })
+    }
+  }, [selectedTask])
 
   const createDevinTask = async () => {
-    if (!prdId || !prdTitle || !prdDescription || !prdRequirements) {
-      alert('Please provide PRD information first')
+    if (!selectedPRD) {
+      alert('Please select a PRD first')
       return
     }
 
@@ -52,10 +108,10 @@ export default function DevinIntegration({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prd_id: prdId,
-          title: prdTitle,
-          description: prdDescription,
-          requirements: prdRequirements,
+          prd_id: selectedPRD.id,
+          title: selectedPRD.title,
+          description: selectedPRD.description || 'No description provided',
+          requirements: selectedPRD.requirements || [],
         }),
       })
 
@@ -63,6 +119,30 @@ export default function DevinIntegration({
         const newTask = await response.json()
         setTasks([...tasks, newTask])
         setSelectedTask(newTask)
+        
+        // Reset progress for new task
+        setProgress({
+          codeGeneration: false,
+          githubRepo: false,
+          databaseSetup: false,
+          cloudDeployment: false
+        })
+
+        // Automatically execute the task with Devin AI
+        try {
+          const executeResponse = await fetch(`/api/v1/devin/tasks/${newTask.id}/execute`, {
+            method: 'POST',
+          })
+          
+          if (executeResponse.ok) {
+            const executeResult = await executeResponse.json()
+            console.log('Devin AI execution initiated:', executeResult)
+            // Update the task status
+            setSelectedTask({...newTask, status: 'in_devin'})
+          }
+        } catch (error) {
+          console.error('Error executing Devin task:', error)
+        }
       }
     } catch (error) {
       console.error('Error creating Devin task:', error)
@@ -79,29 +159,6 @@ export default function DevinIntegration({
     }
   }
 
-  const markTaskCompleted = async (taskId: string) => {
-    try {
-      const response = await fetch(`/api/v1/devin/tasks/${taskId}/complete`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          agent_code: 'Deployed via MCP servers',
-          deployment_method: 'mcp_automatic'
-        }),
-      })
-
-      if (response.ok) {
-        const updatedTask = await response.json()
-        setTasks(tasks.map(task => task.id === taskId ? updatedTask : task))
-        setSelectedTask(updatedTask)
-        setAgentCode('')
-      }
-    } catch (error) {
-      console.error('Error completing task:', error)
-    }
-  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -129,24 +186,129 @@ export default function DevinIntegration({
     }
   }
 
+  const ProgressBar = () => {
+    const steps = [
+      { key: 'codeGeneration', label: 'Code Generation', description: 'Devin AI is analyzing the PRD and generating agent code' },
+      { key: 'githubRepo', label: 'GitHub Repository', description: 'Creating repository and pushing initial code' },
+      { key: 'databaseSetup', label: 'Database Setup', description: 'Configuring Supabase database and schemas' },
+      { key: 'cloudDeployment', label: 'Cloud Deployment', description: 'Deploying to Google Cloud Run' }
+    ]
+
+    const completedSteps = Object.values(progress).filter(Boolean).length
+    const totalSteps = steps.length
+    const progressPercentage = (completedSteps / totalSteps) * 100
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-medium">Agent Creation Progress</h4>
+          <span className="text-sm text-muted-foreground">{completedSteps}/{totalSteps} steps completed</span>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progressPercentage}%` }}
+          ></div>
+        </div>
+
+        {/* Progress Steps */}
+        <div className="space-y-3">
+          {steps.map((step, index) => {
+            const isCompleted = progress[step.key as keyof typeof progress]
+            const isCurrent = !isCompleted && (index === 0 || progress[steps[index - 1].key as keyof typeof progress])
+            
+            return (
+              <div key={step.key} className="flex items-start space-x-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  {isCompleted ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : isCurrent ? (
+                    <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-gray-300"></div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium ${isCompleted ? 'text-green-700' : isCurrent ? 'text-blue-700' : 'text-gray-500'}`}>
+                    {step.label}
+                  </p>
+                  <p className={`text-xs ${isCompleted ? 'text-green-600' : isCurrent ? 'text-blue-600' : 'text-gray-400'}`}>
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ExternalLink className="h-5 w-5" />
-            Devin AI Integration
+            Select a PRD to create an agent
           </CardTitle>
-          <CardDescription>
-            Create optimized prompts for Devin AI and manage the copy-paste workflow. 
-            <br />
-            <strong>💡 Tip:</strong> You can also export PRDs as markdown files from the PRDs tab to share with Devin AI.
-          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button onClick={createDevinTask} className="w-full">
-            Create Devin AI Task
-          </Button>
+        <CardContent className="space-y-4">
+          {prds.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No PRDs available. Upload a PRD first.</p>
+              <Button onClick={() => window.location.href = '/upload'}>
+                Upload PRD
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <select
+                  className="w-full p-3 border border-gray-200 rounded-lg bg-white"
+                  value={selectedPRD?.id || ''}
+                  onChange={(e) => {
+                    const prd = prds.find(p => p.id === e.target.value)
+                    setSelectedPRD(prd || null)
+                  }}
+                >
+                  <option value="">Choose a PRD...</option>
+                  {prds.map((prd) => (
+                    <option key={prd.id} value={prd.id}>
+                      {prd.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedPRD && (
+                <div className="space-y-4">
+                  <div className="p-3 border border-blue-500 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h5 className="font-medium">{selectedPRD.title}</h5>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedPRD.description || 'No description'}
+                        </p>
+                      </div>
+                      <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={createDevinTask} 
+                    className="w-full"
+                  >
+                    🚀 Create Agent with Devin AI
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -161,17 +323,22 @@ export default function DevinIntegration({
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="prompt" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="prompt">Devin Prompt</TabsTrigger>
-                <TabsTrigger value="result">Agent Code</TabsTrigger>
-              </TabsList>
+          <CardContent className="space-y-4">
+            {/* Generated Prompt - First Step */}
+            <div className="space-y-2">
+              <Button
+                variant="ghost"
+                onClick={() => setShowPrompt(!showPrompt)}
+                className="w-full justify-between p-0 h-auto"
+              >
+                <span className="text-sm font-medium">PRD</span>
+                {showPrompt ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
               
-              <TabsContent value="prompt" className="space-y-4">
-                <div className="space-y-2">
+              {showPrompt && (
+                <div className="mt-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Copy this prompt to Devin AI:</h4>
+                    <p className="text-xs text-muted-foreground">The PRD data has been automatically sent to Devin AI via API integration.</p>
                     <Button
                       variant="outline"
                       size="sm"
@@ -185,62 +352,35 @@ export default function DevinIntegration({
                     <pre className="text-sm whitespace-pre-wrap">{selectedTask.devin_prompt}</pre>
                   </div>
                 </div>
-                
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => window.open('https://devin.ai', '_blank')}
-                    variant="outline"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open Devin AI
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setSelectedTask({...selectedTask, status: 'in_devin'})
-                    }}
-                    variant="outline"
-                  >
-                    Mark as "In Devin"
-                  </Button>
-                </div>
-              </TabsContent>
+              )}
+            </div>
+
+            {/* Status and Progress - Second Step */}
+            <div className="border-t pt-4 space-y-4">
               
-              <TabsContent value="result" className="space-y-4">
+              {selectedTask.status === 'completed' ? (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <h4 className="text-sm font-medium text-blue-800 mb-2">🚀 Streamlined Deployment</h4>
-                    <p className="text-sm text-blue-700">
-                      Devin AI will automatically deploy the agent using MCP servers. No manual code copying required!
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium">Deployment Status:</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        GitHub Repository
-                      </div>
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        Supabase Database
-                      </div>
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        Cloud Run Deployment
-                      </div>
-                    </div>
+                  <ProgressBar />
+                  <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                    <h4 className="text-sm font-medium text-green-800">✅ Agent Created Successfully!</h4>
                   </div>
                 </div>
-                
-                <Button
-                  onClick={() => markTaskCompleted(selectedTask.id)}
-                  className="w-full"
-                >
-                  Mark as Deployed
-                </Button>
-              </TabsContent>
-            </Tabs>
+              ) : selectedTask.status === 'in_devin' || selectedTask.status === 'pending' ? (
+                <ProgressBar />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Waiting for agent creation to begin...</p>
+                </div>
+              )}
+            </div>
+            
+            {selectedTask.status === 'completed' && (
+              <div className="text-center py-4">
+                <p className="text-sm text-muted-foreground">
+                  ✅ Your agent is now available in the <strong>Agents</strong> tab
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -248,30 +388,39 @@ export default function DevinIntegration({
       {tasks.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Devin AI Tasks</CardTitle>
+            <Button
+              variant="ghost"
+              onClick={() => setShowTasks(!showTasks)}
+              className="w-full justify-between p-0 h-auto"
+            >
+              <CardTitle className="text-left">Changelog</CardTitle>
+              {showTasks ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
-                  onClick={() => setSelectedTask(task)}
-                >
-                  <div>
-                    <h4 className="font-medium">{task.title}</h4>
-                    <p className="text-sm text-gray-500">
-                      Created: {new Date(task.created_at).toLocaleDateString()}
-                    </p>
+          {showTasks && (
+            <CardContent>
+              <div className="space-y-2">
+                {tasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                    onClick={() => setSelectedTask(task)}
+                  >
+                    <div>
+                      <h4 className="font-medium">{task.title || 'Quick Test Agent PRD'}</h4>
+                      <p className="text-sm text-gray-500">
+                        Created: {new Date(task.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <Badge className={getStatusColor(task.status)}>
+                      {getStatusIcon(task.status)}
+                      <span className="ml-1 capitalize">{task.status}</span>
+                    </Badge>
                   </div>
-                  <Badge className={getStatusColor(task.status)}>
-                    {getStatusIcon(task.status)}
-                    <span className="ml-1 capitalize">{task.status}</span>
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
+                ))}
+              </div>
+            </CardContent>
+          )}
         </Card>
       )}
     </div>

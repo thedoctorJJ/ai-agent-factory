@@ -8,6 +8,7 @@ from ..config import config
 
 router = APIRouter()
 
+
 @router.get("/health")
 async def health_check():
     """Comprehensive health check endpoint"""
@@ -16,9 +17,10 @@ async def health_check():
         project_root = Path(__file__).parent.parent.parent.parent
         env_local_path = project_root / "config" / "env" / ".env.local"
         env_path = project_root / ".env"
-        
-        env_status = "configured" if (env_local_path.exists() or env_path.exists()) else "missing"
-        
+
+        env_status = "configured" if (
+            env_local_path.exists() or env_path.exists()) else "missing"
+
         return {
             "status": "healthy",
             "timestamp": datetime.utcnow().isoformat(),
@@ -35,7 +37,11 @@ async def health_check():
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Health check failed: {
+                str(e)}")
+
 
 @router.get("/health/detailed")
 async def detailed_health_check():
@@ -50,30 +56,34 @@ async def detailed_health_check():
             "platform": platform.platform(),
             "services": {}
         }
-        
+
         # Check environment variables
         required_env_vars = [
-            "DATABASE_URL", "SUPABASE_URL", "SUPABASE_KEY", 
+            "DATABASE_URL", "SUPABASE_URL", "SUPABASE_KEY",
             "OPENAI_API_KEY", "GITHUB_TOKEN"
         ]
-        
+
         env_status = {}
         for var in required_env_vars:
             env_status[var] = "configured" if os.getenv(var) else "missing"
-        
+
         health_data["environment_variables"] = env_status
-        
+
         # TODO: Add actual service connectivity checks
         health_data["services"] = {
             "database": "not_implemented",
-            "openai": "not_implemented", 
+            "openai": "not_implemented",
             "github": "not_implemented",
             "supabase": "not_implemented"
         }
-        
+
         return health_data
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Detailed health check failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Detailed health check failed: {
+                str(e)}")
+
 
 @router.get("/config")
 async def get_configuration():
@@ -81,4 +91,7 @@ async def get_configuration():
     try:
         return config.validate_config()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Configuration check failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Configuration check failed: {
+                str(e)}")
