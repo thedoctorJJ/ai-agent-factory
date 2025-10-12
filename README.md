@@ -89,17 +89,25 @@ The platform includes a comprehensive environment management system:
 ./scripts/config/env-manager.sh clean
 ```
 
-### 🔄 **Streamlined Workflow**
+### 🔄 **Manual Devin Workflow**
+
+The AI Agent Factory now supports a **Manual Devin Workflow** that allows you to work with Devin AI even without API access:
 
 1. **Submit PRD**: Upload or paste a completed PRD - automatically added to the queue
 
-2. **Create Agent**: Select a PRD from the queue and let Devin AI automatically create the agent
+2. **Mark Ready for Devin**: Use the "Ready for Devin" button to mark PRDs for Devin AI processing
 
-3. **Monitor Progress**: Watch real-time progress as the agent is built and deployed
+3. **Manual Devin Processing**: Start Devin AI manually and point it to your Supabase database
 
-4. **Manage Agents**: View, manage, and delete agents in the organized Agents tab
+4. **Devin Reads PRDs**: Devin AI reads PRDs with `ready_for_devin` status from your database
 
-The AI Agent Factory provides a **streamlined, automated workflow** from PRD submission to deployed agent with minimal user interaction required.
+5. **Devin Creates Agents**: Devin AI creates agents using your APIs and updates PRD status to `completed`
+
+6. **Monitor Progress**: Watch real-time progress as agents are built and deployed
+
+7. **Manage Agents**: View, manage, and delete agents in the organized Agents tab
+
+The AI Agent Factory provides a **flexible workflow** that works with both automated and manual Devin AI integration.
 
 ---
 
@@ -358,6 +366,8 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 - `POST /api/v1/prds` - Submit completed PRD for agent creation
 - `GET /api/v1/prds/{id}/markdown` - Export PRD as markdown for Devin AI
 - `GET /api/v1/prds/{id}/markdown/download` - Download PRD as .md file
+- `POST /api/v1/prds/{id}/ready-for-devin` - Mark PRD as ready for Devin AI processing
+- `GET /api/v1/prds/ready-for-devin` - Get all PRDs ready for Devin AI processing
 
 ## 🧩 Principles
 
@@ -418,6 +428,9 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 - [x] **📱 API Client Refactoring** - Centralized, type-safe API communication layer
 - [x] **🗂️ File Organization** - Clean folder structure with archived old files and proper .gitignore
 - [x] **🧹 Code Cleanup** - Removed duplicate files and organized refactored components
+- [x] **🤖 Manual Devin Workflow** - Complete manual Devin AI integration with ready_for_devin status
+- [x] **📊 Enhanced PRD Status System** - New ready_for_devin status for manual Devin workflow
+- [x] **🔗 Supabase Integration** - Full database integration with schema updates for manual workflow
 
 ### 🚧 In Progress
 - [ ] Advanced agent orchestration features

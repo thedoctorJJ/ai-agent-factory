@@ -31,6 +31,21 @@ async def get_prds(
     return await prd_service.get_prds(skip=skip, limit=limit, prd_type=prd_type, status=status)
 
 
+# Devin AI workflow endpoints (must come before /prds/{prd_id} to avoid routing conflicts)
+@router.get("/prds/ready-for-devin")
+async def get_prds_ready_for_devin():
+    """Get all PRDs that are ready for Devin AI processing."""
+    from ..models.prd import PRDStatus
+    
+    prds_response = await prd_service.get_prds(status=PRDStatus.READY_FOR_DEVIN, limit=1000)
+    
+    return {
+        "message": "PRDs ready for Devin AI",
+        "count": prds_response.total,
+        "prds": [prd.dict() for prd in prds_response.prds]
+    }
+
+
 @router.get("/prds/{prd_id}", response_model=PRDResponse)
 async def get_prd(prd_id: str):
     """Get a specific PRD by ID."""
@@ -106,4 +121,22 @@ async def get_roadmap():
         "statuses": roadmap_data["statuses"],
         "priorities": roadmap_data["priorities"],
         "prds": [prd.dict() for prd in prds_response.prds]
+    }
+
+
+# Devin AI workflow endpoints
+@router.post("/prds/{prd_id}/ready-for-devin")
+async def mark_prd_ready_for_devin(prd_id: str):
+    """Mark a PRD as ready for Devin AI processing."""
+    from ..models.prd import PRDUpdate, PRDStatus
+    
+    # Update PRD status to ready_for_devin
+    prd_update = PRDUpdate(status=PRDStatus.READY_FOR_DEVIN)
+    updated_prd = await prd_service.update_prd(prd_id, prd_update)
+    
+    return {
+        "message": "PRD marked as ready for Devin AI",
+        "prd_id": prd_id,
+        "status": "ready_for_devin",
+        "prd": updated_prd
     }

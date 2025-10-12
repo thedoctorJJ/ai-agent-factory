@@ -11,6 +11,7 @@ from ..models.prd import (
     PRDCreate, PRDUpdate, PRDResponse, PRDType, PRDStatus,
     PRDListResponse, PRDMarkdownResponse
 )
+from ..utils.database import db_manager
 
 
 class PRDService:
@@ -18,9 +19,6 @@ class PRDService:
 
     def __init__(self):
         """Initialize the PRD service."""
-        # In-memory storage for demo purposes
-        # In production, this would be replaced with a database
-        self._prds_db: Dict[str, Dict[str, Any]] = {}
         self._roadmap_db = {
             "categories": ["infrastructure", "features", "improvements", "bugfixes"],
             "statuses": ["backlog", "planned", "in_progress", "review", "completed"],
@@ -40,8 +38,8 @@ class PRDService:
             "prd_type": prd_data.prd_type.value,
             "status": PRDStatus.QUEUE.value,
             "github_repo_url": None,
-            "created_at": now,
-            "updated_at": now,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
             "problem_statement": prd_data.problem_statement,
             "target_users": prd_data.target_users,
             "user_stories": prd_data.user_stories,
@@ -67,11 +65,40 @@ class PRDService:
             "original_filename": prd_data.original_filename,
             "file_content": prd_data.file_content}
 
+        # Try to save to database (will fallback to local database if Supabase fails)
+        try:
+            saved_prd = await db_manager.create_prd(prd_dict)
+            if saved_prd:
+                # Convert datetime strings back to datetime objects for response
+                saved_prd["created_at"] = datetime.fromisoformat(saved_prd["created_at"].replace('Z', '+00:00'))
+                saved_prd["updated_at"] = datetime.fromisoformat(saved_prd["updated_at"].replace('Z', '+00:00'))
+                return PRDResponse(**saved_prd)
+        except Exception as e:
+            print(f"Database save failed, using in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
+        if not hasattr(self, '_prds_db'):
+            self._prds_db: Dict[str, Dict[str, Any]] = {}
         self._prds_db[prd_id] = prd_dict
         return PRDResponse(**prd_dict)
 
     async def get_prd(self, prd_id: str) -> PRDResponse:
         """Get a PRD by ID."""
+        # Try to get from database first
+        try:
+            if db_manager.is_connected():
+                prd_data = await db_manager.get_prd(prd_id)
+                if prd_data:
+                    # Convert datetime strings back to datetime objects
+                    prd_data["created_at"] = datetime.fromisoformat(prd_data["created_at"].replace('Z', '+00:00'))
+                    prd_data["updated_at"] = datetime.fromisoformat(prd_data["updated_at"].replace('Z', '+00:00'))
+                    return PRDResponse(**prd_data)
+        except Exception as e:
+            print(f"Database get failed, trying in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
+        if not hasattr(self, '_prds_db'):
+            self._prds_db: Dict[str, Dict[str, Any]] = {}
         if prd_id not in self._prds_db:
             raise HTTPException(status_code=404, detail="PRD not found")
 
@@ -85,6 +112,35 @@ class PRDService:
         status: Optional[PRDStatus] = None
     ) -> PRDListResponse:
         """Get a list of PRDs with optional filtering."""
+        # Try to get from database first (will fallback to local database if Supabase fails)
+        try:
+            # Pass status parameter to database manager for efficient filtering
+            status_value = status.value if status else None
+            prds_data = await db_manager.get_prds(skip, limit, status_value)
+            if prds_data:
+                # Convert datetime strings back to datetime objects
+                for prd in prds_data:
+                    prd["created_at"] = datetime.fromisoformat(prd["created_at"].replace('Z', '+00:00'))
+                    prd["updated_at"] = datetime.fromisoformat(prd["updated_at"].replace('Z', '+00:00'))
+                
+                # Apply remaining filters (prd_type filtering still done in memory)
+                filtered_prds = prds_data
+                if prd_type:
+                    filtered_prds = [p for p in filtered_prds if p["prd_type"] == prd_type.value]
+                
+                return PRDListResponse(
+                    prds=[PRDResponse(**prd) for prd in filtered_prds],
+                    total=len(filtered_prds),
+                    page=skip // limit + 1,
+                    size=limit,
+                    has_next=len(filtered_prds) == limit
+                )
+        except Exception as e:
+            print(f"Database get_prds failed, using in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
+        if not hasattr(self, '_prds_db'):
+            self._prds_db: Dict[str, Dict[str, Any]] = {}
         prds = list(self._prds_db.values())
 
         # Apply filters
@@ -113,6 +169,17 @@ class PRDService:
             prd_id: str,
             prd_data: PRDUpdate) -> PRDResponse:
         """Update an existing PRD."""
+        # Try to update in database first
+        try:
+            if db_manager.is_connected():
+                update_data = prd_data.dict(exclude_unset=True)
+                updated_prd = await db_manager.update_prd(prd_id, update_data)
+                if updated_prd:
+                    return PRDResponse(**updated_prd)
+        except Exception as e:
+            print(f"Database update failed, trying in-memory storage: {e}")
+
+        # Fallback to in-memory storage
         if prd_id not in self._prds_db:
             raise HTTPException(status_code=404, detail="PRD not found")
 
@@ -130,6 +197,18 @@ class PRDService:
 
     async def delete_prd(self, prd_id: str) -> Dict[str, str]:
         """Delete a PRD."""
+        # Try to delete from database first
+        try:
+            if db_manager.is_connected():
+                success = await db_manager.delete_prd(prd_id)
+                if success:
+                    return {"message": "PRD deleted successfully"}
+        except Exception as e:
+            print(f"Database delete failed, trying in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
+        if not hasattr(self, '_prds_db'):
+            self._prds_db: Dict[str, Dict[str, Any]] = {}
         if prd_id not in self._prds_db:
             raise HTTPException(status_code=404, detail="PRD not found")
 

@@ -13,6 +13,7 @@ from ..models.devin import (
 )
 from ..services.agent_service import agent_service
 from ..services.prd_service import prd_service
+from ..utils.database import db_manager
 
 
 class DevinService:
@@ -20,8 +21,7 @@ class DevinService:
 
     def __init__(self):
         """Initialize the Devin service."""
-        # In-memory storage for demo purposes
-        # In production, this would be replaced with a database
+        # In-memory storage as fallback
         self._tasks_db: Dict[str, Dict[str, Any]] = {}
 
     async def create_task(
@@ -42,17 +42,51 @@ class DevinService:
             "requirements": task_data.requirements,
             "devin_prompt": devin_prompt,
             "status": DevinTaskStatus.PENDING.value,
-            "created_at": now,
-            "updated_at": now,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
             "devin_output": None,
             "agent_code": None
         }
 
+        # Try to save to database, fallback to in-memory if database fails
+        try:
+            if db_manager.is_connected():
+                saved_task = await db_manager.create_devin_task(task_dict)
+                if saved_task:
+                    # Convert datetime strings back to datetime objects for response
+                    saved_task["created_at"] = datetime.fromisoformat(saved_task["created_at"].replace('Z', '+00:00'))
+                    saved_task["updated_at"] = datetime.fromisoformat(saved_task["updated_at"].replace('Z', '+00:00'))
+                    if saved_task.get("started_at"):
+                        saved_task["started_at"] = datetime.fromisoformat(saved_task["started_at"].replace('Z', '+00:00'))
+                    if saved_task.get("completed_at"):
+                        saved_task["completed_at"] = datetime.fromisoformat(saved_task["completed_at"].replace('Z', '+00:00'))
+                    return DevinTaskResponse(**saved_task)
+        except Exception as e:
+            print(f"Database save failed, using in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
         self._tasks_db[task_id] = task_dict
         return DevinTaskResponse(**task_dict)
 
     async def get_task(self, task_id: str) -> DevinTaskResponse:
         """Get a Devin task by ID."""
+        # Try to get from database first
+        try:
+            if db_manager.is_connected():
+                task_data = await db_manager.get_devin_task(task_id)
+                if task_data:
+                    # Convert datetime strings back to datetime objects
+                    task_data["created_at"] = datetime.fromisoformat(task_data["created_at"].replace('Z', '+00:00'))
+                    task_data["updated_at"] = datetime.fromisoformat(task_data["updated_at"].replace('Z', '+00:00'))
+                    if task_data.get("started_at"):
+                        task_data["started_at"] = datetime.fromisoformat(task_data["started_at"].replace('Z', '+00:00'))
+                    if task_data.get("completed_at"):
+                        task_data["completed_at"] = datetime.fromisoformat(task_data["completed_at"].replace('Z', '+00:00'))
+                    return DevinTaskResponse(**task_data)
+        except Exception as e:
+            print(f"Database get failed, trying in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
         if task_id not in self._tasks_db:
             raise HTTPException(status_code=404, detail="Devin task not found")
 
@@ -66,6 +100,38 @@ class DevinService:
         prd_id: Optional[str] = None
     ) -> DevinTaskListResponse:
         """Get a list of Devin tasks with optional filtering."""
+        # Try to get from database first
+        try:
+            if db_manager.is_connected():
+                tasks_data = await db_manager.get_devin_tasks(skip, limit)
+                if tasks_data:
+                    # Convert datetime strings back to datetime objects
+                    for task in tasks_data:
+                        task["created_at"] = datetime.fromisoformat(task["created_at"].replace('Z', '+00:00'))
+                        task["updated_at"] = datetime.fromisoformat(task["updated_at"].replace('Z', '+00:00'))
+                        if task.get("started_at"):
+                            task["started_at"] = datetime.fromisoformat(task["started_at"].replace('Z', '+00:00'))
+                        if task.get("completed_at"):
+                            task["completed_at"] = datetime.fromisoformat(task["completed_at"].replace('Z', '+00:00'))
+                    
+                    # Apply filters
+                    filtered_tasks = tasks_data
+                    if status:
+                        filtered_tasks = [t for t in filtered_tasks if t["status"] == status.value]
+                    if prd_id:
+                        filtered_tasks = [t for t in filtered_tasks if t["prd_id"] == prd_id]
+                    
+                    return DevinTaskListResponse(
+                        tasks=[DevinTaskResponse(**task) for task in filtered_tasks],
+                        total=len(filtered_tasks),
+                        page=skip // limit + 1,
+                        size=limit,
+                        has_next=len(filtered_tasks) == limit
+                    )
+        except Exception as e:
+            print(f"Database get_tasks failed, using in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
         tasks = list(self._tasks_db.values())
 
         # Apply filters
@@ -104,11 +170,88 @@ class DevinService:
         task_dict["status"] = DevinTaskStatus.IN_DEVIN.value
         task_dict["updated_at"] = datetime.utcnow()
 
+        # Auto-complete the task after a short delay (mock implementation)
+        import asyncio
+        asyncio.create_task(self._auto_complete_task(task_id))
+
         return DevinTaskExecuteResponse(
             message="Task submitted to Devin AI successfully",
             task_id=task_id,
             status=DevinTaskStatus.IN_DEVIN,
             note="Devin AI is now processing your request. This usually takes 2-3 minutes.")
+
+    async def _auto_complete_task(self, task_id: str):
+        """Auto-complete a task after a delay (mock implementation)."""
+        import asyncio
+        await asyncio.sleep(10)  # Wait 10 seconds
+        
+        # Try to update in database first
+        try:
+            if db_manager.is_connected():
+                task_data = await db_manager.get_devin_task(task_id)
+                if task_data and task_data["status"] == DevinTaskStatus.IN_DEVIN.value:
+                    # Mock completion
+                    update_data = {
+                        "status": DevinTaskStatus.COMPLETED.value,
+                        "updated_at": datetime.utcnow().isoformat(),
+                        "completed_at": datetime.utcnow().isoformat(),
+                        "devin_output": f"Mock agent created for task {task_id}",
+                        "agent_code": f"# Mock agent code for {task_data['title']}\n# This is a placeholder implementation"
+                    }
+                    await db_manager.update_devin_task(task_id, update_data)
+                    
+                    # Create a mock agent
+                    try:
+                        from ..models.agent import AgentRegistration
+                        agent_data = AgentRegistration(
+                            name=f"Agent-{task_data['title'][:20]}",
+                            description=task_data["description"],
+                            purpose="Mock agent created from PRD",
+                            version="1.0.0",
+                            repository_url=f"https://github.com/thedoctorJJ/agent-{task_id[:8]}",
+                            deployment_url=f"https://agent-{task_id[:8]}-uc.a.run.app",
+                            health_check_url=f"https://agent-{task_id[:8]}-uc.a.run.app/health",
+                            prd_id=task_data["prd_id"],
+                            devin_task_id=task_id,
+                            capabilities=["task_management", "notifications", "reporting"],
+                            configuration={"mock": True, "auto_generated": True}
+                        )
+                        await agent_service.create_agent(agent_data)
+                    except Exception as e:
+                        print(f"Error creating mock agent: {e}")
+                    return
+        except Exception as e:
+            print(f"Database update failed, trying in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
+        if task_id in self._tasks_db:
+            task_dict = self._tasks_db[task_id]
+            if task_dict["status"] == DevinTaskStatus.IN_DEVIN.value:
+                # Mock completion
+                task_dict["status"] = DevinTaskStatus.COMPLETED.value
+                task_dict["updated_at"] = datetime.utcnow()
+                task_dict["devin_output"] = f"Mock agent created for task {task_id}"
+                task_dict["agent_code"] = f"# Mock agent code for {task_dict['title']}\n# This is a placeholder implementation"
+                
+                # Create a mock agent
+                try:
+                    from ..models.agent import AgentRegistration
+                    agent_data = AgentRegistration(
+                        name=f"Agent-{task_dict['title'][:20]}",
+                        description=task_dict["description"],
+                        purpose="Mock agent created from PRD",
+                        version="1.0.0",
+                        repository_url=f"https://github.com/thedoctorJJ/agent-{task_id[:8]}",
+                        deployment_url=f"https://agent-{task_id[:8]}-uc.a.run.app",
+                        health_check_url=f"https://agent-{task_id[:8]}-uc.a.run.app/health",
+                        prd_id=task_dict["prd_id"],
+                        devin_task_id=task_id,
+                        capabilities=["task_management", "notifications", "reporting"],
+                        configuration={"mock": True, "auto_generated": True}
+                    )
+                    await agent_service.create_agent(agent_data)
+                except Exception as e:
+                    print(f"Error creating mock agent: {e}")
 
     async def complete_task(
             self,

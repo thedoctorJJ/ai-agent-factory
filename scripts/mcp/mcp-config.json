@@ -4,7 +4,7 @@
   "icon": "🤖",
   "transport": "stdio",
   "command": "python3",
-  "args": ["/home/ubuntu/repos/end-cap-agent-factory/scripts/mcp-server.py"],
+  "args": ["/Users/jason/Repositories/end-cap-agent-factory/scripts/mcp/mcp-server.py"],
   "secrets": {
     "GITHUB_TOKEN": "Your GitHub personal access token",
     "SUPABASE_SERVICE_ROLE_KEY": "Your Supabase service role key", 

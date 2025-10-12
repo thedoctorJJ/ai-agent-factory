@@ -16,10 +16,11 @@ class PRDType(str, Enum):
 class PRDStatus(str, Enum):
     """PRD status enumeration."""
     QUEUE = "queue"
-    PROCESSED = "processed"
+    READY_FOR_DEVIN = "ready_for_devin"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
+    PROCESSED = "processed"
 
 
 class PRDPriority(str, Enum):

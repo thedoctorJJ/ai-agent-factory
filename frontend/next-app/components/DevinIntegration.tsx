@@ -55,10 +55,10 @@ export default function DevinIntegration({
         const response = await fetch('/api/v1/devin/tasks')
         if (response.ok) {
           const tasksData = await response.json()
-          setTasks(tasksData)
+          setTasks(tasksData.tasks || [])
           // If there's a task, select it
-          if (tasksData.length > 0) {
-            setSelectedTask(tasksData[0])
+          if (tasksData.tasks && tasksData.tasks.length > 0) {
+            setSelectedTask(tasksData.tasks[0])
           }
         }
       } catch (error) {
@@ -117,7 +117,7 @@ export default function DevinIntegration({
 
       if (response.ok) {
         const newTask = await response.json()
-        setTasks([...tasks, newTask])
+        setTasks([...(Array.isArray(tasks) ? tasks : []), newTask])
         setSelectedTask(newTask)
         
         // Reset progress for new task

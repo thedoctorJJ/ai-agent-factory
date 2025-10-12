@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Bot, FileText, Activity, Github, Download, Eye, BarChart3, Upload, ChevronDown, ChevronUp, CheckCircle, Trash2 } from 'lucide-react'
+import { Bot, FileText, Activity, Github, Download, Eye, BarChart3, Upload, ChevronDown, ChevronUp, CheckCircle, Trash2 } from 'lucide-react'
 import DevinIntegration from '@/components/DevinIntegration'
-import PRDCreationForm from '@/components/PRDCreationForm'
+import PRDStatusSection from '@/components/PRDStatusSection'
 
 interface Agent {
   id: string
@@ -45,20 +45,59 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [prdTypeFilter, setPrdTypeFilter] = useState<'all' | 'platform' | 'agent'>('all')
   const [prdStatusFilter, setPrdStatusFilter] = useState<string>('all')
-  const [showPRDForm, setShowPRDForm] = useState(false)
   const [showQueueSection, setShowQueueSection] = useState(false)
   const [showProcessedSection, setShowProcessedSection] = useState(false)
   const [showAgentsSection, setShowAgentsSection] = useState(false)
+  const [showInProgressSection, setShowInProgressSection] = useState(false)
+  const [showCompletedSection, setShowCompletedSection] = useState(false)
+  const [showFailedSection, setShowFailedSection] = useState(false)
 
   const activeAgentsCount = useMemo(() => 
-    agents.filter(a => a.status === 'active').length,
+    Array.isArray(agents) ? agents.filter(a => a.status === 'active').length : 0,
     [agents]
   )
   
   const completedPrdsCount = useMemo(() => 
-    prds.filter(p => p.status === 'completed').length,
+    Array.isArray(prds) ? prds.filter(p => p.status === 'completed').length : 0,
     [prds]
   )
+
+  // Group PRDs by status
+  const prdsByStatus = useMemo(() => {
+    if (!Array.isArray(prds)) return {}
+    
+    return prds.reduce((acc, prd) => {
+      const status = prd.status || 'unknown'
+      if (!acc[status]) {
+        acc[status] = []
+      }
+      acc[status].push(prd)
+      return acc
+    }, {} as Record<string, PRD[]>)
+  }, [prds])
+
+  // Get status counts
+  const statusCounts = useMemo(() => {
+    const counts = {
+      queue: 0,
+      ready_for_devin: 0,
+      in_progress: 0,
+      completed: 0,
+      failed: 0,
+      processed: 0
+    }
+    
+    if (Array.isArray(prds)) {
+      prds.forEach(prd => {
+        const status = prd.status as keyof typeof counts
+        if (status in counts) {
+          counts[status]++
+        }
+      })
+    }
+    
+    return counts
+  }, [prds])
 
   useEffect(() => {
     fetchData()
@@ -73,7 +112,7 @@ export default function Dashboard() {
       
       if (agentsRes.ok) {
         const agentsData = await agentsRes.json()
-        setAgents(agentsData)
+        setAgents(agentsData.agents || [])
       } else {
         console.error('Failed to fetch agents:', agentsRes.status)
         setAgents([]) // Clear agents if fetch fails
@@ -81,7 +120,7 @@ export default function Dashboard() {
       
       if (prdsRes.ok) {
         const prdsData = await prdsRes.json()
-        setPrds(prdsData)
+        setPrds(prdsData.prds || [])
       } else {
         console.error('Failed to fetch PRDs:', prdsRes.status)
         setPrds([]) // Clear PRDs if fetch fails
@@ -96,9 +135,6 @@ export default function Dashboard() {
     }
   }
 
-  const handlePRDSuccess = () => {
-    fetchData() // Refresh the data to show the new PRD
-  }
 
   const downloadPRDMarkdown = async (prdId: string, title: string) => {
     try {
@@ -142,6 +178,49 @@ export default function Dashboard() {
     }
   }
 
+  // Helper function to get status badge styling
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      queue: { label: 'Queue', variant: 'secondary' as const, icon: '⏳' },
+      ready_for_devin: { label: 'Ready for Devin', variant: 'default' as const, icon: '🤖' },
+      in_progress: { label: 'In Progress', variant: 'default' as const, icon: '🔄' },
+      completed: { label: 'Completed', variant: 'default' as const, icon: '✅' },
+      failed: { label: 'Failed', variant: 'destructive' as const, icon: '❌' },
+      processed: { label: 'Processed', variant: 'outline' as const, icon: '📋' }
+    }
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || { 
+      label: status, 
+      variant: 'secondary' as const, 
+      icon: '❓' 
+    }
+    
+    return config
+  }
+
+  const deletePRD = async (prdId: string) => {
+    if (confirm('Are you sure you want to delete this PRD? This action cannot be undone.')) {
+      try {
+        const response = await fetch(`/api/v1/prds/${prdId}`, {
+          method: 'DELETE',
+        })
+        if (response.ok) {
+          // Remove the PRD from the local state
+          setPrds(prds.filter(prd => prd.id !== prdId))
+        } else {
+          const errorData = await response.json().catch(() => ({}))
+          const errorMessage = errorData.detail || `Failed to delete PRD (${response.status})`
+          alert(`Error: ${errorMessage}`)
+          console.error('Failed to delete PRD:', errorMessage)
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        alert(`Error deleting PRD: ${errorMessage}`)
+        console.error('Error deleting PRD:', error)
+      }
+    }
+  }
+
   const viewPRDMarkdown = async (prdId: string) => {
     try {
       const response = await fetch(`/api/v1/prds/${prdId}/markdown`)
@@ -172,6 +251,33 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error viewing PRD markdown:', error)
+    }
+  }
+
+  const markPRDReadyForDevin = async (prdId: string) => {
+    try {
+      const response = await fetch(`/api/v1/prds/${prdId}/ready-for-devin`, {
+        method: 'POST',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        // Update the PRD in local state
+        setPrds(prds.map(prd => 
+          prd.id === prdId 
+            ? { ...prd, status: 'ready_for_devin' }
+            : prd
+        ))
+        alert('PRD marked as ready for Devin AI!')
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.detail || `Failed to mark PRD ready for Devin (${response.status})`
+        alert(`Error: ${errorMessage}`)
+        console.error('Failed to mark PRD ready for Devin:', errorMessage)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Error marking PRD ready for Devin: ${errorMessage}`)
+      console.error('Error marking PRD ready for Devin:', error)
     }
   }
 
@@ -560,136 +666,61 @@ export default function Dashboard() {
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold">PRD Repository</h2>
             <p className="text-muted-foreground">
-              Manage your Product Requirements Documents. PRDs in "Queue" are waiting to be processed into agents. 
-              "Processed" PRDs have been converted into deployed AI agents.
+              View your uploaded Product Requirements Documents organized by status. PRDs flow through the workflow: 
+              Queue → In Progress → Completed (or Failed). Each status shows the current state of your PRDs in the agent creation process.
             </p>
           </div>
           
-          {/* In Queue Section */}
-          <div className="space-y-4">
-            <Button
-              variant="ghost"
-              onClick={() => setShowQueueSection(!showQueueSection)}
-              className="w-full justify-between p-4 h-auto bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-lg transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-yellow-800">In Queue</h3>
-                <Badge variant="secondary" className="bg-yellow-200 text-yellow-800">
-                  {prds.filter(p => p.status === 'queue').length}
-                </Badge>
-              </div>
-              {showQueueSection ? <ChevronUp className="h-4 w-4 text-yellow-600" /> : <ChevronDown className="h-4 w-4 text-yellow-600" />}
-            </Button>
-            {showQueueSection && (
-              <div className="grid gap-4">
-              {prds.filter(p => p.status === 'queue').length > 0 ? (
-                prds.filter(p => p.status === 'queue').map((prd) => (
-                  <Card key={prd.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <CardTitle className="text-lg">{prd.title}</CardTitle>
-                          <div className="space-y-2">
-                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                              <p className="text-sm font-medium text-blue-800 mb-1">🤖 Agent Description:</p>
-                              <p className="text-sm text-blue-700">{generateAgentDescription(prd)}</p>
-                            </div>
-                            <div className="bg-yellow-50 p-2 rounded-lg border border-yellow-200">
-                              <p className="text-xs text-yellow-700">⏳ Waiting to be processed into an AI agent</p>
-                            </div>
-                            {prd.description && prd.description !== generateAgentDescription(prd) && (
-                              <CardDescription className="text-xs text-muted-foreground">
-                                Full PRD: {prd.description}
-                              </CardDescription>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-yellow-100 text-yellow-800">⏳ In Queue</Badge>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => window.location.href = `/prds/${prd.id}`}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No PRDs in queue</p>
-                </div>
-              )}
-              </div>
-            )}
-          </div>
+          {/* PRDs by Status */}
+          {Object.keys(prdsByStatus || {}).length > 0 ? (
+            Object.entries(prdsByStatus || {}).map(([status, statusPrds]) => {
+              const getToggleHandler = (status: string) => {
+                switch (status) {
+                  case 'queue': return () => setShowQueueSection(!showQueueSection)
+                  case 'in_progress': return () => setShowInProgressSection(!showInProgressSection)
+                  case 'completed': return () => setShowCompletedSection(!showCompletedSection)
+                  case 'failed': return () => setShowFailedSection(!showFailedSection)
+                  case 'processed': return () => setShowProcessedSection(!showProcessedSection)
+                  default: return () => {}
+                }
+              }
 
-          {/* Processed Section */}
-          <div className="space-y-4">
-            <Button
-              variant="ghost"
-              onClick={() => setShowProcessedSection(!showProcessedSection)}
-              className="w-full justify-between p-4 h-auto bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-green-800">Processed</h3>
-                <Badge variant="secondary" className="bg-green-200 text-green-800">
-                  {prds.filter(p => p.status === 'processed').length}
-                </Badge>
-              </div>
-              {showProcessedSection ? <ChevronUp className="h-4 w-4 text-green-600" /> : <ChevronDown className="h-4 w-4 text-green-600" />}
-            </Button>
-            {showProcessedSection && (
-              <div className="grid gap-4">
-              {prds.filter(p => p.status === 'processed').length > 0 ? (
-                prds.filter(p => p.status === 'processed').map((prd) => (
-                  <Card key={prd.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <CardTitle className="text-lg">{prd.title}</CardTitle>
-                          <div className="space-y-2">
-                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                              <p className="text-sm font-medium text-blue-800 mb-1">🤖 Agent Description:</p>
-                              <p className="text-sm text-blue-700">{generateAgentDescription(prd)}</p>
-                            </div>
-                            <div className="bg-green-50 p-2 rounded-lg border border-green-200">
-                              <p className="text-xs text-green-700">✅ Successfully converted into a deployed AI agent</p>
-                            </div>
-                            {prd.description && prd.description !== generateAgentDescription(prd) && (
-                              <CardDescription className="text-xs text-muted-foreground">
-                                Full PRD: {prd.description}
-                              </CardDescription>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-green-100 text-green-800">✅ Processed</Badge>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => window.location.href = `/prds/${prd.id}`}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No processed PRDs</p>
-                </div>
-              )}
-              </div>
-            )}
-          </div>
+              const getIsExpanded = (status: string) => {
+                switch (status) {
+                  case 'queue': return showQueueSection
+                  case 'in_progress': return showInProgressSection
+                  case 'completed': return showCompletedSection
+                  case 'failed': return showFailedSection
+                  case 'processed': return showProcessedSection
+                  default: return false
+                }
+              }
+
+              return (
+                <PRDStatusSection
+                  key={status}
+                  status={status}
+                  prds={statusPrds}
+                  isExpanded={getIsExpanded(status)}
+                  onToggle={getToggleHandler(status)}
+                  onDelete={deletePRD}
+                  onDownload={downloadPRDMarkdown}
+                  generateAgentDescription={generateAgentDescription}
+                />
+              )
+            })
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold mb-2">No PRDs Found</h3>
+              <p className="mb-4">Upload your first PRD to get started with the AI Agent Factory.</p>
+              <p className="text-sm text-gray-500 mb-4">PRDs should be uploaded through the upload interface.</p>
+              <Button onClick={() => window.location.href = '/upload'}>
+                <Upload className="h-4 w-4 mr-2" />
+                Go to Upload Page
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="devin" className="space-y-4">
@@ -703,13 +734,6 @@ export default function Dashboard() {
         </TabsContent>
       </Tabs>
 
-      {/* PRD Creation Form Modal */}
-      {showPRDForm && (
-        <PRDCreationForm
-          onClose={() => setShowPRDForm(false)}
-          onSuccess={handlePRDSuccess}
-        />
-      )}
 
 
     </div>

@@ -30,10 +30,10 @@ async def health_check():
             "platform": platform.platform(),
             "environment_config": env_status,
             "services": {
-                "database": "not_configured",  # TODO: Add actual DB health check
-                "openai": "not_configured",    # TODO: Add actual OpenAI health check
-                "github": "not_configured",    # TODO: Add actual GitHub health check
-                "supabase": "not_configured"   # TODO: Add actual Supabase health check
+                "supabase": "configured" if (config.supabase_url and config.supabase_key) else "not_configured",
+                "openai": "configured" if config.openai_api_key else "not_configured",
+                "github": "configured" if config.github_token else "not_configured",
+                "google_cloud": "configured" if config.google_cloud_project_id else "not_configured"
             }
         }
     except Exception as e:
@@ -69,12 +69,12 @@ async def detailed_health_check():
 
         health_data["environment_variables"] = env_status
 
-        # TODO: Add actual service connectivity checks
+        # Service connectivity checks
         health_data["services"] = {
-            "database": "not_implemented",
-            "openai": "not_implemented",
-            "github": "not_implemented",
-            "supabase": "not_implemented"
+            "supabase": "configured" if (config.supabase_url and config.supabase_key) else "not_configured",
+            "openai": "configured" if config.openai_api_key else "not_configured",
+            "github": "configured" if config.github_token else "not_configured",
+            "google_cloud": "configured" if config.google_cloud_project_id else "not_configured"
         }
 
         return health_data

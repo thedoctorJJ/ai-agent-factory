@@ -10,6 +10,7 @@ from ..models.agent import (
     AgentRegistration, AgentResponse, AgentStatus, AgentHealthStatus,
     AgentListResponse, AgentHealthResponse, AgentMetricsResponse
 )
+from ..utils.database import db_manager
 
 
 class AgentService:
@@ -17,8 +18,7 @@ class AgentService:
 
     def __init__(self):
         """Initialize the agent service."""
-        # In-memory storage for demo purposes
-        # In production, this would be replaced with a database
+        # In-memory storage as fallback
         self._agents_db: Dict[str, Dict[str, Any]] = {}
 
     async def create_agent(
@@ -46,15 +46,78 @@ class AgentService:
             "configuration": agent_data.configuration,
             "last_health_check": None,
             "health_status": AgentHealthStatus.UNKNOWN.value,
-            "created_at": now,
-            "updated_at": now
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
         }
 
+        # Try to save to database, fallback to in-memory if database fails
+        try:
+            if db_manager.is_connected():
+                saved_agent = await db_manager.create_agent(agent_dict)
+                if saved_agent:
+                    # Convert datetime strings back to datetime objects for response
+                    saved_agent["created_at"] = datetime.fromisoformat(saved_agent["created_at"].replace('Z', '+00:00'))
+                    saved_agent["updated_at"] = datetime.fromisoformat(saved_agent["updated_at"].replace('Z', '+00:00'))
+                    if saved_agent.get("last_health_check"):
+                        saved_agent["last_health_check"] = datetime.fromisoformat(saved_agent["last_health_check"].replace('Z', '+00:00'))
+                    
+                    # Update PRD status to "completed" when agent is successfully created
+                    if agent_data.prd_id:
+                        try:
+                            await self._update_prd_status_to_completed(agent_data.prd_id)
+                        except Exception as e:
+                            print(f"Failed to update PRD status: {e}")
+                    
+                    return AgentResponse(**saved_agent)
+        except Exception as e:
+            print(f"Database save failed, using in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
         self._agents_db[agent_id] = agent_dict
+        
+        # Update PRD status to "completed" when agent is successfully created (in-memory)
+        if agent_data.prd_id:
+            try:
+                await self._update_prd_status_to_completed(agent_data.prd_id)
+            except Exception as e:
+                print(f"Failed to update PRD status: {e}")
+        
         return AgentResponse(**agent_dict)
+
+    async def _update_prd_status_to_completed(self, prd_id: str):
+        """Update PRD status to completed when agent is created."""
+        try:
+            # Try to update in database first
+            if db_manager.is_connected():
+                await db_manager.update_prd(prd_id, {"status": "completed"})
+                print(f"✅ Updated PRD {prd_id} status to 'completed' in database")
+                return
+            
+            # Fallback to in-memory storage
+            from ..services.prd_service import prd_service
+            if hasattr(prd_service, '_prds_db') and prd_id in prd_service._prds_db:
+                prd_service._prds_db[prd_id]['status'] = 'completed'
+                print(f"✅ Updated PRD {prd_id} status to 'completed' in memory")
+        except Exception as e:
+            print(f"❌ Failed to update PRD status: {e}")
 
     async def get_agent(self, agent_id: str) -> AgentResponse:
         """Get an agent by ID."""
+        # Try to get from database first
+        try:
+            if db_manager.is_connected():
+                agent_data = await db_manager.get_agent(agent_id)
+                if agent_data:
+                    # Convert datetime strings back to datetime objects
+                    agent_data["created_at"] = datetime.fromisoformat(agent_data["created_at"].replace('Z', '+00:00'))
+                    agent_data["updated_at"] = datetime.fromisoformat(agent_data["updated_at"].replace('Z', '+00:00'))
+                    if agent_data.get("last_health_check"):
+                        agent_data["last_health_check"] = datetime.fromisoformat(agent_data["last_health_check"].replace('Z', '+00:00'))
+                    return AgentResponse(**agent_data)
+        except Exception as e:
+            print(f"Database get failed, trying in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
         if agent_id not in self._agents_db:
             raise HTTPException(status_code=404, detail="Agent not found")
 
@@ -68,6 +131,36 @@ class AgentService:
         prd_id: Optional[str] = None
     ) -> AgentListResponse:
         """Get a list of agents with optional filtering."""
+        # Try to get from database first
+        try:
+            if db_manager.is_connected():
+                agents_data = await db_manager.get_agents(skip, limit)
+                if agents_data:
+                    # Convert datetime strings back to datetime objects
+                    for agent in agents_data:
+                        agent["created_at"] = datetime.fromisoformat(agent["created_at"].replace('Z', '+00:00'))
+                        agent["updated_at"] = datetime.fromisoformat(agent["updated_at"].replace('Z', '+00:00'))
+                        if agent.get("last_health_check"):
+                            agent["last_health_check"] = datetime.fromisoformat(agent["last_health_check"].replace('Z', '+00:00'))
+                    
+                    # Apply filters
+                    filtered_agents = agents_data
+                    if status:
+                        filtered_agents = [a for a in filtered_agents if a["status"] == status.value]
+                    if prd_id:
+                        filtered_agents = [a for a in filtered_agents if a.get("prd_id") == prd_id]
+                    
+                    return AgentListResponse(
+                        agents=[AgentResponse(**agent) for agent in filtered_agents],
+                        total=len(filtered_agents),
+                        page=skip // limit + 1,
+                        size=limit,
+                        has_next=len(filtered_agents) == limit
+                    )
+        except Exception as e:
+            print(f"Database get_agents failed, using in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
         agents = list(self._agents_db.values())
 
         # Apply filters
