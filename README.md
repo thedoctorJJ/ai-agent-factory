@@ -22,6 +22,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [Devin MCP Setup Guide](./docs/setup/10-devin-mcp-setup.md) — step-by-step guide for configuring Devin AI MCP integration.
 - [MCP Server Setup Guide](./docs/setup/13-mcp-server-setup-guide.md) — comprehensive MCP server configuration guide.
 - [Unified MCP Setup Guide](./docs/setup/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
+- [Devin MCP Real Integration](./docs/setup/15-devin-mcp-real-integration.md) — real Devin AI MCP integration with multi-token GitHub support.
 
 ### 📖 Implementation Guides
 - [DevOps & Deployment Flow](./docs/guides/02-devops-deployment-flow.md) — local dev, CI/CD, monitoring, and rollback.
@@ -118,6 +119,31 @@ The AI Agent Factory provides a **flexible workflow** that works with both autom
 - Python 3.11+
 - Node.js 18+
 - Docker & Docker Compose
+- Supabase account
+- OpenAI API key
+- GitHub account with Personal Access Tokens
+
+### 🔐 Multi-Token GitHub Setup
+
+The AI Agent Factory supports secure multi-token GitHub integration for different organizations:
+
+**Environment Configuration** (`scripts/mcp/.env`):
+```bash
+# GitHub Multi-Token Configuration
+GITHUB_TOKEN_TELLENAI=ghp_xxxxx_for_tellenai_org
+GITHUB_TOKEN_THEDOCTORJJ=ghp_xxxxx_for_thedoctorjj_account
+DEFAULT_GITHUB_ORG=thedoctorJJ
+```
+
+**Token Requirements:**
+- **`repo`** scope: Full control of repositories
+- **`admin:org`** scope: Full control of organizations (for org repos)
+- **Organization Access**: Ensure tokens have access to target organizations
+
+**Supported Targets:**
+- ✅ **Organizations**: `tellenai`, `tellen-academy`
+- ✅ **Personal Accounts**: `thedoctorJJ`
+- ✅ **Automatic Detection**: MCP server automatically selects correct token and API endpoint
 
 ### 1. Clone and Setup
 ```bash

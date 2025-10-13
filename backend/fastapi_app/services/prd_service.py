@@ -11,7 +11,7 @@ from ..models.prd import (
     PRDCreate, PRDUpdate, PRDResponse, PRDType, PRDStatus,
     PRDListResponse, PRDMarkdownResponse
 )
-from ..utils.database import db_manager
+from ..utils.simple_data_manager import data_manager
 from .prd_parser import PRDParser
 
 
@@ -216,6 +216,15 @@ class PRDService:
 
         del self._prds_db[prd_id]
         return {"message": "PRD deleted successfully"}
+
+    async def clear_all_prds(self) -> Dict[str, str]:
+        """Clear all PRDs from the system."""
+        # Use simplified data manager
+        success = await data_manager.clear_all_prds()
+        if success:
+            return {"message": "All PRDs cleared successfully"}
+        else:
+            return {"message": "Failed to clear PRDs"}
 
     async def upload_prd_file(self, file: UploadFile) -> PRDResponse:
         """Upload and parse a PRD file."""

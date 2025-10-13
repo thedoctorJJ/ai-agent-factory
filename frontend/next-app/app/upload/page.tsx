@@ -48,58 +48,7 @@ export default function UploadPage() {
     }
   }
 
-  const createAgentFromPRD = async (prd: any) => {
-    try {
-      // Create Devin task
-      const taskResponse = await fetch('/api/v1/devin/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prd_id: prd.id,
-          title: prd.title,
-          description: prd.description || 'No description provided',
-          requirements: prd.requirements || [],
-        }),
-      })
-
-      if (taskResponse.ok) {
-        const task = await taskResponse.json()
-        
-        // Automatically execute the task
-        const executeResponse = await fetch(`/api/v1/devin/tasks/${task.id}/execute`, {
-          method: 'POST',
-        })
-        
-        if (executeResponse.ok) {
-          // Wait for progress to complete (simulated)
-          setTimeout(async () => {
-            // Mark task as completed and create agent
-            const completeResponse = await fetch(`/api/v1/devin/tasks/${task.id}/complete`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ 
-                agent_code: 'Deployed via MCP servers',
-                deployment_method: 'mcp_automatic'
-              }),
-            })
-            
-            if (completeResponse.ok) {
-              // Redirect to success page
-              router.push(`/success?prd=${prd.id}&agent=${task.id}`)
-            }
-          }, 15000) // Wait 15 seconds for "agent creation"
-        }
-      }
-    } catch (error) {
-      console.error('Error creating agent:', error)
-      // Still redirect to PRD page as fallback
-      router.push(`/prds/${prd.id}`)
-    }
-  }
+  // Removed createAgentFromPRD - PRDs should just go to queue, not automatically create agents
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -107,16 +56,31 @@ export default function UploadPage() {
       setSelectedFile(file)
       setPastedContent('') // Clear pasted content when file is selected
       setDetectedType(null) // Reset detection
+      // Auto-upload the file immediately after selection
+      setTimeout(() => handleFileUpload(file), 100)
     }
   }
 
-  const handleFileUpload = async () => {
-    if (!selectedFile) return
+  const handleFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    const file = event.dataTransfer.files[0]
+    if (file && (file.name.endsWith('.md') || file.name.endsWith('.txt'))) {
+      setSelectedFile(file)
+      setPastedContent('') // Clear pasted content when file is selected
+      setDetectedType(null) // Reset detection
+      // Auto-upload the file immediately after drop
+      setTimeout(() => handleFileUpload(file), 100)
+    }
+  }
+
+  const handleFileUpload = async (file?: File) => {
+    const fileToUpload = file || selectedFile
+    if (!fileToUpload) return
 
     setIsUploading(true)
     try {
       const formData = new FormData()
-      formData.append('file', selectedFile)
+      formData.append('file', fileToUpload)
 
       const response = await fetch('/api/v1/prds/upload', {
         method: 'POST',
@@ -139,10 +103,10 @@ export default function UploadPage() {
         setSelectedFile(null)
         setPastedContent('')
         
-        // Auto-hide success message after 5 seconds
+        // Auto-redirect to main page after 2 seconds to show PRD in queue
         setTimeout(() => {
-          setShowSuccessMessage(false)
-        }, 5000)
+          router.push('/')
+        }, 2000)
       } else {
         const error = await response.json()
         alert(`Upload failed: ${error.detail}`)
@@ -188,10 +152,10 @@ export default function UploadPage() {
         setSelectedFile(null)
         setPastedContent('')
         
-        // Auto-hide success message after 5 seconds
+        // Auto-redirect to main page after 2 seconds to show PRD in queue
         setTimeout(() => {
-          setShowSuccessMessage(false)
-        }, 5000)
+          router.push('/')
+        }, 2000)
       } else {
         const error = await response.json()
         alert(`Upload failed: ${error.detail}`)
@@ -204,9 +168,6 @@ export default function UploadPage() {
     }
   }
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click()
-  }
 
   const copyToClipboard = async () => {
     try {
@@ -235,7 +196,7 @@ export default function UploadPage() {
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight">Upload PRD</h1>
             <p className="text-muted-foreground mt-2">
-              Upload your completed, formatted PRD to create an AI agent
+              Upload your completed, formatted PRD to add it to the agent creation queue
             </p>
           </div>
         </div>
@@ -249,7 +210,7 @@ export default function UploadPage() {
                 PRD Uploaded Successfully!
               </CardTitle>
               <CardDescription className="text-green-700">
-                Your PRD has been uploaded and is now available in the PRDs tab.
+                Your PRD has been uploaded and added to the queue! Redirecting to dashboard...
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -294,16 +255,18 @@ export default function UploadPage() {
                 Upload File
               </CardTitle>
               <CardDescription>
-                Browse and upload a .md or .txt file from your computer
+                Drag & drop or click to upload a .md or .txt file. It will be processed automatically.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <div 
+                className="border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg p-6 text-center cursor-pointer transition-colors"
+                onDrop={handleFileDrop}
+                onDragOver={(e) => e.preventDefault()}
+                onDragEnter={(e) => e.preventDefault()}
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <div className="space-y-4">
-                  <div className="flex items-center justify-center">
-                    <Upload className="h-8 w-8 text-gray-400" />
-                  </div>
-                  
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -312,34 +275,28 @@ export default function UploadPage() {
                     className="hidden"
                   />
                   
-                  {selectedFile ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
-                        <FileText className="h-4 w-4" />
-                        {selectedFile.name}
-                      </div>
-                      <Button
-                        onClick={handleFileUpload}
-                        disabled={isUploading}
-                        className="w-full"
-                      >
-                        {isUploading ? 'Uploading...' : 'Upload & Parse PRD'}
-                      </Button>
+                  {isUploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <span className="text-sm text-gray-600">Processing {selectedFile?.name}...</span>
+                    </div>
+                  ) : selectedFile ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <FileText className="h-6 w-6 text-green-600" />
+                      <span className="text-sm text-green-600 font-medium">{selectedFile.name}</span>
+                      <span className="text-xs text-gray-500">Processing automatically...</span>
                     </div>
                   ) : (
-                    <Button
-                      variant="outline"
-                      onClick={triggerFileInput}
-                      className="w-full"
-                    >
-                      Choose File
-                    </Button>
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload className="h-8 w-8 text-gray-400" />
+                      <span className="text-sm text-gray-600">Click to browse or drag & drop</span>
+                    </div>
                   )}
                 </div>
               </div>
               
               <div className="text-xs text-muted-foreground text-center">
-                Supported formats: .md, .txt
+                Supported formats: .md, .txt • Files are processed automatically
               </div>
             </CardContent>
           </Card>
@@ -420,7 +377,7 @@ export default function UploadPage() {
                 <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-sm font-semibold">
                   1
                 </div>
-                <h4 className="font-medium">Upload or Paste</h4>
+                <h4 className="font-medium">Upload PRD</h4>
                 <p className="text-sm text-muted-foreground">
                   Upload a file or paste your PRD content
                 </p>
@@ -438,9 +395,9 @@ export default function UploadPage() {
                 <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto text-sm font-semibold">
                   3
                 </div>
-                <h4 className="font-medium">Create Agent</h4>
+                <h4 className="font-medium">Added to Queue</h4>
                 <p className="text-sm text-muted-foreground">
-                  Your PRD is ready for agent creation
+                  Your PRD is now in the agent creation queue
                 </p>
               </div>
             </div>

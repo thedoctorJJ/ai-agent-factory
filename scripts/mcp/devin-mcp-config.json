@@ -1,0 +1,57 @@
+{
+  "name": "AI Agent Factory - Devin Integration",
+  "description": "MCP server for Devin AI to access PRDs and create agents in the AI Agent Factory platform",
+  "icon": "🤖",
+  "transport": "stdio",
+  "command": "python3",
+  "args": ["/Users/jason/Repositories/end-cap-agent-factory/scripts/mcp/devin-mcp-server.py"],
+  "secrets": {
+    "ENDCAP_API_URL": "AI Agent Factory API URL (default: http://localhost:8000)",
+    "GITHUB_TOKEN": "GitHub personal access token for repository creation",
+    "GITHUB_ORG_NAME": "GitHub organization name (default: thedoctorJJ)",
+    "SUPABASE_URL": "Supabase project URL",
+    "SUPABASE_SERVICE_ROLE_KEY": "Supabase service role key"
+  },
+  "capabilities": [
+    "get_prd_details",
+    "list_available_prds", 
+    "create_agent_from_prd",
+    "get_agent_library_info",
+    "update_agent_status"
+  ],
+  "tools": [
+    {
+      "name": "get_prd_details",
+      "description": "Get detailed information about a specific PRD by ID",
+      "use_case": "When Devin needs to understand the requirements for creating an agent"
+    },
+    {
+      "name": "list_available_prds",
+      "description": "List all PRDs available for agent creation",
+      "use_case": "When Devin needs to see what PRDs are ready for processing"
+    },
+    {
+      "name": "create_agent_from_prd",
+      "description": "Create a new AI agent based on a PRD specification",
+      "use_case": "When Devin is ready to create an agent from a PRD"
+    },
+    {
+      "name": "get_agent_library_info",
+      "description": "Get information about available agent libraries and tools",
+      "use_case": "When Devin needs to understand available templates and tools"
+    },
+    {
+      "name": "update_agent_status",
+      "description": "Update the status of an agent (e.g., mark as deployed)",
+      "use_case": "When Devin completes agent implementation and deployment"
+    }
+  ],
+  "workflow": {
+    "step_1": "Devin calls 'list_available_prds' to see what PRDs are ready",
+    "step_2": "Devin calls 'get_prd_details' to understand specific requirements",
+    "step_3": "Devin calls 'get_agent_library_info' to understand available tools",
+    "step_4": "Devin calls 'create_agent_from_prd' to create the agent record",
+    "step_5": "Devin implements the agent code using the PRD requirements",
+    "step_6": "Devin calls 'update_agent_status' when implementation is complete"
+  }
+}

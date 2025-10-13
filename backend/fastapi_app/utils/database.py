@@ -7,7 +7,7 @@ import time
 from typing import Optional, Dict, Any, List
 from supabase import create_client, Client
 from ..config import config
-from .local_database import local_db_manager
+# Removed local_database import - using only Supabase now
 
 
 class DatabaseManager:
@@ -88,8 +88,7 @@ class DatabaseManager:
             return True
         except Exception as e:
             print(f"❌ Supabase connection test failed: {e}")
-            print("🔄 Falling back to local SQLite database")
-            return local_db_manager.is_connected()
+            return False
     
     async def initialize_schema(self) -> None:
         """Initialize database schema if it doesn't exist."""
@@ -126,8 +125,7 @@ class DatabaseManager:
             return await self._retry_operation(_create)
         except Exception as e:
             print(f"❌ Supabase PRD creation failed: {e}")
-            print("🔄 Falling back to local database")
-            return await local_db_manager.create_prd(prd_data)
+            raise e
     
     async def get_prds(self, skip: int = 0, limit: int = 100, status: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get PRDs from the database."""
@@ -142,8 +140,7 @@ class DatabaseManager:
             return await self._retry_operation(_get)
         except Exception as e:
             print(f"❌ Supabase PRD retrieval failed: {e}")
-            print("🔄 Falling back to local database")
-            return await local_db_manager.get_prds(skip, limit)
+            raise e
     
     async def get_prd(self, prd_id: str) -> Optional[Dict[str, Any]]:
         """Get a specific PRD by ID."""
@@ -167,8 +164,7 @@ class DatabaseManager:
             return await self._retry_operation(_update)
         except Exception as e:
             print(f"❌ Supabase PRD update failed: {e}")
-            print("🔄 Falling back to local database")
-            return await local_db_manager.update_prd(prd_id, prd_data)
+            raise e
     
     async def delete_prd(self, prd_id: str) -> bool:
         """Delete a PRD from the database."""
@@ -180,6 +176,18 @@ class DatabaseManager:
             return await self._retry_operation(_delete)
         except Exception as e:
             print(f"Error deleting PRD: {e}")
+            return False
+
+    async def clear_all_prds(self) -> bool:
+        """Clear all PRDs from the database."""
+        async def _clear():
+            result = self.client.table('prds').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
+            return True
+        
+        try:
+            return await self._retry_operation(_clear)
+        except Exception as e:
+            print(f"Error clearing all PRDs: {e}")
             return False
     
     # Agent Operations
@@ -237,6 +245,18 @@ class DatabaseManager:
             return await self._retry_operation(_delete)
         except Exception as e:
             print(f"Error deleting agent: {e}")
+            return False
+
+    async def clear_all_agents(self) -> bool:
+        """Clear all agents from the database."""
+        async def _clear():
+            result = self.client.table('agents').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
+            return True
+        
+        try:
+            return await self._retry_operation(_clear)
+        except Exception as e:
+            print(f"Error clearing all agents: {e}")
             return False
     
     # Devin Task Operations

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Bot, FileText, Activity, Github, Download, Eye, BarChart3, Upload, ChevronDown, ChevronUp, CheckCircle, Trash2 } from 'lucide-react'
+import { Bot, FileText, Activity, Github, Download, Eye, BarChart3, Upload, ChevronDown, ChevronUp, CheckCircle, Trash2, AlertTriangle, RefreshCw } from 'lucide-react'
 import DevinIntegration from '@/components/DevinIntegration'
 import PRDStatusSection from '@/components/PRDStatusSection'
 
@@ -48,6 +48,9 @@ export default function Dashboard() {
   const [prdTypeFilter, setPrdTypeFilter] = useState<'all' | 'platform' | 'agent'>('all')
   const [prdStatusFilter, setPrdStatusFilter] = useState<string>('all')
   const [showQueueSection, setShowQueueSection] = useState(false)
+  const [showClearDialog, setShowClearDialog] = useState(false)
+  const [clearConfirmText, setClearConfirmText] = useState('')
+  const [clearing, setClearing] = useState(false)
   const [showReadyForDevinSection, setShowReadyForDevinSection] = useState(false)
   const [showProcessedSection, setShowProcessedSection] = useState(false)
   const [showAgentsSection, setShowAgentsSection] = useState(false)
@@ -111,39 +114,107 @@ export default function Dashboard() {
     fetchData()
   }, [])
 
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('🔍 Agents state changed:', agents.length, 'agents')
+    if (agents.length > 0) {
+      console.log('🤖 First agent:', agents[0])
+    }
+  }, [agents])
+
+  useEffect(() => {
+    console.log('🔍 PRDs state changed:', prds.length, 'PRDs')
+    if (prds.length > 0) {
+      console.log('📄 First PRD:', prds[0])
+    }
+  }, [prds])
+
   useEffect(() => {
     setActiveTab(defaultTab)
   }, [defaultTab])
 
   const fetchData = async () => {
     try {
+      console.log('🔄 Starting data fetch...')
       const [agentsRes, prdsRes] = await Promise.all([
         fetch('/api/v1/agents'),
         fetch('/api/v1/prds')
       ])
       
+      console.log('📡 API responses received:', {
+        agentsStatus: agentsRes.status,
+        prdsStatus: prdsRes.status
+      })
+      
       if (agentsRes.ok) {
         const agentsData = await agentsRes.json()
+        console.log('🤖 Agents data:', agentsData)
         setAgents(agentsData.agents || [])
+        console.log('✅ Agents state updated:', agentsData.agents?.length || 0, 'agents')
       } else {
-        console.error('Failed to fetch agents:', agentsRes.status)
+        console.error('❌ Failed to fetch agents:', agentsRes.status)
         setAgents([]) // Clear agents if fetch fails
       }
       
       if (prdsRes.ok) {
         const prdsData = await prdsRes.json()
+        console.log('📄 PRDs data:', prdsData)
         setPrds(prdsData.prds || [])
+        console.log('✅ PRDs state updated:', prdsData.prds?.length || 0, 'PRDs')
       } else {
-        console.error('Failed to fetch PRDs:', prdsRes.status)
+        console.error('❌ Failed to fetch PRDs:', prdsRes.status)
         setPrds([]) // Clear PRDs if fetch fails
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
+      console.error('❌ Error fetching data:', error)
       // Clear data on error to prevent stale state
       setAgents([])
       setPrds([])
     } finally {
+      console.log('🏁 Data fetch completed, setting loading to false')
       setLoading(false)
+    }
+  }
+
+  const clearAllData = async () => {
+    if (clearConfirmText !== 'CLEAR ALL DATA') {
+      alert('Please type "CLEAR ALL DATA" to confirm')
+      return
+    }
+
+    setClearing(true)
+    try {
+      const response = await fetch('/api/v1/clear-all', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ Clear all result:', result)
+        
+        // Clear local state
+        setAgents([])
+        setPrds([])
+        
+        // Close dialog and reset
+        setShowClearDialog(false)
+        setClearConfirmText('')
+        
+        // Show success message
+        alert('All data cleared successfully!')
+      } else {
+        const error = await response.json()
+        console.error('❌ Clear all failed:', error)
+        alert(`Failed to clear data: ${error.message || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('❌ Error clearing data:', error)
+      alert('Error clearing data. Please try again.')
+    } finally {
+      setClearing(false)
     }
   }
 
@@ -308,26 +379,54 @@ export default function Dashboard() {
     return null
   }
 
-  const generateAgentDescription = (prd: PRD) => {
+  // Get agents for a specific PRD
+  const getAgentsForPRD = (prdId: string) => {
+    return agents.filter(agent => agent.prd_id === prdId)
+  }
+
+  // Group agents by PRD
+  const agentsByPRD = useMemo(() => {
+    console.log('🔄 Calculating agentsByPRD with', agents.length, 'agents')
+    const grouped: Record<string, Agent[]> = {}
+    agents.forEach(agent => {
+      if (agent.prd_id) {
+        if (!grouped[agent.prd_id]) {
+          grouped[agent.prd_id] = []
+        }
+        grouped[agent.prd_id].push(agent)
+      }
+    })
+    console.log('📊 agentsByPRD result:', Object.keys(grouped).length, 'PRDs with agents')
+    return grouped
+  }, [agents])
+
+  const generateAgentDescription = (prd: PRD, agentIndex?: number, totalAgents?: number) => {
     // Create a concise description of what the agent will do
+    let baseDescription = ''
+    
     if (prd.description && prd.description.length > 0) {
       // Use the first sentence or first 100 characters of description
       const firstSentence = prd.description.split('.')[0]
       if (firstSentence.length <= 100) {
-        return firstSentence
+        baseDescription = firstSentence
       } else {
-        return prd.description.substring(0, 100) + '...'
+        baseDescription = prd.description.substring(0, 100) + '...'
       }
-    }
-    
-    // Fallback: generate from requirements
-    if (prd.requirements && prd.requirements.length > 0) {
+    } else if (prd.requirements && prd.requirements.length > 0) {
+      // Fallback: generate from requirements
       const firstReq = prd.requirements[0]
-      return `Agent that ${firstReq.toLowerCase()}${firstReq.endsWith('.') ? '' : '.'}`
+      baseDescription = `Agent that ${firstReq.toLowerCase()}${firstReq.endsWith('.') ? '' : '.'}`
+    } else {
+      // Final fallback
+      baseDescription = `AI agent created from ${prd.title}`
     }
     
-    // Final fallback
-    return `AI agent created from ${prd.title}`
+    // Add agent numbering if multiple agents exist
+    if (totalAgents && totalAgents > 1 && agentIndex !== undefined) {
+      return `${baseDescription} (Agent ${agentIndex + 1} of ${totalAgents})`
+    }
+    
+    return baseDescription
   }
 
   const getStatusColor = (status: string) => {
@@ -385,10 +484,25 @@ export default function Dashboard() {
     <div className="container mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">AI Agent Factory</h1>
-        <p className="text-muted-foreground mt-2">
-          A repeatable, AI-driven platform for creating modular agents from completed, formatted PRDs
-        </p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">AI Agent Factory</h1>
+            <p className="text-muted-foreground mt-2">
+              A repeatable, AI-driven platform for creating modular agents from completed, formatted PRDs
+            </p>
+          </div>
+          
+          {/* Clear All Button */}
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setShowClearDialog(true)}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Clear All Data
+          </Button>
+        </div>
       </div>
 
       {/* Quick Stats */}
@@ -646,6 +760,11 @@ export default function Dashboard() {
                                   <Badge variant="outline" className="text-xs">
                                     {prd.prd_type}
                                   </Badge>
+                                  {agentsByPRD[prd.id] && agentsByPRD[prd.id].length > 0 && (
+                                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
+                                      🤖 {agentsByPRD[prd.id].length} agent{agentsByPRD[prd.id].length !== 1 ? 's' : ''}
+                                    </Badge>
+                                  )}
                                 </CardTitle>
                                 <CardDescription className="mb-2">
                                   {prd.description || 'No description available'}
@@ -667,6 +786,26 @@ export default function Dashboard() {
                                   <FileText className="h-4 w-4 mr-1" />
                                   View
                                 </Button>
+                                {agentsByPRD[prd.id] && agentsByPRD[prd.id].length > 0 && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setActiveTab('agents')
+                                      // Scroll to agents section
+                                      setTimeout(() => {
+                                        const agentsSection = document.querySelector('[data-agents-section]')
+                                        if (agentsSection) {
+                                          agentsSection.scrollIntoView({ behavior: 'smooth' })
+                                        }
+                                      }, 100)
+                                    }}
+                                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                                  >
+                                    <Bot className="h-4 w-4 mr-1" />
+                                    View Agents ({agentsByPRD[prd.id].length})
+                                  </Button>
+                                )}
                                 {status === 'ready_for_devin' && (
                                   <Button
                                     variant="default"
@@ -722,17 +861,22 @@ export default function Dashboard() {
                 <Badge variant="secondary" className="bg-blue-200 text-blue-800">
                   {agents.length}
                 </Badge>
+                {Object.keys(agentsByPRD).length > 0 && (
+                  <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                    {Object.keys(agentsByPRD).length} PRD{Object.keys(agentsByPRD).length !== 1 ? 's' : ''}
+                  </Badge>
+                )}
               </div>
               {showAgentsSection ? <ChevronUp className="h-4 w-4 text-blue-600" /> : <ChevronDown className="h-4 w-4 text-blue-600" />}
             </Button>
             <p className="text-muted-foreground">
-              Deployed AI agents created from processed PRDs. Each agent is automatically generated and deployed from your PRD specifications.
+              Deployed AI agents created from processed PRDs. Each PRD can produce multiple agents at Devin's discretion. Agents are grouped by their source PRD for better organization.
             </p>
           </div>
           
           
           {showAgentsSection && (
-            <div className="grid gap-4">
+            <div data-agents-section className="space-y-6">
             {agents.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-8">
@@ -744,104 +888,234 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             ) : (
-              agents.map((agent) => (
-                <Card key={agent.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
+              // Group agents by PRD
+              Object.entries(agentsByPRD).map(([prdId, prdAgents]) => {
+                const prd = prds.find(p => p.id === prdId)
+                return (
+                  <div key={prdId} className="space-y-3">
+                    {/* PRD Header */}
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
                       <div className="flex-1">
-                        <CardTitle className="flex items-center gap-2 mb-2">
-                          {agent.name}
-                          <Badge className={getStatusColor(agent.status)}>
-                            {agent.status}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            v{agent.version}
-                          </Badge>
-                        </CardTitle>
-                        <CardDescription className="mb-2">{agent.description}</CardDescription>
-                        
-                        {/* Show PRD connection */}
-                        {findPRDForAgent(agent) && (
-                          <div className="mb-2 p-2 bg-green-50 rounded-lg border border-green-200">
-                            <p className="text-xs font-medium text-green-800 mb-1">📄 Created from PRD:</p>
-                            <p className="text-sm text-green-700">{findPRDForAgent(agent)?.title}</p>
+                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          {prd?.title || `PRD ${prdId.slice(0, 8)}`}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {prdAgents.length} agent{prdAgents.length !== 1 ? 's' : ''} created from this PRD
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                        {prdAgents.length} agent{prdAgents.length !== 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                    
+                    {/* Agents for this PRD */}
+                    <div className="grid gap-4 ml-4">
+                      {prdAgents.map((agent, index) => (
+                        <Card key={agent.id} className="hover:shadow-md transition-shadow">
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <CardTitle className="flex items-center gap-2 mb-2">
+                                  {agent.name}
+                                  <Badge className={getStatusColor(agent.status)}>
+                                    {agent.status}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    v{agent.version}
+                                  </Badge>
+                                </CardTitle>
+                                <CardDescription className="mb-2">
+                                  {agent.description || (prd ? generateAgentDescription(prd, index, prdAgents.length) : agent.description)}
+                                </CardDescription>
+                                
+                                {/* Show PRD connection */}
+                                {findPRDForAgent(agent) && (
+                                  <div className="mb-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                                    <p className="text-xs font-medium text-green-800 mb-1">📄 Created from PRD:</p>
+                                    <p className="text-sm text-green-700">{findPRDForAgent(agent)?.title}</p>
+                                  </div>
+                                )}
+                                
+                                <div className="flex items-center gap-2">
+                                  <Badge 
+                                    variant={agent.health_status === 'healthy' ? 'default' : 
+                                            agent.health_status === 'unhealthy' ? 'destructive' : 'secondary'}
+                                    className="text-xs"
+                                  >
+                                    {agent.health_status || 'unknown'}
+                                  </Badge>
+                                  {agent.last_health_check && (
+                                    <span className="text-xs text-muted-foreground">
+                                      Last check: {new Date(agent.last_health_check).toLocaleTimeString()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex gap-2 mb-3">
+                              {agent.repository_url && (
+                                <Button variant="outline" size="sm" asChild>
+                                  <a href={agent.repository_url} target="_blank" rel="noopener noreferrer">
+                                    <Github className="h-4 w-4 mr-2" />
+                                    Repository
+                                  </a>
+                                </Button>
+                              )}
+                              {agent.deployment_url && (
+                                <Button variant="outline" size="sm" asChild>
+                                  <a href={agent.deployment_url} target="_blank" rel="noopener noreferrer">
+                                    <Activity className="h-4 w-4 mr-2" />
+                                    Deploy
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm">
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </Button>
+                              {findPRDForAgent(agent) && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => window.location.href = `/prds/${agent.prd_id}`}
+                                >
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  View PRD
+                                </Button>
+                              )}
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => deleteAgent(agent.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </Button>
+                              <Button variant="outline" size="sm">
+                                <BarChart3 className="h-4 w-4 mr-2" />
+                                Metrics
+                              </Button>
+                            </div>
+                            
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Created: {new Date(agent.created_at).toLocaleDateString()}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+            
+            {/* Handle agents without PRD IDs */}
+            {agents.filter(agent => !agent.prd_id).length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-yellow-800 flex items-center gap-2">
+                      <Bot className="h-4 w-4" />
+                      Standalone Agents
+                    </h3>
+                    <p className="text-sm text-yellow-700">
+                      Agents created without a specific PRD reference
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                    {agents.filter(agent => !agent.prd_id).length} agent{agents.filter(agent => !agent.prd_id).length !== 1 ? 's' : ''}
+                  </Badge>
+                </div>
+                
+                <div className="grid gap-4 ml-4">
+                  {agents.filter(agent => !agent.prd_id).map((agent) => (
+                    <Card key={agent.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <CardTitle className="flex items-center gap-2 mb-2">
+                              {agent.name}
+                              <Badge className={getStatusColor(agent.status)}>
+                                {agent.status}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                v{agent.version}
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription className="mb-2">{agent.description}</CardDescription>
+                            
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant={agent.health_status === 'healthy' ? 'default' : 
+                                        agent.health_status === 'unhealthy' ? 'destructive' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {agent.health_status || 'unknown'}
+                              </Badge>
+                              {agent.last_health_check && (
+                                <span className="text-xs text-muted-foreground">
+                                  Last check: {new Date(agent.last_health_check).toLocaleTimeString()}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        )}
-                        
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant={agent.health_status === 'healthy' ? 'default' : 
-                                    agent.health_status === 'unhealthy' ? 'destructive' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {agent.health_status || 'unknown'}
-                          </Badge>
-                          {agent.last_health_check && (
-                            <span className="text-xs text-muted-foreground">
-                              Last check: {new Date(agent.last_health_check).toLocaleTimeString()}
-                            </span>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex gap-2 mb-3">
+                          {agent.repository_url && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={agent.repository_url} target="_blank" rel="noopener noreferrer">
+                                <Github className="h-4 w-4 mr-2" />
+                                Repository
+                              </a>
+                            </Button>
+                          )}
+                          {agent.deployment_url && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={agent.deployment_url} target="_blank" rel="noopener noreferrer">
+                                <Activity className="h-4 w-4 mr-2" />
+                                Deploy
+                              </a>
+                            </Button>
                           )}
                         </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                      
-                      <div className="flex gap-2 mb-3">
-                      {agent.repository_url && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={agent.repository_url} target="_blank" rel="noopener noreferrer">
-                            <Github className="h-4 w-4 mr-2" />
-                            Repository
-                          </a>
-                        </Button>
-                      )}
-                      {agent.deployment_url && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={agent.deployment_url} target="_blank" rel="noopener noreferrer">
-                            <Activity className="h-4 w-4 mr-2" />
-                            Deploy
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                      {findPRDForAgent(agent) && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => window.location.href = `/prds/${agent.prd_id}`}
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          View PRD
-                        </Button>
-                      )}
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => deleteAgent(agent.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <BarChart3 className="h-4 w-4 mr-2" />
-                        Metrics
-                      </Button>
-                    </div>
-                    
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Created: {new Date(agent.created_at).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))
+                        
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => deleteAgent(agent.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <BarChart3 className="h-4 w-4 mr-2" />
+                            Metrics
+                          </Button>
+                        </div>
+                        
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Created: {new Date(agent.created_at).toLocaleDateString()}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             )}
             </div>
           )}
@@ -858,7 +1132,69 @@ export default function Dashboard() {
         </TabsContent>
       </Tabs>
 
-
+      {/* Clear All Confirmation Dialog */}
+      {showClearDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <AlertTriangle className="h-6 w-6 text-red-500" />
+              <h3 className="text-lg font-semibold text-red-700">Clear All Data</h3>
+            </div>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-3">
+                <strong>⚠️ WARNING:</strong> This action will permanently delete ALL agents and PRDs from the system.
+              </p>
+              <p className="text-sm text-gray-600 mb-3">
+                This action cannot be undone. Make sure you have backed up any important data.
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                Type <code className="bg-gray-100 px-1 rounded">CLEAR ALL DATA</code> to confirm:
+              </p>
+              
+              <input
+                type="text"
+                value={clearConfirmText}
+                onChange={(e) => setClearConfirmText(e.target.value)}
+                placeholder="Type: CLEAR ALL DATA"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                disabled={clearing}
+              />
+            </div>
+            
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowClearDialog(false)
+                  setClearConfirmText('')
+                }}
+                disabled={clearing}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={clearAllData}
+                disabled={clearing || clearConfirmText !== 'CLEAR ALL DATA'}
+                className="flex items-center gap-2"
+              >
+                {clearing ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Clearing...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" />
+                    Clear All Data
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

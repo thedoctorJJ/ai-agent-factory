@@ -64,6 +64,12 @@ async def delete_prd(prd_id: str):
     return await prd_service.delete_prd(prd_id)
 
 
+@router.delete("/prds")
+async def clear_all_prds():
+    """Clear all PRDs from the system."""
+    return await prd_service.clear_all_prds()
+
+
 @router.post("/prds/upload", response_model=PRDResponse)
 async def upload_prd_file(file: UploadFile = File(...)):
     """Upload a PRD file (.md or .txt)."""

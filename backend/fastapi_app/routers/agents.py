@@ -48,6 +48,12 @@ async def delete_agent(agent_id: str):
     return await agent_service.delete_agent(agent_id)
 
 
+@router.delete("/agents")
+async def clear_all_agents():
+    """Clear all agents from the system."""
+    return await agent_service.clear_all_agents()
+
+
 @router.get("/agents/{agent_id}/health", response_model=AgentHealthResponse)
 async def check_agent_health(agent_id: str):
     """Check agent health status."""

@@ -41,6 +41,8 @@ export default function DevinIntegration({
   const [agentCode, setAgentCode] = useState('')
   const [showPrompt, setShowPrompt] = useState(false)
   const [showTasks, setShowTasks] = useState(false)
+  const [showPromptModal, setShowPromptModal] = useState(false)
+  const [devinPrompt, setDevinPrompt] = useState('')
   const [progress, setProgress] = useState({
     codeGeneration: false,
     githubRepo: false,
@@ -95,57 +97,87 @@ export default function DevinIntegration({
     }
   }, [selectedTask])
 
-  const createDevinTask = async () => {
+  const loadPRDToMCP = async () => {
     if (!selectedPRD) {
       alert('Please select a PRD first')
       return
     }
 
     try {
-      const response = await fetch('/api/v1/devin/tasks', {
+      // Load PRD data to MCP server
+      const loadResponse = await fetch('/api/v1/mcp/load-prd', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prd_id: selectedPRD.id,
-          title: selectedPRD.title,
-          description: selectedPRD.description || 'No description provided',
-          requirements: selectedPRD.requirements || [],
+          prd_id: selectedPRD.id
         }),
       })
-
-      if (response.ok) {
-        const newTask = await response.json()
-        setTasks([...(Array.isArray(tasks) ? tasks : []), newTask])
-        setSelectedTask(newTask)
+      
+      if (loadResponse.ok) {
+        const loadResult = await loadResponse.json()
+        console.log('PRD loaded to MCP server:', loadResult)
         
-        // Reset progress for new task
-        setProgress({
-          codeGeneration: false,
-          githubRepo: false,
-          databaseSetup: false,
-          cloudDeployment: false
-        })
+        // Show success message with simple startup prompt
+        const simplePrompt = `✅ PRD "${selectedPRD.title}" has been loaded into the MCP server cache.
 
-        // Automatically execute the task with Devin AI
-        try {
-          const executeResponse = await fetch(`/api/v1/devin/tasks/${newTask.id}/execute`, {
-            method: 'POST',
-          })
-          
-          if (executeResponse.ok) {
-            const executeResult = await executeResponse.json()
-            console.log('Devin AI execution initiated:', executeResult)
-            // Update the task status
-            setSelectedTask({...newTask, status: 'in_devin'})
-          }
-        } catch (error) {
-          console.error('Error executing Devin task:', error)
-        }
+🚀 To start working with Devin AI:
+
+1. Open Devin AI in your browser
+2. Use this simple prompt to begin:
+
+---
+
+# AI Agent Factory - Simple Startup Prompt
+
+## 🚀 Welcome to the AI Agent Factory!
+
+You are an AI agent creation specialist connected to the AI Agent Factory system via MCP.
+
+## 📋 Quick Start Instructions:
+
+1. **Get the complete guide** from the MCP server:
+   \`\`\`
+   Use MCP tool: get_startup_guide
+   \`\`\`
+
+2. **Follow the guide** to check for available PRDs and create agents
+
+3. **Start the process** by checking for work:
+   \`\`\`
+   Use MCP tool: check_available_prds
+   \`\`\`
+
+## 🎯 Your Mission:
+- Find PRDs that need agents created
+- Analyze requirements and create appropriate AI agents  
+- Deploy agents to the cloud
+- Update the platform with results
+
+## 🚀 Let's Begin!
+
+First, get the complete startup guide:
+
+\`\`\`
+Use MCP tool: get_startup_guide
+\`\`\`
+
+Then follow the guide to start creating agents!
+
+---
+
+Copy this prompt and paste it into Devin AI to begin the agent creation process!`
+        
+        setDevinPrompt(simplePrompt)
+        setShowPromptModal(true)
+      } else {
+        console.error('Failed to load PRD to MCP server')
+        alert('Failed to load PRD to MCP server. Please try again.')
       }
     } catch (error) {
-      console.error('Error creating Devin task:', error)
+      console.error('Error loading PRD to MCP server:', error)
+      alert('Error loading PRD to MCP server. Please try again.')
     }
   }
 
@@ -297,10 +329,10 @@ export default function DevinIntegration({
                   </div>
                   
                   <Button 
-                    onClick={createDevinTask} 
+                    onClick={loadPRDToMCP} 
                     className="w-full"
                   >
-                    🚀 Create Agent with Devin AI
+                    📤 Load PRD to MCP Server
                   </Button>
                 </div>
               )}
@@ -419,6 +451,80 @@ export default function DevinIntegration({
             </CardContent>
           )}
         </Card>
+      )}
+
+      {/* MCP Prompt Modal */}
+      {showPromptModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Devin AI Simple Startup Prompt</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPromptModal(false)}
+              >
+                Close
+              </Button>
+            </div>
+            
+            <div className="mb-4">
+              <div className="bg-green-100 p-4 rounded-lg mb-4">
+                <pre className="whitespace-pre-wrap text-sm font-mono text-green-800">
+                  {devinPrompt}
+                </pre>
+              </div>
+              
+              <div className="mt-4 flex gap-2">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(devinPrompt)
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 2000)
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Copy className="h-4 w-4" />
+                  {copied ? 'Copied!' : 'Copy Prompt'}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => window.open('https://devin.ai', '_blank')}
+                  className="flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Open Devin AI
+                </Button>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-semibold text-blue-800 mb-2">🚀 Next Steps:</h4>
+              <ol className="text-sm text-blue-700 space-y-1">
+                <li>1. <strong>PRD data is loaded</strong> into the MCP server cache</li>
+                <li>2. Copy the simple prompt above</li>
+                <li>3. Open Devin AI in your browser</li>
+                <li>4. Paste the prompt into Devin AI</li>
+                <li>5. Devin will use the MCP tool to get the complete guide</li>
+                <li>6. Devin will follow the guide and check for available PRDs</li>
+                <li>7. Devin will find your PRD and start the agent creation process</li>
+                <li>8. Check back here for status updates</li>
+              </ol>
+            </div>
+            
+            <div className="bg-green-50 p-4 rounded-lg mt-4">
+              <h4 className="font-semibold text-green-800 mb-2">✅ Smart Startup Ready:</h4>
+              <p className="text-sm text-green-700">
+                This approach is much cleaner:
+                <br />• <strong>Simple prompt</strong> - Easy to copy and paste
+                <br />• <strong>Guide fetched dynamically</strong> - Always up-to-date
+                <br />• <strong>Maintainable</strong> - Update guide without changing frontend
+                <br />• <strong>Self-contained</strong> - Guide includes everything needed
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

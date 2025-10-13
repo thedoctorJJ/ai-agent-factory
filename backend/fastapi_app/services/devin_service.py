@@ -156,7 +156,7 @@ class DevinService:
         )
 
     async def execute_task(self, task_id: str) -> DevinTaskExecuteResponse:
-        """Execute a Devin task (simulate API call to Devin AI)."""
+        """Execute a Devin task using MCP integration."""
         task = await self.get_task(task_id)
 
         if task.status != DevinTaskStatus.PENDING.value:
@@ -170,15 +170,17 @@ class DevinService:
         task_dict["status"] = DevinTaskStatus.IN_DEVIN.value
         task_dict["updated_at"] = datetime.utcnow()
 
-        # Auto-complete the task after a short delay (mock implementation)
-        import asyncio
-        asyncio.create_task(self._auto_complete_task(task_id))
+        # Load PRD data into MCP server cache
+        await self._load_prd_to_mcp(task_dict.get("prd_id"))
+        
+        # Generate the Devin prompt with MCP instructions
+        devin_prompt = self._generate_devin_mcp_prompt(task_dict)
 
         return DevinTaskExecuteResponse(
-            message="Task submitted to Devin AI successfully",
+            message="Task ready for Devin AI with MCP integration",
             task_id=task_id,
             status=DevinTaskStatus.IN_DEVIN,
-            note="Devin AI is now processing your request. This usually takes 2-3 minutes.")
+            note=f"PRD data loaded into MCP server. Copy the following prompt to Devin AI:\n\n{devin_prompt}")
 
     async def _auto_complete_task(self, task_id: str):
         """Auto-complete a task after a delay (mock implementation)."""
@@ -414,6 +416,108 @@ Create a fully functional AI agent based on the following requirements:
 - Documentation is complete
 
 Please create this agent and provide the complete codebase ready for deployment."""
+
+    def _generate_devin_mcp_prompt(self, task_dict: Dict[str, Any]) -> str:
+        """Generate a Devin AI prompt with MCP integration instructions."""
+        prd_id = task_dict.get("prd_id")
+        title = task_dict.get("title")
+        description = task_dict.get("description")
+        requirements = task_dict.get("requirements", [])
+        
+        prompt = f"""
+# AI Agent Creation Task with MCP Integration
+
+## Task Information:
+- **Task ID**: {task_dict.get('id')}
+- **PRD ID**: {prd_id}
+- **Title**: {title}
+- **Description**: {description}
+
+## MCP Integration Available:
+You have access to the AI Agent Factory MCP server with the following tools:
+
+### Available MCP Tools:
+1. **get_prd_details** - Get detailed PRD information
+2. **list_available_prds** - List all available PRDs
+3. **create_agent_from_prd** - Create agent record in the platform
+4. **get_agent_library_info** - Access agent libraries and tools
+5. **update_agent_status** - Update agent status when complete
+
+### Recommended Workflow:
+1. **First, get the full PRD details**:
+   ```
+   Use MCP tool: get_prd_details
+   Parameters: {{"prd_id": "{prd_id}"}}
+   ```
+
+2. **Review agent library information**:
+   ```
+   Use MCP tool: get_agent_library_info
+   ```
+
+3. **Create the agent record**:
+   ```
+   Use MCP tool: create_agent_from_prd
+   Parameters: {{
+     "prd_id": "{prd_id}",
+     "agent_name": "Your Agent Name",
+     "agent_description": "Your agent description",
+     "repository_name": "your-repo-name"
+   }}
+   ```
+
+4. **Implement the agent** based on the PRD requirements
+
+5. **Update agent status** when complete:
+   ```
+   Use MCP tool: update_agent_status
+   Parameters: {{
+     "agent_id": "agent_id_from_step_3",
+     "status": "active",
+     "repository_url": "https://github.com/thedoctorJJ/your-repo",
+     "deployment_url": "https://your-agent-uc.a.run.app"
+   }}
+   ```
+
+## Requirements from PRD:
+{chr(10).join([f"- {req}" for req in requirements])}
+
+## Technical Stack:
+- **Backend**: FastAPI
+- **Database**: Supabase (PostgreSQL)
+- **Deployment**: Google Cloud Run
+- **Repository**: GitHub (thedoctorJJ organization)
+- **Monitoring**: Built-in health checks and logging
+
+## Next Steps:
+1. Use the MCP tools to access the full PRD details
+2. Create the agent record in the platform
+3. Implement the agent according to the PRD requirements
+4. Deploy and update the status
+
+Start by calling the MCP tools to get the complete PRD information!
+"""
+        return prompt
+
+    async def _load_prd_to_mcp(self, prd_id: str):
+        """Load PRD data into the MCP server cache"""
+        try:
+            import requests
+            
+            # Call our MCP integration endpoint
+            response = requests.post(
+                "http://localhost:8000/api/v1/mcp/load-prd",
+                json={"prd_id": prd_id}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ PRD data loaded into MCP server: {result.get('message')}")
+            else:
+                print(f"⚠️ Failed to load PRD to MCP server: {response.status_code}")
+                
+        except Exception as e:
+            print(f"⚠️ Error loading PRD to MCP server: {e}")
 
 
 # Global service instance

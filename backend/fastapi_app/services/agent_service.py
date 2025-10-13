@@ -3,14 +3,14 @@ Agent service for business logic operations.
 """
 import uuid
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException
 
 from ..models.agent import (
     AgentRegistration, AgentResponse, AgentStatus, AgentHealthStatus,
     AgentListResponse, AgentHealthResponse, AgentMetricsResponse
 )
-from ..utils.database import db_manager
+from ..utils.simple_data_manager import data_manager
 
 
 class AgentService:
@@ -26,7 +26,7 @@ class AgentService:
             agent_data: AgentRegistration) -> AgentResponse:
         """Create a new agent."""
         agent_id = str(uuid.uuid4())
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         agent_dict = {
             "id": agent_id,
@@ -35,8 +35,7 @@ class AgentService:
             "purpose": agent_data.purpose,
             "version": agent_data.version,
             "tools": [],  # Will be populated by Devin AI
-            "prompts": [],  # Will be populated by Devin AI
-            "status": AgentStatus.PENDING.value,
+            "status": AgentStatus.DRAFT.value,
             "repository_url": agent_data.repository_url,
             "deployment_url": agent_data.deployment_url,
             "health_check_url": agent_data.health_check_url,
@@ -46,43 +45,21 @@ class AgentService:
             "configuration": agent_data.configuration,
             "last_health_check": None,
             "health_status": AgentHealthStatus.UNKNOWN.value,
-            "created_at": now.isoformat(),
-            "updated_at": now.isoformat()
+            "created_at": now,
+            "updated_at": now
         }
 
-        # Try to save to database, fallback to in-memory if database fails
-        try:
-            if db_manager.is_connected():
-                saved_agent = await db_manager.create_agent(agent_dict)
-                if saved_agent:
-                    # Convert datetime strings back to datetime objects for response
-                    saved_agent["created_at"] = datetime.fromisoformat(saved_agent["created_at"].replace('Z', '+00:00'))
-                    saved_agent["updated_at"] = datetime.fromisoformat(saved_agent["updated_at"].replace('Z', '+00:00'))
-                    if saved_agent.get("last_health_check"):
-                        saved_agent["last_health_check"] = datetime.fromisoformat(saved_agent["last_health_check"].replace('Z', '+00:00'))
-                    
-                    # Update PRD status to "completed" when agent is successfully created
-                    if agent_data.prd_id:
-                        try:
-                            await self._update_prd_status_to_completed(agent_data.prd_id)
-                        except Exception as e:
-                            print(f"Failed to update PRD status: {e}")
-                    
-                    return AgentResponse(**saved_agent)
-        except Exception as e:
-            print(f"Database save failed, using in-memory storage: {e}")
+        # Use simplified data manager
+        saved_agent = await data_manager.create_agent(agent_dict)
         
-        # Fallback to in-memory storage
-        self._agents_db[agent_id] = agent_dict
-        
-        # Update PRD status to "completed" when agent is successfully created (in-memory)
+        # Update PRD status to "completed" when agent is successfully created
         if agent_data.prd_id:
             try:
                 await self._update_prd_status_to_completed(agent_data.prd_id)
             except Exception as e:
                 print(f"Failed to update PRD status: {e}")
         
-        return AgentResponse(**agent_dict)
+        return AgentResponse(**saved_agent)
 
     async def _update_prd_status_to_completed(self, prd_id: str):
         """Update PRD status to completed when agent is created."""
@@ -131,57 +108,22 @@ class AgentService:
         prd_id: Optional[str] = None
     ) -> AgentListResponse:
         """Get a list of agents with optional filtering."""
-        # Try to get from database first
-        try:
-            if db_manager.is_connected():
-                agents_data = await db_manager.get_agents(skip, limit)
-                if agents_data:
-                    # Convert datetime strings back to datetime objects
-                    for agent in agents_data:
-                        agent["created_at"] = datetime.fromisoformat(agent["created_at"].replace('Z', '+00:00'))
-                        agent["updated_at"] = datetime.fromisoformat(agent["updated_at"].replace('Z', '+00:00'))
-                        if agent.get("last_health_check"):
-                            agent["last_health_check"] = datetime.fromisoformat(agent["last_health_check"].replace('Z', '+00:00'))
-                    
-                    # Apply filters
-                    filtered_agents = agents_data
-                    if status:
-                        filtered_agents = [a for a in filtered_agents if a["status"] == status.value]
-                    if prd_id:
-                        filtered_agents = [a for a in filtered_agents if a.get("prd_id") == prd_id]
-                    
-                    return AgentListResponse(
-                        agents=[AgentResponse(**agent) for agent in filtered_agents],
-                        total=len(filtered_agents),
-                        page=skip // limit + 1,
-                        size=limit,
-                        has_next=len(filtered_agents) == limit
-                    )
-        except Exception as e:
-            print(f"Database get_agents failed, using in-memory storage: {e}")
+        # Use simplified data manager
+        agents_data = await data_manager.get_agents(skip, limit)
         
-        # Fallback to in-memory storage
-        agents = list(self._agents_db.values())
-
         # Apply filters
+        filtered_agents = agents_data
         if status:
-            agents = [a for a in agents if a["status"] == status.value]
+            filtered_agents = [a for a in filtered_agents if a["status"] == status.value]
         if prd_id:
-            agents = [a for a in agents if a.get("prd_id") == prd_id]
-
-        # Sort by created_at descending
-        agents.sort(key=lambda x: x["created_at"], reverse=True)
-
-        # Apply pagination
-        total = len(agents)
-        agents = agents[skip:skip + limit]
-
+            filtered_agents = [a for a in filtered_agents if a.get("prd_id") == prd_id]
+        
         return AgentListResponse(
-            agents=[AgentResponse(**agent) for agent in agents],
-            total=total,
+            agents=[AgentResponse(**agent) for agent in filtered_agents],
+            total=len(filtered_agents),
             page=skip // limit + 1,
             size=limit,
-            has_next=skip + limit < total
+            has_next=len(filtered_agents) == limit
         )
 
     async def update_agent_status(
@@ -217,6 +159,15 @@ class AgentService:
 
         del self._agents_db[agent_id]
         return {"message": "Agent deleted successfully"}
+
+    async def clear_all_agents(self) -> Dict[str, str]:
+        """Clear all agents from the system."""
+        # Use simplified data manager
+        success = await data_manager.clear_all_agents()
+        if success:
+            return {"message": "All agents cleared successfully"}
+        else:
+            return {"message": "Failed to clear agents"}
 
     async def check_agent_health(self, agent_id: str) -> AgentHealthResponse:
         """Check agent health status."""

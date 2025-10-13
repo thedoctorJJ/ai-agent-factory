@@ -74,9 +74,6 @@ class AgentResponse(BaseModel):
     purpose: str = Field(..., description="Agent purpose")
     version: str = Field(..., description="Agent version")
     tools: List[str] = Field(default_factory=list, description="Agent tools")
-    prompts: List[str] = Field(
-        default_factory=list,
-        description="Agent prompts")
     status: AgentStatus = Field(..., description="Agent status")
     repository_url: Optional[str] = Field(None, description="Repository URL")
     deployment_url: Optional[str] = Field(None, description="Deployment URL")
