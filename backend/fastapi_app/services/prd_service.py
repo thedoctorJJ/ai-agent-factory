@@ -69,7 +69,7 @@ class PRDService:
 
         # Try to save to database (will fallback to local database if Supabase fails)
         try:
-            saved_prd = await db_manager.create_prd(prd_dict)
+            saved_prd = await data_manager.create_prd(prd_dict)
             if saved_prd:
                 # Convert datetime strings back to datetime objects for response
                 saved_prd["created_at"] = datetime.fromisoformat(saved_prd["created_at"].replace('Z', '+00:00'))
@@ -88,8 +88,8 @@ class PRDService:
         """Get a PRD by ID."""
         # Try to get from database first
         try:
-            if db_manager.is_connected():
-                prd_data = await db_manager.get_prd(prd_id)
+            if data_manager.is_connected():
+                prd_data = await data_manager.get_prd(prd_id)
                 if prd_data:
                     # Convert datetime strings back to datetime objects
                     prd_data["created_at"] = datetime.fromisoformat(prd_data["created_at"].replace('Z', '+00:00'))
@@ -118,7 +118,7 @@ class PRDService:
         try:
             # Pass status parameter to database manager for efficient filtering
             status_value = status.value if status else None
-            prds_data = await db_manager.get_prds(skip, limit, status_value)
+            prds_data = await data_manager.get_prds(skip, limit)
             if prds_data:
                 # Convert datetime strings back to datetime objects
                 for prd in prds_data:
@@ -173,9 +173,9 @@ class PRDService:
         """Update an existing PRD."""
         # Try to update in database first
         try:
-            if db_manager.is_connected():
+            if data_manager.is_connected():
                 update_data = prd_data.dict(exclude_unset=True)
-                updated_prd = await db_manager.update_prd(prd_id, update_data)
+                updated_prd = await data_manager.update_prd(prd_id, update_data)
                 if updated_prd:
                     return PRDResponse(**updated_prd)
         except Exception as e:
@@ -201,8 +201,8 @@ class PRDService:
         """Delete a PRD."""
         # Try to delete from database first
         try:
-            if db_manager.is_connected():
-                success = await db_manager.delete_prd(prd_id)
+            if data_manager.is_connected():
+                success = await data_manager.delete_prd(prd_id)
                 if success:
                     return {"message": "PRD deleted successfully"}
         except Exception as e:

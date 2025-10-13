@@ -43,6 +43,9 @@ export default function DevinIntegration({
   const [showTasks, setShowTasks] = useState(false)
   const [showPromptModal, setShowPromptModal] = useState(false)
   const [devinPrompt, setDevinPrompt] = useState('')
+  const [loadingPRD, setLoadingPRD] = useState(false)
+  const [prdLoadStatus, setPrdLoadStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [prdLoadMessage, setPrdLoadMessage] = useState('')
   const [progress, setProgress] = useState({
     codeGeneration: false,
     githubRepo: false,
@@ -103,6 +106,11 @@ export default function DevinIntegration({
       return
     }
 
+    // Reset status and start loading
+    setLoadingPRD(true)
+    setPrdLoadStatus('idle')
+    setPrdLoadMessage('')
+
     try {
       // Load PRD data to MCP server
       const loadResponse = await fetch('/api/v1/mcp/load-prd', {
@@ -118,6 +126,10 @@ export default function DevinIntegration({
       if (loadResponse.ok) {
         const loadResult = await loadResponse.json()
         console.log('PRD loaded to MCP server:', loadResult)
+        
+        // Set success status
+        setPrdLoadStatus('success')
+        setPrdLoadMessage(`✅ PRD "${selectedPRD.title}" loaded successfully!`)
         
         // Show success message with simple startup prompt
         const simplePrompt = `✅ PRD "${selectedPRD.title}" has been loaded into the MCP server cache.
@@ -172,12 +184,25 @@ Copy this prompt and paste it into Devin AI to begin the agent creation process!
         setDevinPrompt(simplePrompt)
         setShowPromptModal(true)
       } else {
-        console.error('Failed to load PRD to MCP server')
-        alert('Failed to load PRD to MCP server. Please try again.')
+        // Get the actual error message from the response
+        const errorData = await loadResponse.json().catch(() => ({ detail: 'Unknown error' }))
+        const errorMessage = errorData.detail || 'Unknown error occurred'
+        console.error('Failed to load PRD to MCP server:', errorMessage)
+        
+        // Set error status
+        setPrdLoadStatus('error')
+        setPrdLoadMessage(`❌ Failed to load PRD: ${errorMessage}`)
       }
     } catch (error) {
       console.error('Error loading PRD to MCP server:', error)
-      alert('Error loading PRD to MCP server. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      
+      // Set error status
+      setPrdLoadStatus('error')
+      setPrdLoadMessage(`❌ Error: ${errorMessage}`)
+    } finally {
+      // Always stop loading
+      setLoadingPRD(false)
     }
   }
 
@@ -301,6 +326,9 @@ Copy this prompt and paste it into Devin AI to begin the agent creation process!
                   onChange={(e) => {
                     const prd = prds.find(p => p.id === e.target.value)
                     setSelectedPRD(prd || null)
+                    // Clear previous load status when selecting a new PRD
+                    setPrdLoadStatus('idle')
+                    setPrdLoadMessage('')
                   }}
                 >
                   <option value="">Choose a PRD...</option>
@@ -331,9 +359,32 @@ Copy this prompt and paste it into Devin AI to begin the agent creation process!
                   <Button 
                     onClick={loadPRDToMCP} 
                     className="w-full"
+                    disabled={loadingPRD}
                   >
-                    📤 Load PRD to MCP Server
+                    {loadingPRD ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Loading PRD to MCP Server...
+                      </>
+                    ) : (
+                      <>
+                        📤 Load PRD to MCP Server
+                      </>
+                    )}
                   </Button>
+                  
+                  {/* Status Message */}
+                  {prdLoadMessage && (
+                    <div className={`mt-3 p-3 rounded-md text-sm ${
+                      prdLoadStatus === 'success' 
+                        ? 'bg-green-50 text-green-800 border border-green-200' 
+                        : prdLoadStatus === 'error'
+                        ? 'bg-red-50 text-red-800 border border-red-200'
+                        : 'bg-blue-50 text-blue-800 border border-blue-200'
+                    }`}>
+                      {prdLoadMessage}
+                    </div>
+                  )}
                 </div>
               )}
             </>

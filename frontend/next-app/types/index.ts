@@ -64,7 +64,7 @@ export interface PRD {
   status: PRDStatus
   github_repo_url?: string
   created_at: string
-  updated_at: string
+  updated_at?: string
   
   // Enhanced PRD sections
   problem_statement?: string
@@ -104,7 +104,6 @@ export interface Agent {
   purpose: string
   version: string
   tools: string[]
-  prompts: string[]
   status: AgentStatus
   repository_url?: string
   deployment_url?: string

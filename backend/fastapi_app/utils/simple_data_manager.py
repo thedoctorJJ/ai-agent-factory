@@ -4,6 +4,7 @@ No more complex fallback chains - just clean, predictable storage.
 """
 import os
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 from supabase import create_client, Client
 from ..config import config
 
@@ -43,6 +44,16 @@ class SimpleDataManager:
             print(f"❌ Failed to connect to Supabase: {e}")
             raise e
     
+    def _prepare_data_for_db(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Prepare data for database storage by converting datetime objects to ISO strings."""
+        db_data = {}
+        for key, value in data.items():
+            if isinstance(value, datetime):
+                db_data[key] = value.isoformat()
+            else:
+                db_data[key] = value
+        return db_data
+    
     # Agent Operations
     async def create_agent(self, agent_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create an agent."""
@@ -51,7 +62,9 @@ class SimpleDataManager:
             self.memory_storage["agents"][agent_id] = agent_data
             return agent_data
         else:
-            result = self.supabase.table('agents').insert(agent_data).execute()
+            # Ensure datetime objects are converted to ISO strings for database storage
+            db_data = self._prepare_data_for_db(agent_data)
+            result = self.supabase.table('agents').insert(db_data).execute()
             return result.data[0] if result.data else None
     
     async def get_agents(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
@@ -174,5 +187,22 @@ class SimpleDataManager:
                 return False
 
 
-# Global instance - defaults to development mode
-data_manager = SimpleDataManager(mode=os.getenv("DATA_MODE", "development"))
+# Global instance - auto-detect mode based on Supabase availability
+def _get_data_mode():
+    """Auto-detect the appropriate data mode."""
+    # Check if DATA_MODE is explicitly set
+    explicit_mode = os.getenv("DATA_MODE")
+    if explicit_mode:
+        return explicit_mode
+    
+    # Check if Supabase is configured
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
+    
+    if supabase_url and supabase_key:
+        return "production"  # Use Supabase when available
+    else:
+        return "development"  # Fallback to in-memory
+
+# Initialize data manager with auto-detected mode
+data_manager = SimpleDataManager(mode=_get_data_mode())

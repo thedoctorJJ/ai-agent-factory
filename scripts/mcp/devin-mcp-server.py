@@ -270,6 +270,33 @@ class DevinMCPServer:
                     },
                     'required': ['repository_name']
                 }
+            },
+            {
+                'name': 'deploy_to_google_cloud_run',
+                'description': 'Deploy an AI agent to Google Cloud Run',
+                'inputSchema': {
+                    'type': 'object',
+                    'properties': {
+                        'agent_name': {
+                            'type': 'string',
+                            'description': 'Name for the agent (used for service naming)'
+                        },
+                        'agent_code': {
+                            'type': 'string',
+                            'description': 'Python code for the agent (FastAPI app)'
+                        },
+                        'requirements': {
+                            'type': 'array',
+                            'items': {'type': 'string'},
+                            'description': 'Additional Python package requirements (optional)'
+                        },
+                        'environment_variables': {
+                            'type': 'object',
+                            'description': 'Environment variables for the deployment (optional)'
+                        }
+                    },
+                    'required': ['agent_name', 'agent_code']
+                }
             }
         ]
         
@@ -307,6 +334,8 @@ class DevinMCPServer:
                 result = await self._get_startup_guide(arguments)
             elif tool_name == 'create_github_repository':
                 result = await self._create_github_repository(arguments)
+            elif tool_name == 'deploy_to_google_cloud_run':
+                result = await self._deploy_to_google_cloud_run(arguments)
             else:
                 raise ValueError(f"Unknown tool: {tool_name}")
             
@@ -489,7 +518,7 @@ class DevinMCPServer:
                     'available_prompts': ['task_analysis', 'code_generation', 'testing']
                 }
             },
-            'deployment_targets': {
+                'deployment_targets': {
                 'github': {
                     'organization': self.github_org,
                     'repository_prefix': 'end-cap-agent-',
@@ -499,10 +528,11 @@ class DevinMCPServer:
                     'url': self.supabase_url,
                     'description': 'Database and metadata storage'
                 },
-                'google_cloud': {
-                    'project': 'end-cap-agent-factory',
+                'google_cloud_run': {
+                    'project': 'agent-factory-474201',
                     'service': 'Cloud Run',
-                    'description': 'Agent deployment platform'
+                    'description': 'Agent deployment platform (replaces Fly.io)',
+                    'region': 'us-central1'
                 }
             },
             'message': "Agent library information retrieved successfully"
@@ -548,15 +578,14 @@ class DevinMCPServer:
     async def _load_prd_data(self, args: Dict[str, Any]) -> Dict[str, Any]:
         """Load PRD data from our application into MCP cache"""
         prd_id = args.get('prd_id')
+        prd_data = args.get('prd_data')  # Accept PRD data directly
+        
         if not prd_id:
             raise ValueError("prd_id is required")
         
         try:
-            # Get PRD data from our API
-            response = requests.get(f"{self.endcap_api_url}/api/v1/prds/{prd_id}")
-            if response.status_code == 200:
-                prd_data = response.json()
-                
+            # If PRD data is provided directly, use it
+            if prd_data:
                 # Store in cache
                 self._prd_cache[prd_id] = prd_data
                 
@@ -567,11 +596,26 @@ class DevinMCPServer:
                     'cache_size': len(self._prd_cache)
                 }
             else:
-                return {
-                    'success': False,
-                    'error': f"Failed to load PRD: {response.status_code}",
-                    'message': "PRD not found or API error"
-                }
+                # Fallback: Get PRD data from our API (for backward compatibility)
+                response = requests.get(f"{self.endcap_api_url}/api/v1/prds/{prd_id}")
+                if response.status_code == 200:
+                    prd_data = response.json()
+                    
+                    # Store in cache
+                    self._prd_cache[prd_id] = prd_data
+                    
+                    return {
+                        'success': True,
+                        'prd': prd_data,
+                        'message': f"PRD data loaded into MCP cache: {prd_data.get('title', 'Unknown')}",
+                        'cache_size': len(self._prd_cache)
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'error': f"Failed to load PRD: {response.status_code}",
+                        'message': "PRD not found or API error"
+                    }
         except Exception as e:
             return {
                 'success': False,
@@ -722,7 +766,7 @@ Parameters: {
 
 - **Backend**: FastAPI
 - **Database**: Supabase (PostgreSQL)
-- **Deployment**: Google Cloud Run
+- **Deployment**: Google Cloud Run (replaces Fly.io)
 - **Repository**: GitHub (thedoctorJJ organization)
 - **Monitoring**: Built-in health checks and logging
 
@@ -845,6 +889,82 @@ Ready to start? Let's check for available PRDs!"""
                 'success': False,
                 'error': f"Failed to create repository: {str(e)}",
                 'message': "Error creating GitHub repository"
+            }
+
+    async def _deploy_to_google_cloud_run(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Deploy an AI agent to Google Cloud Run"""
+        try:
+            agent_name = args.get('agent_name')
+            agent_code = args.get('agent_code')
+            requirements = args.get('requirements', [])
+            environment_variables = args.get('environment_variables', {})
+            
+            if not agent_name or not agent_code:
+                return {
+                    'success': False,
+                    'error': 'agent_name and agent_code are required',
+                    'message': 'Please provide both agent name and code'
+                }
+            
+            # Import the Google Cloud Run deployer
+            import sys
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            deployer_path = os.path.join(current_dir, 'google-cloud-run-deploy.py')
+            
+            if not os.path.exists(deployer_path):
+                return {
+                    'success': False,
+                    'error': 'Google Cloud Run deployer not found',
+                    'message': 'The google-cloud-run-deploy.py script is missing'
+                }
+            
+            # Import the deployer class
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("google_cloud_deployer", deployer_path)
+            deployer_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(deployer_module)
+            
+            # Initialize the deployer
+            project_id = "agent-factory-474201"
+            service_account_key = os.path.join(os.path.dirname(current_dir), "..", "config", "google-cloud-service-account.json")
+            
+            deployer = deployer_module.GoogleCloudRunDeployer(project_id, service_account_key)
+            
+            # Authenticate
+            if not deployer.authenticate():
+                return {
+                    'success': False,
+                    'error': 'Google Cloud authentication failed',
+                    'message': 'Unable to authenticate with Google Cloud. Check service account credentials.'
+                }
+            
+            # Deploy the agent
+            logger.info(f"Deploying agent to Google Cloud Run: {agent_name}")
+            result = deployer.build_and_deploy(agent_name, agent_code, requirements)
+            
+            if result["success"]:
+                return {
+                    'success': True,
+                    'service_name': result['service_name'],
+                    'service_url': result['service_url'],
+                    'image_name': result['image_name'],
+                    'region': result['region'],
+                    'message': f"Successfully deployed agent '{agent_name}' to Google Cloud Run"
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': result.get('error', 'Unknown deployment error'),
+                    'message': f"Failed to deploy agent to Google Cloud Run: {result.get('error', 'Unknown error')}"
+                }
+                
+        except Exception as e:
+            logger.error(f"Error deploying to Google Cloud Run: {e}")
+            return {
+                'success': False,
+                'error': f"Deployment error: {str(e)}",
+                'message': "Error deploying to Google Cloud Run"
             }
 
 async def main():

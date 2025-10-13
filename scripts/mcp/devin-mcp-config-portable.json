@@ -1,0 +1,64 @@
+{
+  "name": "AI Agent Factory - Devin Integration",
+  "description": "MCP server for Devin AI to access PRDs and create agents in the AI Agent Factory platform",
+  "icon": "🤖",
+  "transport": "stdio",
+  "command": "python3",
+  "args": ["/Users/jason/Repositories/end-cap-agent-factory/scripts/mcp/devin-mcp-server.py"],
+  "secrets": {
+    "ENDCAP_API_URL": "AI Agent Factory API URL (default: http://localhost:8000)",
+    "GITHUB_TOKEN_TELLENAI": "GitHub personal access token for tellenai organization",
+    "GITHUB_TOKEN_THEDOCTORJJ": "GitHub personal access token for thedoctorJJ organization", 
+    "DEFAULT_GITHUB_ORG": "Default GitHub organization (tellenai or thedoctorJJ)",
+    "SUPABASE_URL": "Supabase project URL",
+    "SUPABASE_SERVICE_ROLE_KEY": "Supabase service role key"
+  },
+  "capabilities": [
+    "get_startup_guide",
+    "load_prd_data",
+    "check_available_prds",
+    "get_prd_details",
+    "create_github_repository",
+    "get_agent_library_info"
+  ],
+  "tools": [
+    {
+      "name": "get_startup_guide",
+      "description": "Get the complete startup guide for Devin AI",
+      "use_case": "When Devin starts cold and needs to understand its mission"
+    },
+    {
+      "name": "load_prd_data",
+      "description": "Load PRD data from AI Agent Factory into MCP cache",
+      "use_case": "When Devin needs to access PRD data for processing"
+    },
+    {
+      "name": "check_available_prds",
+      "description": "Check what PRDs are available in the MCP cache",
+      "use_case": "When Devin needs to see what work is available"
+    },
+    {
+      "name": "get_prd_details",
+      "description": "Get detailed information about a specific PRD",
+      "use_case": "When Devin needs to understand PRD requirements"
+    },
+    {
+      "name": "create_github_repository",
+      "description": "Create a new GitHub repository for an AI agent",
+      "use_case": "When Devin needs to create a repository for the agent code"
+    },
+    {
+      "name": "get_agent_library_info",
+      "description": "Get information about available agent libraries and tools",
+      "use_case": "When Devin needs to understand available templates and tools"
+    }
+  ],
+  "workflow": {
+    "step_1": "Devin calls 'get_startup_guide' to understand its mission",
+    "step_2": "Devin calls 'check_available_prds' to see what PRDs are ready",
+    "step_3": "Devin calls 'get_prd_details' to understand specific requirements",
+    "step_4": "Devin calls 'create_github_repository' to create a repo for the agent",
+    "step_5": "Devin implements the agent code using the PRD requirements",
+    "step_6": "Devin deploys and updates the agent status"
+  }
+}

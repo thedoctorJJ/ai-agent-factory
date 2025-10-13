@@ -37,6 +37,7 @@ interface PRD {
   prd_type?: 'platform' | 'agent'
   status: string
   created_at: string
+  updated_at?: string
   requirements?: string[]
 }
 

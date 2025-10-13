@@ -161,7 +161,7 @@ export function PRDCard({
         {/* Metadata */}
         <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
           <span>Created: {formatDate(prd.created_at)}</span>
-          {prd.updated_at !== prd.created_at && (
+          {prd.updated_at && prd.updated_at !== prd.created_at && (
             <span>Updated: {formatDate(prd.updated_at)}</span>
           )}
         </div>

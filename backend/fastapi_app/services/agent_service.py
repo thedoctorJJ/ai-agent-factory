@@ -45,8 +45,8 @@ class AgentService:
             "configuration": agent_data.configuration,
             "last_health_check": None,
             "health_status": AgentHealthStatus.UNKNOWN.value,
-            "created_at": now,
-            "updated_at": now
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
         }
 
         # Use simplified data manager
@@ -65,8 +65,8 @@ class AgentService:
         """Update PRD status to completed when agent is created."""
         try:
             # Try to update in database first
-            if db_manager.is_connected():
-                await db_manager.update_prd(prd_id, {"status": "completed"})
+            if data_manager.is_connected():
+                await data_manager.update_prd(prd_id, {"status": "completed"})
                 print(f"✅ Updated PRD {prd_id} status to 'completed' in database")
                 return
             
@@ -82,8 +82,8 @@ class AgentService:
         """Get an agent by ID."""
         # Try to get from database first
         try:
-            if db_manager.is_connected():
-                agent_data = await db_manager.get_agent(agent_id)
+            if data_manager.is_connected():
+                agent_data = await data_manager.get_agent(agent_id)
                 if agent_data:
                     # Convert datetime strings back to datetime objects
                     agent_data["created_at"] = datetime.fromisoformat(agent_data["created_at"].replace('Z', '+00:00'))
@@ -136,7 +136,7 @@ class AgentService:
 
         agent_dict = self._agents_db[agent_id]
         agent_dict["status"] = status.value
-        agent_dict["updated_at"] = datetime.utcnow()
+        agent_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
 
         return AgentResponse(**agent_dict)
 
@@ -144,8 +144,8 @@ class AgentService:
         """Delete an agent."""
         # Try to delete from database first
         try:
-            if db_manager.is_connected():
-                success = await db_manager.delete_agent(agent_id)
+            if data_manager.is_connected():
+                success = await data_manager.delete_agent(agent_id)
                 if success:
                     return {"message": "Agent deleted successfully"}
                 else:
@@ -196,13 +196,13 @@ class AgentService:
         # Update agent's health status
         agent_dict = self._agents_db[agent_id]
         agent_dict["health_status"] = status.value
-        agent_dict["last_health_check"] = datetime.utcnow()
+        agent_dict["last_health_check"] = datetime.now(timezone.utc).isoformat()
 
         return AgentHealthResponse(
             agent_id=agent_id,
             agent_name=agent.name,
             health_check_url=agent.health_check_url,
-            last_checked=datetime.utcnow(),
+            last_checked=datetime.now(timezone.utc),
             status=status,
             details={
                 "response_time_ms": response_time,

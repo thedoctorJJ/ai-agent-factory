@@ -26,15 +26,20 @@ async def load_prd_to_mcp(request: LoadPRDRequest):
         # Get the MCP server URL from environment
         mcp_server_url = os.getenv('MCP_SERVER_URL', 'http://localhost:8001')
         
-        # First, get the PRD data from our database
-        prd_response = requests.get(f"http://localhost:8000/api/v1/prds/{request.prd_id}")
-        if prd_response.status_code != 200:
+        # Import the PRD service to get data directly from database
+        from ..services.prd_service import prd_service
+        
+        # Get the PRD data directly from the database
+        prd_response = await prd_service.get_prd(request.prd_id)
+        if not prd_response:
             raise HTTPException(
                 status_code=404, 
                 detail=f"PRD not found: {request.prd_id}"
             )
         
-        prd_data = prd_response.json()
+        # Convert PRDResponse to dict for JSON serialization
+        # Use model_dump with mode='json' to properly serialize datetime fields
+        prd_data = prd_response.model_dump(mode='json')
         
         # Send the PRD data to the MCP server
         mcp_request = {
@@ -44,7 +49,8 @@ async def load_prd_to_mcp(request: LoadPRDRequest):
             "params": {
                 "name": "load_prd_data",
                 "arguments": {
-                    "prd_id": request.prd_id
+                    "prd_id": request.prd_id,
+                    "prd_data": prd_data  # Pass PRD data directly to avoid circular dependency
                 }
             }
         }
