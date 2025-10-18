@@ -243,7 +243,7 @@ class DevinMCPServer:
             },
             {
                 'name': 'create_github_repository',
-                'description': 'Create a new GitHub repository for an AI agent',
+                'description': 'Create a new GitHub repository for an AI agent (only for Agent PRDs)',
                 'inputSchema': {
                     'type': 'object',
                     'properties': {
@@ -266,9 +266,31 @@ class DevinMCPServer:
                         'organization': {
                             'type': 'string',
                             'description': 'Target organization (tellenai or thedoctorJJ, default: thedoctorJJ)'
+                        },
+                        'prd_type': {
+                            'type': 'string',
+                            'description': 'PRD type (platform or agent) - determines repository strategy'
                         }
                     },
-                    'required': ['repository_name']
+                    'required': ['repository_name', 'prd_type']
+                }
+            },
+            {
+                'name': 'determine_repository_strategy',
+                'description': 'Determine the repository strategy based on PRD type',
+                'inputSchema': {
+                    'type': 'object',
+                    'properties': {
+                        'prd_id': {
+                            'type': 'string',
+                            'description': 'PRD ID to check (optional)'
+                        },
+                        'prd_type': {
+                            'type': 'string',
+                            'description': 'PRD type (platform or agent)'
+                        }
+                    },
+                    'required': ['prd_type']
                 }
             },
             {
@@ -334,6 +356,8 @@ class DevinMCPServer:
                 result = await self._get_startup_guide(arguments)
             elif tool_name == 'create_github_repository':
                 result = await self._create_github_repository(arguments)
+            elif tool_name == 'determine_repository_strategy':
+                result = await self._determine_repository_strategy(arguments)
             elif tool_name == 'deploy_to_google_cloud_run':
                 result = await self._deploy_to_google_cloud_run(arguments)
             else:
@@ -432,7 +456,7 @@ class DevinMCPServer:
             }
 
     async def _create_agent_from_prd(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        """Create an agent from a PRD (placeholder - Devin will do the actual creation)"""
+        """Create an agent from a PRD with hybrid repository strategy"""
         prd_id = args.get('prd_id')
         agent_name = args.get('agent_name')
         agent_description = args.get('agent_description')
@@ -451,6 +475,19 @@ class DevinMCPServer:
             }
         
         prd_data = prd_response.json()
+        prd_type = prd_data.get('prd_type', 'agent')  # Default to 'agent' if not specified
+        
+        # Determine repository strategy based on PRD type
+        if prd_type == 'platform':
+            # Platform PRDs: Use main repository structure
+            repository_url = f"https://github.com/thedoctorJJ/ai-agent-factory/tree/main/agents/{self._clean_agent_name(agent_name)}"
+            repository_strategy = "main_repository"
+        else:
+            # Agent PRDs: Create separate repository
+            if not repository_name:
+                repository_name = f"ai-agents-{self._clean_agent_name(agent_name)}"
+            repository_url = f"https://github.com/thedoctorJJ/{repository_name}"
+            repository_strategy = "separate_repository"
         
         # Create a placeholder agent record
         agent_data = {
@@ -461,12 +498,14 @@ class DevinMCPServer:
             'version': '1.0.0',
             'status': 'draft',
             'prd_id': prd_id,
+            'repository_url': repository_url,
             'capabilities': ['task_management', 'notifications', 'reporting'],
             'configuration': {
                 'created_by': 'devin_ai',
                 'repository_name': repository_name,
+                'repository_strategy': repository_strategy,
                 'prd_title': prd_data.get('title'),
-                'prd_type': prd_data.get('prd_type')
+                'prd_type': prd_type
             }
         }
         
@@ -476,25 +515,61 @@ class DevinMCPServer:
             json=agent_data
         )
         
-        if response.status_code == 200:
-            agent = response.json()
+        if response.status_code in [200, 201]:
+            agent_result = response.json()
             return {
                 'success': True,
-                'agent': agent,
-                'prd': prd_data,
-                'message': f"Agent '{agent_name}' created successfully. Devin can now implement the agent code.",
-                'next_steps': [
-                    "Implement the agent code based on the PRD requirements",
-                    f"Create GitHub repository: {repository_name or f'agent-{agent_name.lower()}'}",
-                    "Deploy to Google Cloud Run",
-                    "Update agent status to 'active' when complete"
-                ]
+                'agent_id': agent_result.get('id'),
+                'agent_name': agent_name,
+                'repository_strategy': repository_strategy,
+                'repository_url': repository_url,
+                'message': f"Agent created successfully with {repository_strategy} strategy"
             }
         else:
             return {
                 'success': False,
                 'error': f"Failed to create agent: {response.status_code}",
-                'message': "API error during agent creation"
+                'message': f"API error: {response.text}"
+            }
+    
+    def _clean_agent_name(self, name: str) -> str:
+        """Clean agent name for use in repository names and URLs."""
+        import re
+        # Remove emojis and special characters
+        cleaned = re.sub(r'[^\w\s-]', '', name)
+        # Replace spaces with hyphens and convert to lowercase
+        cleaned = re.sub(r'[-\s]+', '-', cleaned).lower()
+        # Remove leading/trailing hyphens
+        return cleaned.strip('-')
+
+    async def _determine_repository_strategy(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Determine the repository strategy based on PRD type"""
+        try:
+            prd_type = args.get('prd_type', 'agent')
+            prd_id = args.get('prd_id')
+            
+            if prd_type == 'platform':
+                return {
+                    'success': True,
+                    'repository_strategy': 'main_repository',
+                    'repository_url_template': 'https://github.com/thedoctorJJ/ai-agent-factory/tree/main/agents/{agent_name}',
+                    'instructions': 'Add agent code to the main repository in /agents/{agent_name}/ folder',
+                    'message': 'Platform PRDs use the main repository structure'
+                }
+            else:
+                return {
+                    'success': True,
+                    'repository_strategy': 'separate_repository',
+                    'repository_url_template': 'https://github.com/thedoctorJJ/ai-agents-{agent_name}',
+                    'instructions': 'Create a separate GitHub repository with naming pattern: ai-agents-{agent_name}',
+                    'message': 'Agent PRDs get separate repositories'
+                }
+                
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f"Failed to determine repository strategy: {str(e)}",
+                'message': "Error determining repository strategy"
             }
 
     async def _get_agent_library_info(self, args: Dict[str, Any]) -> Dict[str, Any]:
@@ -727,14 +802,18 @@ Parameters: {
   "prd_id": "the-prd-id",
   "agent_name": "Your Agent Name",
   "agent_description": "Your agent description",
-  "repository_name": "your-repo-name"
+  "repository_name": "your-repo-name" (optional for agent PRDs)
 }
 ```
 
+**Repository Strategy:**
+- **Platform PRDs**: Agents are added to the main repository (`/agents/` folder)
+- **Agent PRDs**: Separate GitHub repositories are created (`ai-agents-{name}`)
+
 ### Step 5: Implement the Agent
 Now implement the agent according to the PRD requirements:
-- Create the code repository
-- Implement the functionality
+- **Platform PRDs**: Add code to `/agents/{agent-name}/` in main repository
+- **Agent PRDs**: Create separate repository and implement functionality
 - Set up deployment configuration
 - Deploy to the cloud
 
@@ -785,9 +864,12 @@ If you find PRDs, select one and begin the agent creation process. If no PRDs ar
 1. **Check for work** → `check_available_prds`
 2. **Get PRD details** → `get_prd_details`
 3. **Understand tools** → `get_agent_library_info`
-4. **Create agent record** → `create_agent_from_prd`
-5. **Implement agent** → Code, deploy, test
-6. **Update status** → `update_agent_status`
+4. **Create agent record** → `create_agent_from_prd` (determines repository strategy)
+5. **Implement agent** → 
+   - **Platform PRDs**: Add to main repository `/agents/` folder
+   - **Agent PRDs**: Create separate repository and implement
+6. **Deploy and test** → Deploy to Cloud Run
+7. **Update status** → `update_agent_status`
 
 Ready to start? Let's check for available PRDs!"""
                 
@@ -805,13 +887,22 @@ Ready to start? Let's check for available PRDs!"""
             }
 
     async def _create_github_repository(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new GitHub repository for an AI agent"""
+        """Create a new GitHub repository for an AI agent (only for Agent PRDs)"""
         try:
             repository_name = args.get('repository_name')
             description = args.get('description', 'AI Agent created by AI Agent Factory')
             private = args.get('private', False)
             auto_init = args.get('auto_init', True)
             target_org = args.get('organization', self.default_github_org)
+            prd_type = args.get('prd_type', 'agent')
+            
+            # Check if this is a platform PRD - if so, don't create separate repository
+            if prd_type == 'platform':
+                return {
+                    'success': False,
+                    'error': 'Platform PRDs use main repository structure',
+                    'message': 'Platform PRDs should be added to the main repository in /agents/ folder, not as separate repositories'
+                }
             
             if not repository_name:
                 return {

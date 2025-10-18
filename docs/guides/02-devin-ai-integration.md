@@ -78,7 +78,7 @@ Devin AI serves as the **execution engine** for the AI Agent Factory platform, r
 
 ### **Repository Structure**
 ```
-end-cap-agent-{name}/
+ai-agents-{name}/
 ├── agent/
 │   ├── main.py                 # Main agent logic
 │   ├── requirements.txt        # Python dependencies

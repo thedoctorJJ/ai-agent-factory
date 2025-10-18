@@ -28,7 +28,7 @@ With MCP servers configured, the workflow becomes:
 2. Add GitHub MCP Server
 3. Configure with:
    - **Organization**: `thedoctorJJ` (or your GitHub org)
-   - **Repository Prefix**: `end-cap-agent-`
+   - **Repository Prefix**: `ai-agents-`
    - **Permissions**: Full repository access
    - **Branch Protection**: Enable for main branch
 
@@ -83,7 +83,7 @@ With MCP servers configured, the workflow becomes:
   "type": "github",
   "config": {
     "organization": "thedoctorJJ",
-    "repository_prefix": "end-cap-agent-",
+    "repository_prefix": "ai-agents-",
     "permissions": ["repo", "workflow", "admin:org"]
   }
 }
@@ -120,7 +120,7 @@ With MCP servers configured, the workflow becomes:
 ## 📋 MCP Server Capabilities
 
 ### GitHub MCP Server
-- **Repository Creation**: Automatically creates `end-cap-agent-{name}` repositories
+- **Repository Creation**: Automatically creates `ai-agents-{name}` repositories
 - **Code Structure**: Sets up proper folder structure with agent code
 - **CI/CD**: Configures GitHub Actions for testing and deployment
 - **Documentation**: Generates README files with usage instructions

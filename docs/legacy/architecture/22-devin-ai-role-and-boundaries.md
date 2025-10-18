@@ -205,7 +205,7 @@ Devin AI → Agent Registration → Platform Dashboard → Health Monitoring
 
 ### **Repository Structure**
 ```
-end-cap-agent-{name}/
+ai-agents-{name}/
 ├── agent/
 │   ├── main.py                 # Main agent logic
 │   ├── requirements.txt        # Python dependencies

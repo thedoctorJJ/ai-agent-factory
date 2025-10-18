@@ -183,6 +183,9 @@ All legacy files contain clear warnings and redirect to the new organized docume
 
 ### PRD Types: Platform vs Agent
 - `prd_type` field: `platform` (build the factory) or `agent` (use the factory)
+- **Repository Strategy**:
+  - **Platform PRDs**: Agents added to main repository (`/agents/` folder)
+  - **Agent PRDs**: Separate GitHub repositories created (`ai-agents-{name}`)
 - Frontend filters in PRDs and Roadmap tabs
 
 ---

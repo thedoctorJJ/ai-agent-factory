@@ -23,11 +23,11 @@ thedoctorJJ/
 │   ├── scripts/                    # Platform automation
 │   └── libraries/                  # Shared components
 │
-├── end-cap-agent-email-assistant/  # Individual agent repos
-├── end-cap-agent-data-processor/   # Each with their own:
-├── end-cap-agent-content-generator/ # - Code
-├── end-cap-agent-customer-support/  # - Tests
-└── end-cap-agent-analytics/        # - Documentation
+├── ai-agents-email-assistant/  # Individual agent repos
+├── ai-agents-data-processor/   # Each with their own:
+├── ai-agents-content-generator/ # - Code
+├── ai-agents-customer-support/  # - Tests
+└── ai-agents-analytics/        # - Documentation
                                     # - Deployment configs
 ```
 
@@ -42,8 +42,8 @@ thedoctorJJ/
 ## 🛠️ **Key Components**
 
 ### **Repository Naming**
-- Pattern: `end-cap-agent-{kebab-case-name}`
-- Example: `end-cap-agent-email-assistant`
+- Pattern: `ai-agents-{kebab-case-name}`
+- Example: `ai-agents-email-assistant`
 
 ### **Template Base**
 - Uses `thedoctorJJ/ai-agent-factory` as template

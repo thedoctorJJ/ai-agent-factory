@@ -28,7 +28,7 @@ thedoctorJJ/ai-agent-factory/
 
 ### **Individual Agent Repositories**
 ```
-thedoctorJJ/end-cap-agent-{name}/
+thedoctorJJ/ai-agents-{name}/
 ├── agent/                      # Agent implementation
 ├── tests/                      # Agent-specific tests
 ├── docs/                       # Agent documentation
@@ -71,13 +71,13 @@ thedoctorJJ/end-cap-agent-{name}/
     "manage_secrets"
   ],
   "repository_template": "thedoctorJJ/ai-agent-factory",
-  "naming_convention": "end-cap-agent-{kebab-case-name}"
+  "naming_convention": "ai-agents-{kebab-case-name}"
 }
 ```
 
 #### **Repository Structure Template**
 ```
-end-cap-agent-{name}/
+ai-agents-{name}/
 ├── agent/
 │   ├── main.py                 # Main agent logic
 │   ├── requirements.txt        # Python dependencies
@@ -229,7 +229,7 @@ class AgentConfig(BaseSettings):
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: end-cap-agent-{name}
+  name: ai-agents-{name}
   annotations:
     run.googleapis.com/ingress: all
 spec:
@@ -241,7 +241,7 @@ spec:
     spec:
       containerConcurrency: 100
       containers:
-      - image: gcr.io/ai-agent-factory/end-cap-agent-{name}:latest
+      - image: gcr.io/ai-agent-factory/ai-agents-{name}:latest
         ports:
         - containerPort: 8080
         env:
@@ -341,13 +341,13 @@ jobs:
     
     - name: Build and push image
       run: |
-        docker build -t gcr.io/ai-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }} .
-        docker push gcr.io/ai-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }}
+        docker build -t gcr.io/ai-agent-factory/ai-agents-${{ github.event.repository.name }}:${{ github.sha }} .
+        docker push gcr.io/ai-agent-factory/ai-agents-${{ github.event.repository.name }}:${{ github.sha }}
     
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy end-cap-agent-${{ github.event.repository.name }} \
-          --image gcr.io/ai-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }} \
+        gcloud run deploy ai-agents-${{ github.event.repository.name }} \
+          --image gcr.io/ai-agent-factory/ai-agents-${{ github.event.repository.name }}:${{ github.sha }} \
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated
@@ -400,7 +400,7 @@ class PlatformIntegration:
     
     def get_deployment_url(self) -> str:
         """Get the agent's deployment URL"""
-        return f"https://end-cap-agent-{self.config.name.lower().replace(' ', '-')}-hash.run.app"
+        return f"https://ai-agents-{self.config.name.lower().replace(' ', '-')}-hash.run.app"
 ```
 
 ### **Health Monitoring**

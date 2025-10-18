@@ -18,6 +18,36 @@ The AI Agent Factory PRD (Product Requirements Document) system is designed to r
 
 Both templates are pre-configured to leverage the AI Agent Factory's technical infrastructure including FastAPI, Supabase, Google Cloud Run, MCP protocol, and GitHub integration.
 
+## 🏗️ **Repository Strategy**
+
+The AI Agent Factory uses a hybrid repository strategy based on PRD type:
+
+### **Platform PRDs**
+- **Purpose**: Infrastructure, platform features, and system components
+- **Repository**: Main repository (`ai-agent-factory`)
+- **Location**: `/agents/{agent-name}/` folder
+- **Benefits**: 
+  - Centralized management of platform components
+  - Easy access to shared infrastructure
+  - Simplified deployment and maintenance
+
+### **Agent PRDs**
+- **Purpose**: Individual AI agents and specialized applications
+- **Repository**: Separate GitHub repositories
+- **Naming**: `ai-agents-{agent-name}`
+- **Benefits**:
+  - Full isolation and independence
+  - Individual versioning and release cycles
+  - Dedicated CI/CD pipelines
+  - Scalable agent ecosystem
+
+### **Automatic Detection**
+The system automatically determines the appropriate repository strategy based on:
+- PRD content analysis
+- Keyword detection (platform vs agent indicators)
+- Explicit PRD type specification
+- Template selection
+
 ### **PRD Sections**
 #### **Core Sections**
 - **Title** - Project name and description
@@ -45,6 +75,9 @@ Both templates are pre-configured to leverage the AI Agent Factory's technical i
 ### **1. PRD Upload**
 - **Upload** - Users upload PRDs in any format to the `uploaded/` folder
 - **Classification** - System determines if it's an agent or platform PRD
+- **Repository Strategy** - System automatically determines repository approach:
+  - **Platform PRDs**: Agents added to main repository (`/agents/` folder)
+  - **Agent PRDs**: Separate GitHub repositories created (`ai-agents-{name}`)
 - **Initial Processing** - PRD is prepared for standardization
 
 ### **2. PRD Standardization**

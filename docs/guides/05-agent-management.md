@@ -40,7 +40,7 @@ The Agent Management System provides comprehensive lifecycle management for AI a
 
 ### **Agent Structure**
 ```
-end-cap-agent-{name}/
+ai-agents-{name}/
 ├── agent/
 │   ├── main.py                 # Main agent logic
 │   ├── requirements.txt        # Python dependencies

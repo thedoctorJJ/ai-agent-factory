@@ -283,11 +283,27 @@ class DevinService:
         return DevinTaskResponse(**task_dict)
 
     async def _create_agent_from_task(self, task_id: str) -> None:
-        """Create an agent from a completed Devin task."""
+        """Create an agent from a completed Devin task with hybrid repository strategy."""
         task = await self.get_task(task_id)
 
         # Get the associated PRD
         prd = await prd_service.get_prd(task.prd_id)
+
+        # Determine repository strategy based on PRD type
+        if prd.prd_type == "platform":
+            # Platform PRDs: Use main repository structure
+            repository_url = (
+                f"https://github.com/thedoctorJJ/ai-agent-factory/tree/main/agents/"
+                f"{self._clean_title(prd.title)}"
+            )
+            repository_strategy = "main_repository"
+        else:
+            # Agent PRDs: Create separate repository
+            repository_url = (
+                f"https://github.com/thedoctorJJ/ai-agents-"
+                f"{self._clean_title(prd.title)}"
+            )
+            repository_strategy = "separate_repository"
 
         # Create agent registration data
         agent_data = {
@@ -295,10 +311,7 @@ class DevinService:
             "description": prd.description,
             "purpose": f"AI agent created from PRD: {prd.title}",
             "version": "1.0.0",
-            "repository_url": (
-                f"https://github.com/thedoctorJJ/ai-agent-"
-                f"{self._clean_title(prd.title)}"
-            ),
+            "repository_url": repository_url,
             "deployment_url": (
                 f"https://ai-agent-{self._clean_title(prd.title)}"
                 f"-hash.run.app"
@@ -313,7 +326,9 @@ class DevinService:
             "capabilities": prd.requirements[:5],
             "configuration": {
                 "environment": "production",
-                "scaling": "auto"
+                "scaling": "auto",
+                "repository_strategy": repository_strategy,
+                "prd_type": prd.prd_type
             }
         }
 
