@@ -6,6 +6,110 @@ This repository contains all core infrastructure, libraries, and documentation t
 
 ---
 
+## ⚙️ Secure Configuration System
+
+### **🔐 Secure API Key Management**
+
+The AI Agent Factory uses a **secure, encrypted configuration system** that safely stores all API keys and creates working configuration files. All sensitive data is encrypted and protected.
+
+#### **🚀 Quick Secure Setup (Recommended)**
+
+```bash
+# One-command secure setup
+./setup/setup-secure-config.sh
+```
+
+#### **📋 Manual Secure Setup**
+
+```bash
+# 1. Import existing API keys securely
+python3 config/secure-api-manager.py import config/env/.env.local
+
+# 2. Create working .env file
+python3 config/secure-api-manager.py create
+
+# 3. Validate all services
+python3 config/secure-api-manager.py validate
+```
+
+#### **🔒 Security Features**
+
+- **✅ Encrypted Storage**: All API keys are encrypted using AES encryption
+- **✅ Secure Permissions**: Files have restrictive permissions (600)
+- **✅ No Git Exposure**: Sensitive files are never committed to git
+- **✅ Centralized Management**: All API keys stored in one secure location
+- **✅ Auto-Generated Config**: Working `.env` file is created automatically
+
+#### **📁 Secure File Structure**
+
+```
+config/
+├── api-secrets.enc          # 🔐 Encrypted API keys (DO NOT EDIT)
+├── .master-key              # 🔑 Encryption key (DO NOT EDIT)
+├── secure-api-manager.py    # 🛠️ Secure management tool
+└── env/
+    └── .env.local           # 📝 Your API keys (source file)
+```
+
+#### **🔧 Configuration Management Commands**
+
+```bash
+# Import API keys from file
+python3 config/secure-api-manager.py import <file>
+
+# Create working .env file
+python3 config/secure-api-manager.py create
+
+# List stored API keys (masked)
+python3 config/secure-api-manager.py list
+
+# Validate all services
+python3 config/secure-api-manager.py validate
+
+# Complete setup
+python3 config/secure-api-manager.py setup
+```
+
+#### **📊 Current Service Status**
+
+✅ **Google Cloud** - Fully configured and working
+- Project: `agent-factory-474201`
+- Redis: `10.1.93.195:6379`
+- Cloud Run: Deployed and responding
+- **Deployment Platform**: Google Cloud Run (not Fly.io)
+
+✅ **GitHub** - Configured and working
+- Organization: `thedoctorJJ`
+- Token: Securely stored and encrypted
+
+✅ **Supabase** - Configured
+- URL: `https://ssdcbhxctakgysnayzeq.supabase.co`
+- Keys: Securely stored and encrypted
+
+✅ **OpenAI** - Configured
+- API Key: Securely stored and encrypted
+
+#### **🛡️ Security Best Practices**
+
+1. **Never commit sensitive files**: `.env`, `api-secrets.enc`, `.master-key`
+2. **Use secure setup**: Always use `./setup-secure-config.sh`
+3. **Regular updates**: Update API keys through the secure manager
+4. **Backup encryption key**: Keep `.master-key` safe (losing it means losing access)
+
+#### **🚨 Troubleshooting**
+
+**If you lose access to encrypted keys:**
+1. Delete `config/api-secrets.enc` and `config/.master-key`
+2. Re-run `./setup/setup-secure-config.sh`
+3. Re-enter your API keys in `config/env/.env.local`
+
+**If configuration doesn't work:**
+1. Run: `python3 config/secure-api-manager.py validate`
+2. Check: `python3 config/secure-api-manager.py list`
+3. Recreate: `python3 config/secure-api-manager.py create`
+
+---
+
 ## 📚 Documentation
 
 ### **Organized Documentation Structure**

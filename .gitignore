@@ -123,5 +123,11 @@ coverage.xml
 .gcloud/
 service-account-key.json
 
+# Secure API Key Management Files
+config/api-secrets.enc
+config/.master-key
+config/google-cloud-service-account.json
+config/github-app-private-key.pem
+
 # GitHub
 .github/workflows/secrets/

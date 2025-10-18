@@ -41,6 +41,12 @@ Complete API documentation and reference.
 - **[MCP Servers](./api-reference/mcp-servers.md)** - Model Context Protocol server documentation
 - **[Webhooks](./api-reference/webhooks.md)** - Webhook integration guide
 
+### 🔐 [Security](./security/)
+Security documentation and best practices.
+
+- **[Security Guide](./SECURITY.md)** - Comprehensive security documentation and API key management
+- **[Secure Configuration Complete](./security/SECURE-CONFIGURATION-COMPLETE.md)** - Complete implementation summary
+
 ### 🤝 [Contributing](./contributing/)
 Guidelines for contributing to the project.
 

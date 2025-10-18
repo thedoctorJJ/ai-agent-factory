@@ -1,0 +1,26 @@
+# Google Cloud Configuration - Working Setup
+# Generated on: $(date)
+
+# Project Configuration
+GOOGLE_CLOUD_PROJECT_ID=agent-factory-474201
+GOOGLE_CLOUD_REGION=us-central1
+GOOGLE_CLOUD_SERVICE_ACCOUNT_KEY=config/google-cloud-service-account.json
+
+# Redis Configuration (Memorystore)
+REDIS_HOST=10.1.93.195
+REDIS_PORT=6379
+REDIS_URL=redis://10.1.93.195:6379
+
+# Cloud Run Configuration
+CLOUD_RUN_REGION=us-central1
+CLOUD_RUN_PROJECT_ID=agent-factory-474201
+CLOUD_RUN_SERVICE_URL=https://test-agent-service-952475323593.us-central1.run.app
+
+# Container Registry
+GCR_REGISTRY=gcr.io/agent-factory-474201
+
+# Status: All services tested and working
+# - Redis instance: ✅ Created and accessible
+# - Cloud Run: ✅ Deployed and responding
+# - APIs: ✅ All required APIs enabled
+# - Permissions: ✅ Properly configured
