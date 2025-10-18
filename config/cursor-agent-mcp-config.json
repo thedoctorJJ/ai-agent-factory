@@ -1,0 +1,130 @@
+{
+  "name": "AI Agent Factory - Cursor Agent Integration",
+  "description": "Comprehensive MCP server for Cursor Agent to access and manage all AI Agent Factory platform components",
+  "icon": "🤖",
+  "transport": "stdio",
+  "command": "python3",
+  "args": ["/Users/jason/Repositories/ai-agent-factory/scripts/mcp/cursor-agent-mcp-server.py"],
+  "env": {
+    "DATABASE_URL": "postgresql://postgres:postgres@your-db.supabase.co:5432/postgres",
+    "SUPABASE_URL": "https://your-project.supabase.co",
+    "SUPABASE_KEY": "your-anon-key",
+    "SUPABASE_SERVICE_ROLE_KEY": "your-service-role-key",
+    "GOOGLE_CLOUD_PROJECT_ID": "your-project-id",
+    "GOOGLE_CLOUD_REGION": "us-central1",
+    "GITHUB_TOKEN": "your-github-token",
+    "GITHUB_ORG_NAME": "your-org-name",
+    "OPENAI_API_KEY": "your-openai-api-key",
+    "ENVIRONMENT": "development",
+    "DEBUG": "true"
+  },
+  "capabilities": [
+    "get_platform_status",
+    "list_prds",
+    "get_prd_details", 
+    "create_prd",
+    "update_prd_status",
+    "list_agents",
+    "get_agent_details",
+    "deploy_agent",
+    "create_github_repo",
+    "get_github_repo",
+    "test_database_connection",
+    "get_database_schema",
+    "validate_environment",
+    "start_backend_server",
+    "start_frontend_server"
+  ],
+  "tools": [
+    {
+      "name": "get_platform_status",
+      "description": "Get comprehensive status of all platform components and services",
+      "use_case": "When you need to understand the current state of the entire AI Agent Factory platform"
+    },
+    {
+      "name": "list_prds",
+      "description": "List all PRDs in the system with optional status filtering",
+      "use_case": "When you need to see what PRDs are available for processing"
+    },
+    {
+      "name": "get_prd_details",
+      "description": "Get detailed information about a specific PRD by ID",
+      "use_case": "When you need to understand the requirements for creating an agent"
+    },
+    {
+      "name": "create_prd",
+      "description": "Create a new PRD in the system",
+      "use_case": "When you need to add a new PRD to the platform"
+    },
+    {
+      "name": "update_prd_status",
+      "description": "Update the status of a PRD (queue, in-progress, completed, failed)",
+      "use_case": "When you need to track PRD progress through the workflow"
+    },
+    {
+      "name": "list_agents",
+      "description": "List all agents in the system with optional status filtering",
+      "use_case": "When you need to see what agents have been created"
+    },
+    {
+      "name": "get_agent_details",
+      "description": "Get detailed information about a specific agent by ID",
+      "use_case": "When you need to understand an agent's configuration and status"
+    },
+    {
+      "name": "deploy_agent",
+      "description": "Deploy an agent to Google Cloud Run",
+      "use_case": "When you need to deploy a new agent to production"
+    },
+    {
+      "name": "create_github_repo",
+      "description": "Create a new GitHub repository",
+      "use_case": "When you need to create a repository for agent code"
+    },
+    {
+      "name": "get_github_repo",
+      "description": "Get information about a GitHub repository",
+      "use_case": "When you need to check repository status or details"
+    },
+    {
+      "name": "test_database_connection",
+      "description": "Test the database connection",
+      "use_case": "When you need to verify database connectivity"
+    },
+    {
+      "name": "get_database_schema",
+      "description": "Get the current database schema information",
+      "use_case": "When you need to understand the database structure"
+    },
+    {
+      "name": "validate_environment",
+      "description": "Validate all environment configuration",
+      "use_case": "When you need to check if all services are properly configured"
+    },
+    {
+      "name": "start_backend_server",
+      "description": "Start the backend API server",
+      "use_case": "When you need to run the backend API locally"
+    },
+    {
+      "name": "start_frontend_server",
+      "description": "Start the frontend development server",
+      "use_case": "When you need to run the frontend locally"
+    }
+  ],
+  "workflow": {
+    "step_1": "Use 'get_platform_status' to understand current system state",
+    "step_2": "Use 'list_prds' to see available PRDs",
+    "step_3": "Use 'get_prd_details' to understand specific requirements",
+    "step_4": "Use 'create_github_repo' to create repository for agent",
+    "step_5": "Use 'deploy_agent' to deploy agent to Google Cloud Run",
+    "step_6": "Use 'update_prd_status' to track progress",
+    "step_7": "Use 'list_agents' to see deployed agents"
+  },
+  "integration_notes": {
+    "cursor_agent": "This MCP server provides comprehensive access to all AI Agent Factory components from Cursor Agent",
+    "environment": "All environment variables are pre-configured for immediate use",
+    "services": "Includes access to Supabase, GitHub, OpenAI, and Google Cloud services",
+    "development": "Can start both backend and frontend servers for local development"
+  }
+}
