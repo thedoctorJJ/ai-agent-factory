@@ -12,7 +12,7 @@ echo ""
 # Check if we're in the right directory
 if [ ! -f "backend/fastapi_app/main.py" ]; then
     echo "❌ Please run this script from the project root directory"
-    echo "   Expected: /path/to/end-cap-agent-factory/"
+    echo "   Expected: /path/to/ai-agent-factory/"
     exit 1
 fi
 

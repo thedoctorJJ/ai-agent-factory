@@ -8,7 +8,7 @@ echo "========================================"
 echo
 
 # Check if .env.local exists
-ENV_FILE="/Users/jason/Repositories/end-cap-agent-factory/config/env/.env.local"
+ENV_FILE="/Users/jason/Repositories/ai-agent-factory/config/env/.env.local"
 if [ ! -f "$ENV_FILE" ]; then
     echo "❌ Error: .env.local file not found at $ENV_FILE"
     echo "Please run the environment setup first"
@@ -30,7 +30,7 @@ echo "Service Role Key: ${SUPABASE_SERVICE_ROLE_KEY:0:50}..."
 echo
 
 # Check if schema file exists
-SCHEMA_FILE="/Users/jason/Repositories/end-cap-agent-factory/infra/database/schema.sql"
+SCHEMA_FILE="/Users/jason/Repositories/ai-agent-factory/infra/database/schema.sql"
 if [ ! -f "$SCHEMA_FILE" ]; then
     echo "❌ Error: Schema file not found at $SCHEMA_FILE"
     exit 1
@@ -62,7 +62,7 @@ async def apply_schema():
         print("✅ Connected to Supabase")
         
         # Read schema file
-        schema_file = "/Users/jason/Repositories/end-cap-agent-factory/infra/database/schema.sql"
+        schema_file = "/Users/jason/Repositories/ai-agent-factory/infra/database/schema.sql"
         with open(schema_file, 'r') as f:
             schema_sql = f.read()
         
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 EOF
 
 echo "🐍 Running schema application script..."
-cd /Users/jason/Repositories/end-cap-agent-factory/backend
+cd /Users/jason/Repositories/ai-agent-factory/backend
 source venv/bin/activate
 
 python3 "$PYTHON_SCRIPT"

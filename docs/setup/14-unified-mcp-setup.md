@@ -41,7 +41,7 @@ ENDCAP_API_URL: http://localhost:8000
 Make sure your server path is:
 ```
 Command: python3
-Arguments: /Users/jason/Repositories/end-cap-agent-factory/scripts/mcp-server.py
+Arguments: /Users/jason/Repositories/ai-agent-factory/scripts/mcp-server.py
 ```
 
 ### **Step 4: Test All Tools**

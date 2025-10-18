@@ -297,15 +297,15 @@ class DevinService:
             "purpose": f"AI agent created from PRD: {prd.title}",
             "version": "1.0.0",
             "repository_url": (
-                f"https://github.com/thedoctorJJ/end-cap-agent-"
+                f"https://github.com/thedoctorJJ/ai-agent-"
                 f"{self._clean_title(prd.title)}"
             ),
             "deployment_url": (
-                f"https://end-cap-agent-{self._clean_title(prd.title)}"
+                f"https://ai-agent-{self._clean_title(prd.title)}"
                 f"-hash.run.app"
             ),
             "health_check_url": (
-                f"https://end-cap-agent-{self._clean_title(prd.title)}"
+                f"https://ai-agent-{self._clean_title(prd.title)}"
                 f"-hash.run.app/health"
             ),
             "prd_id": prd.id,

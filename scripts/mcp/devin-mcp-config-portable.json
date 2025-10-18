@@ -4,7 +4,7 @@
   "icon": "🤖",
   "transport": "stdio",
   "command": "python3",
-  "args": ["/Users/jason/Repositories/end-cap-agent-factory/scripts/mcp/devin-mcp-server.py"],
+  "args": ["/Users/jason/Repositories/ai-agent-factory/scripts/mcp/devin-mcp-server.py"],
   "secrets": {
     "ENDCAP_API_URL": "AI Agent Factory API URL (default: http://localhost:8000)",
     "GITHUB_TOKEN_TELLENAI": "GitHub personal access token for tellenai organization",

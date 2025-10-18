@@ -4,7 +4,7 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: end-cap-agent-factory-backend
+  name: ai-agent-factory-backend
   annotations:
     run.googleapis.com/ingress: all
     run.googleapis.com/execution-environment: gen2
@@ -20,7 +20,7 @@ spec:
       containerConcurrency: 100
       timeoutSeconds: 300
       containers:
-        - image: gcr.io/PROJECT_ID/end-cap-agent-factory-backend:latest
+        - image: gcr.io/PROJECT_ID/ai-agent-factory-backend:latest
         ports:
         - containerPort: 8000
         env:
@@ -54,7 +54,7 @@ spec:
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: end-cap-agent-factory-frontend
+  name: ai-agent-factory-frontend
   annotations:
     run.googleapis.com/ingress: all
     run.googleapis.com/execution-environment: gen2
@@ -69,12 +69,12 @@ spec:
       containerConcurrency: 100
       timeoutSeconds: 300
       containers:
-        - image: gcr.io/PROJECT_ID/end-cap-agent-factory-frontend:latest
+        - image: gcr.io/PROJECT_ID/ai-agent-factory-frontend:latest
         ports:
         - containerPort: 3000
         env:
         - name: NEXT_PUBLIC_API_URL
-          value: "https://end-cap-agent-factory-backend-xxxxx-uc.a.run.app"
+          value: "https://ai-agent-factory-backend-xxxxx-uc.a.run.app"
         resources:
           limits:
             cpu: "1"

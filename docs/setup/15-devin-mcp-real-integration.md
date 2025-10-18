@@ -54,7 +54,7 @@ DEFAULT_GITHUB_ORG=thedoctorJJ
 Use the provided startup script to run all services:
 
 ```bash
-cd /Users/jason/Repositories/end-cap-agent-factory
+cd /Users/jason/Repositories/ai-agent-factory
 ./scripts/start-mcp-integration.sh
 ```
 
@@ -85,7 +85,7 @@ Enabled: ✅ (toggle ON)
 
 ```
 Command: python3
-Arguments: /Users/jason/Repositories/end-cap-agent-factory/scripts/mcp/devin-mcp-server.py
+Arguments: /Users/jason/Repositories/ai-agent-factory/scripts/mcp/devin-mcp-server.py
 ```
 
 **Note**: Update the path to match your system.
@@ -215,7 +215,7 @@ When you paste the prompt into Devin AI, it will:
 3. **Check environment variables** are set
 4. **Test the server manually**:
    ```bash
-   cd /Users/jason/Repositories/end-cap-agent-factory/scripts/mcp
+   cd /Users/jason/Repositories/ai-agent-factory/scripts/mcp
    python3 devin-mcp-server.py
    ```
 

@@ -55,7 +55,7 @@ Devin AI → Agent Registration → Platform Dashboard → Health Monitoring
 
 ### **2. Repository Management**
 - **Repository Creation**: Create new GitHub repositories using MCP servers
-- **Template Usage**: Use `thedoctorJJ/end-cap-agent-factory` as template
+- **Template Usage**: Use `thedoctorJJ/ai-agent-factory` as template
 - **Structure**: Implement proper repository structure
 - **CI/CD**: Set up GitHub Actions workflows
 - **Branch Protection**: Configure proper branch protection rules
@@ -257,7 +257,7 @@ end-cap-agent-{name}/
 ## 📞 **Support and Resources**
 
 ### **Platform Resources**
-- **AI Agent Factory**: https://github.com/thedoctorJJ/end-cap-agent-factory
+- **AI Agent Factory**: https://github.com/thedoctorJJ/ai-agent-factory
 - **MCP Server**: https://end-cap-mcp-server-http-fdqqqinvyq-uc.a.run.app
 - **API Documentation**: http://localhost:8000/docs (when running locally)
 - **Platform Dashboard**: http://localhost:3000 (when running locally)

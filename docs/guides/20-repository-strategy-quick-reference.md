@@ -8,7 +8,7 @@
 
 ```
 thedoctorJJ/
-├── end-cap-agent-factory/          # Main platform (this repo)
+├── ai-agent-factory/          # Main platform (this repo)
 │   ├── backend/                    # Core platform backend
 │   ├── frontend/                   # Core platform frontend
 │   ├── scripts/                    # Platform automation
@@ -37,7 +37,7 @@ thedoctorJJ/
 - Example: `end-cap-agent-email-assistant`
 
 ### **Template Base**
-- Uses `thedoctorJJ/end-cap-agent-factory` as template
+- Uses `thedoctorJJ/ai-agent-factory` as template
 - Ensures consistent structure across all agents
 
 ### **MCP Integration**

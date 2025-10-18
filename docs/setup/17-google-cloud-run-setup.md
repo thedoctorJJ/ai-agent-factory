@@ -71,7 +71,7 @@ GOOGLE_CLOUD_REGION=us-central1
 Run this to test Google Cloud Run:
 
 ```bash
-cd /Users/jason/Repositories/end-cap-agent-factory
+cd /Users/jason/Repositories/ai-agent-factory
 ./scripts/setup-google-cloud-run.sh
 ```
 

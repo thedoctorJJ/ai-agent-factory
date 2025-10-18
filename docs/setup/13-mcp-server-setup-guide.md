@@ -56,7 +56,7 @@ Configure how Devin AI will execute your MCP server:
 
 ```
 Command: python3
-Arguments: /Users/jason/Repositories/end-cap-agent-factory/scripts/openai-mcp-server.py
+Arguments: /Users/jason/Repositories/ai-agent-factory/scripts/openai-mcp-server.py
 ```
 
 **Note**: Ensure the path is correct for your system. If Devin AI runs in a container, you may need to adjust the path.

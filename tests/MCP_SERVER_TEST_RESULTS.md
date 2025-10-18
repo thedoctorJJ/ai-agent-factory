@@ -2,7 +2,7 @@
 
 **Date**: October 05, 2025  
 **Tested By**: Devin AI  
-**Repository**: thedoctorJJ/end-cap-agent-factory
+**Repository**: thedoctorJJ/ai-agent-factory
 
 ## Summary
 
@@ -67,7 +67,7 @@ $ ./scripts/test-mcp-server.sh
 ```python
 self.github_org = os.getenv('GITHUB_ORG_NAME', 'thedoctorJJ')  # Line 34
 self.supabase_url = os.getenv('SUPABASE_URL', 'https://ssdcbhxctakgysnayzeq.supabase.co')  # Line 39
-self.gcp_project_id = os.getenv('GCP_PROJECT_ID', 'end-cap-agent-factory')  # Line 40
+self.gcp_project_id = os.getenv('GCP_PROJECT_ID', 'ai-agent-factory')  # Line 40
 self.endcap_api_url = os.getenv('ENDCAP_API_URL', 'http://localhost:8000')  # Line 44
 ```
 
@@ -83,7 +83,7 @@ The configuration file shows:
 ```json
 {
   "command": "python3",
-  "args": ["/Users/jason/Repositories/end-cap-agent-factory/scripts/mcp-server.py"],
+  "args": ["/Users/jason/Repositories/ai-agent-factory/scripts/mcp-server.py"],
   ...
 }
 ```
@@ -121,7 +121,7 @@ Add these 6 secrets:
 4. **GCP_SERVICE_ACCOUNT_KEY**
    - Description: Google Cloud service account key
    - Required: Yes
-   - Note: Code uses `GCP_PROJECT_ID` internally (defaults to 'end-cap-agent-factory')
+   - Note: Code uses `GCP_PROJECT_ID` internally (defaults to 'ai-agent-factory')
 
 5. **GITHUB_ORG_NAME**
    - Description: GitHub organization name
@@ -139,7 +139,7 @@ Add these 6 secrets:
 
 The MCP server also expects these (optional with defaults):
 - `SUPABASE_URL` - Defaults to: `https://ssdcbhxctakgysnayzeq.supabase.co`
-- `GCP_PROJECT_ID` - Defaults to: `end-cap-agent-factory`
+- `GCP_PROJECT_ID` - Defaults to: `ai-agent-factory`
 - `GITHUB_APP_ID` - Optional GitHub App credentials
 - `GITHUB_PRIVATE_KEY` - Optional GitHub App credentials
 - `GITHUB_INSTALLATION_ID` - Optional GitHub App credentials

@@ -47,7 +47,7 @@ gcloud run deploy ${SERVICE_NAME} \
     --cpu 1 \
     --max-instances 10 \
     --min-instances 0 \
-    --set-env-vars="GITHUB_ORG_NAME=thedoctorJJ,ENDCAP_API_URL=https://end-cap-agent-factory-backend-xxxxx-uc.a.run.app,GITHUB_TOKEN=placeholder,SUPABASE_SERVICE_ROLE_KEY=placeholder,GCP_SERVICE_ACCOUNT_KEY=placeholder,OPENAI_API_KEY=placeholder"
+    --set-env-vars="GITHUB_ORG_NAME=thedoctorJJ,ENDCAP_API_URL=https://ai-agent-factory-backend-xxxxx-uc.a.run.app,GITHUB_TOKEN=placeholder,SUPABASE_SERVICE_ROLE_KEY=placeholder,GCP_SERVICE_ACCOUNT_KEY=placeholder,OPENAI_API_KEY=placeholder"
 
 echo "🎉 HTTP MCP Server deployment initiated!"
 echo "Monitor deployment status here: https://console.cloud.google.com/run/detail/${REGION}/${SERVICE_NAME}/revisions?project=${PROJECT_ID}"

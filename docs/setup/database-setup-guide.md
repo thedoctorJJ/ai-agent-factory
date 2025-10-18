@@ -42,7 +42,7 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:8000
 Run the database setup script:
 
 ```bash
-cd /Users/jason/Repositories/end-cap-agent-factory
+cd /Users/jason/Repositories/ai-agent-factory
 source backend/venv/bin/activate
 ./scripts/setup/setup-database.sh
 ```

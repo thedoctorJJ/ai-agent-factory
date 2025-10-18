@@ -30,16 +30,16 @@ def ultimate_cleanup():
     print("🗑️  Clearing all local database files...")
     try:
         # Find all .db files
-        db_files = glob.glob("/Users/jason/Repositories/end-cap-agent-factory/**/*.db", recursive=True)
+        db_files = glob.glob("/Users/jason/Repositories/ai-agent-factory/**/*.db", recursive=True)
         for db_file in db_files:
             os.remove(db_file)
             print(f"✅ Removed: {db_file}")
         
         # Also check for any SQLite files in common locations
         common_locations = [
-            "/Users/jason/Repositories/end-cap-agent-factory/ai_agent_factory.db",
-            "/Users/jason/Repositories/end-cap-agent-factory/backend/ai_agent_factory.db",
-            "/Users/jason/Repositories/end-cap-agent-factory/frontend/ai_agent_factory.db",
+            "/Users/jason/Repositories/ai-agent-factory/ai_agent_factory.db",
+            "/Users/jason/Repositories/ai-agent-factory/backend/ai_agent_factory.db",
+            "/Users/jason/Repositories/ai-agent-factory/frontend/ai_agent_factory.db",
         ]
         
         for location in common_locations:
@@ -57,7 +57,7 @@ def ultimate_cleanup():
     try:
         result = subprocess.run([
             "python", "tests/test-data/clear-database.py"
-        ], capture_output=True, text=True, cwd="/Users/jason/Repositories/end-cap-agent-factory")
+        ], capture_output=True, text=True, cwd="/Users/jason/Repositories/ai-agent-factory")
         
         if result.returncode == 0:
             print("✅ Supabase database cleared")
@@ -69,12 +69,12 @@ def ultimate_cleanup():
     # Step 4: Clear any Python cache files
     print("🗑️  Clearing Python cache files...")
     try:
-        cache_dirs = glob.glob("/Users/jason/Repositories/end-cap-agent-factory/**/__pycache__", recursive=True)
+        cache_dirs = glob.glob("/Users/jason/Repositories/ai-agent-factory/**/__pycache__", recursive=True)
         for cache_dir in cache_dirs:
             subprocess.run(["rm", "-rf", cache_dir], check=False)
             print(f"✅ Removed cache: {cache_dir}")
         
-        pyc_files = glob.glob("/Users/jason/Repositories/end-cap-agent-factory/**/*.pyc", recursive=True)
+        pyc_files = glob.glob("/Users/jason/Repositories/ai-agent-factory/**/*.pyc", recursive=True)
         for pyc_file in pyc_files:
             os.remove(pyc_file)
             print(f"✅ Removed: {pyc_file}")
@@ -93,7 +93,7 @@ def ultimate_cleanup():
     try:
         subprocess.Popen([
             "bash", "-c", 
-            "cd /Users/jason/Repositories/end-cap-agent-factory/backend && source venv/bin/activate && uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload"
+            "cd /Users/jason/Repositories/ai-agent-factory/backend && source venv/bin/activate && uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload"
         ])
         print("✅ Backend started")
     except Exception as e:
@@ -120,7 +120,7 @@ def ultimate_cleanup():
     try:
         subprocess.Popen([
             "bash", "-c", 
-            "cd /Users/jason/Repositories/end-cap-agent-factory/frontend/next-app && npm run dev"
+            "cd /Users/jason/Repositories/ai-agent-factory/frontend/next-app && npm run dev"
         ])
         print("✅ Frontend started")
     except Exception as e:

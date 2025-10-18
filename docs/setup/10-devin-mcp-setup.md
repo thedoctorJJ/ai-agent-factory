@@ -53,7 +53,7 @@ With MCP servers configured, the workflow becomes:
 **Configuration in Devin AI**:
 1. Add Google Cloud MCP Server
 2. Configure with:
-   - **Project ID**: `end-cap-agent-factory`
+   - **Project ID**: `ai-agent-factory`
    - **Service Account**: Your GCP service account key
    - **Region**: `us-central1`
 
@@ -101,7 +101,7 @@ With MCP servers configured, the workflow becomes:
   "name": "google-cloud",
   "type": "google-cloud",
   "config": {
-    "project_id": "end-cap-agent-factory",
+    "project_id": "ai-agent-factory",
     "service_account_key": "your-service-account-key",
     "region": "us-central1"
   }

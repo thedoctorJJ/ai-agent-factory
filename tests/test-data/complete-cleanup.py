@@ -25,7 +25,7 @@ def complete_cleanup():
     # Step 2: Clear local database files
     print("🗑️  Clearing local database files...")
     try:
-        db_files = glob.glob("/Users/jason/Repositories/end-cap-agent-factory/**/*.db", recursive=True)
+        db_files = glob.glob("/Users/jason/Repositories/ai-agent-factory/**/*.db", recursive=True)
         for db_file in db_files:
             os.remove(db_file)
             print(f"✅ Removed: {db_file}")
@@ -39,7 +39,7 @@ def complete_cleanup():
     try:
         result = subprocess.run([
             "python", "tests/test-data/clear-database.py"
-        ], capture_output=True, text=True, cwd="/Users/jason/Repositories/end-cap-agent-factory")
+        ], capture_output=True, text=True, cwd="/Users/jason/Repositories/ai-agent-factory")
         
         if result.returncode == 0:
             print("✅ Supabase database cleared")
@@ -57,7 +57,7 @@ def complete_cleanup():
     try:
         subprocess.Popen([
             "bash", "-c", 
-            "cd /Users/jason/Repositories/end-cap-agent-factory/backend && source venv/bin/activate && uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload"
+            "cd /Users/jason/Repositories/ai-agent-factory/backend && source venv/bin/activate && uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload"
         ])
         print("✅ Backend started")
     except Exception as e:
@@ -84,7 +84,7 @@ def complete_cleanup():
     try:
         subprocess.Popen([
             "bash", "-c", 
-            "cd /Users/jason/Repositories/end-cap-agent-factory/frontend/next-app && npm run dev"
+            "cd /Users/jason/Repositories/ai-agent-factory/frontend/next-app && npm run dev"
         ])
         print("✅ Frontend started")
     except Exception as e:

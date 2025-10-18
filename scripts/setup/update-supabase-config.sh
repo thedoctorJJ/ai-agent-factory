@@ -8,7 +8,7 @@ echo "================================"
 echo
 
 # Check if .env.local exists
-ENV_FILE="/Users/jason/Repositories/end-cap-agent-factory/config/env/.env.local"
+ENV_FILE="/Users/jason/Repositories/ai-agent-factory/config/env/.env.local"
 if [ ! -f "$ENV_FILE" ]; then
     echo "📄 Creating .env.local file..."
     mkdir -p "$(dirname "$ENV_FILE")"
@@ -62,7 +62,7 @@ echo "🧪 Testing connection..."
 echo "------------------------"
 
 # Test the connection
-cd /Users/jason/Repositories/end-cap-agent-factory/backend
+cd /Users/jason/Repositories/ai-agent-factory/backend
 source venv/bin/activate
 
 python3 -c "

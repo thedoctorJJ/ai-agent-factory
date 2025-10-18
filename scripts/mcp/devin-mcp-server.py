@@ -521,7 +521,7 @@ class DevinMCPServer:
                 'deployment_targets': {
                 'github': {
                     'organization': self.github_org,
-                    'repository_prefix': 'end-cap-agent-',
+                    'repository_prefix': 'ai-agent-',
                     'description': 'GitHub repositories for agent code'
                 },
                 'supabase': {

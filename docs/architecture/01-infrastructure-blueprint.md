@@ -6,7 +6,7 @@ Every component is designed to be reusable and scalable, enabling rapid deployme
 
 ## Folder Structure
 ```
-/end-cap-agent-factory
+/ai-agent-factory
 │
 ├── /docs                    # Comprehensive documentation
 ├── /backend                 # FastAPI backend application

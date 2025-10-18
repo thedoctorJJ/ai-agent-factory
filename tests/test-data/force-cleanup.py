@@ -25,7 +25,7 @@ def force_cleanup():
     try:
         subprocess.Popen([
             "bash", "-c", 
-            "cd /Users/jason/Repositories/end-cap-agent-factory/backend && source venv/bin/activate && uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload"
+            "cd /Users/jason/Repositories/ai-agent-factory/backend && source venv/bin/activate && uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload"
         ])
         print("✅ Restarted backend process")
     except Exception as e:

@@ -8,7 +8,7 @@ This guide details the implementation of the separate repository strategy for AI
 
 ### **Central Platform Repository**
 ```
-thedoctorJJ/end-cap-agent-factory/
+thedoctorJJ/ai-agent-factory/
 ├── backend/                    # Core platform backend
 ├── frontend/                   # Core platform frontend  
 ├── scripts/                    # Platform automation
@@ -61,7 +61,7 @@ thedoctorJJ/end-cap-agent-{name}/
     "configure_workflows",
     "manage_secrets"
   ],
-  "repository_template": "thedoctorJJ/end-cap-agent-factory",
+  "repository_template": "thedoctorJJ/ai-agent-factory",
   "naming_convention": "end-cap-agent-{kebab-case-name}"
 }
 ```
@@ -232,7 +232,7 @@ spec:
     spec:
       containerConcurrency: 100
       containers:
-      - image: gcr.io/end-cap-agent-factory/end-cap-agent-{name}:latest
+      - image: gcr.io/ai-agent-factory/end-cap-agent-{name}:latest
         ports:
         - containerPort: 8080
         env:
@@ -328,17 +328,17 @@ jobs:
       uses: google-github-actions/setup-gcloud@v1
       with:
         service_account_key: ${{ secrets.GCP_SA_KEY }}
-        project_id: end-cap-agent-factory
+        project_id: ai-agent-factory
     
     - name: Build and push image
       run: |
-        docker build -t gcr.io/end-cap-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }} .
-        docker push gcr.io/end-cap-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }}
+        docker build -t gcr.io/ai-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }} .
+        docker push gcr.io/ai-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }}
     
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy end-cap-agent-${{ github.event.repository.name }} \
-          --image gcr.io/end-cap-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }} \
+          --image gcr.io/ai-agent-factory/end-cap-agent-${{ github.event.repository.name }}:${{ github.sha }} \
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated

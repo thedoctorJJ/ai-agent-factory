@@ -150,8 +150,8 @@ DEFAULT_GITHUB_ORG=thedoctorJJ
 
 ### 1. Clone and Setup
 ```bash
-git clone https://github.com/thedoctorJJ/end-cap-agent-factory.git
-cd end-cap-agent-factory
+git clone https://github.com/thedoctorJJ/ai-agent-factory.git
+cd ai-agent-factory
 ./scripts/setup/dev-setup.sh
 ```
 
@@ -180,7 +180,7 @@ npm run dev
 - **Frontend Dashboard**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
-- **HTTP MCP Server**: https://end-cap-mcp-server-http-fdqqqinvyq-uc.a.run.app
+- **HTTP MCP Server**: https://ai-agent-factory-mcp-server-http-fdqqqinvyq-uc.a.run.app
   - **Health Check**: `/health`
   - **Tools List**: `/tools`
   - **MCP Protocol**: `/mcp` (JSON-RPC 2.0)
@@ -209,7 +209,7 @@ Your AI Agent Factory is **fully configured** and ready for development:
 - ✅ **OpenAI voice workflow** - Create agents through ChatGPT conversations
 - ✅ **GitHub token validated** and working correctly
 - ✅ **MCP server functional** - Creates repositories automatically
-- ✅ **HTTP MCP Server deployed** - Publicly accessible at `https://end-cap-mcp-server-http-fdqqqinvyq-uc.a.run.app`
+- ✅ **HTTP MCP Server deployed** - Publicly accessible at `https://ai-agent-factory-mcp-server-http-fdqqqinvyq-uc.a.run.app`
 - ✅ **Configuration validated** (15/15 checks passing)
 - ✅ **Development environment ready**
 - ✅ **PRD System** - Comprehensive PRD creation and management
@@ -522,4 +522,4 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 
 * **Lead Architect**: JJ
 * **Platform AI**: Devin AI
-* **Repository**: [thedoctorJJ/end-cap-agent-factory](https://github.com/thedoctorJJ/end-cap-agent-factory)
+* **Repository**: [thedoctorJJ/ai-agent-factory](https://github.com/thedoctorJJ/ai-agent-factory)

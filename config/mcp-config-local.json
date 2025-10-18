@@ -2,7 +2,7 @@
   "mcpServers": {
     "ai-agent-factory": {
       "command": "python3",
-      "args": ["/Users/jason/Repositories/end-cap-agent-factory/scripts/mcp/mcp-server.py"],
+      "args": ["/Users/jason/Repositories/ai-agent-factory/scripts/mcp/mcp-server.py"],
       "env": {
         "GITHUB_TOKEN": "your-github-token",
         "SUPABASE_SERVICE_ROLE_KEY": "your-supabase-service-role-key", 

@@ -26,7 +26,7 @@ This guide walks you through setting up all the necessary accounts, APIs, and MC
 2. Sign up/Login with GitHub
 3. Click "New Project"
 4. Choose organization and enter:
-   - **Name**: `end-cap-agent-factory`
+   - **Name**: `ai-agent-factory`
    - **Database Password**: Generate strong password (save it!)
    - **Region**: Choose closest to your users
 5. Wait for project creation (2-3 minutes)
@@ -111,7 +111,7 @@ CREATE INDEX idx_agent_executions_agent_id ON agent_executions(agent_id);
 1. Go to [console.cloud.google.com](https://console.cloud.google.com)
 2. Click "Select a project" → "New Project"
 3. Enter:
-   - **Project name**: `end-cap-agent-factory`
+   - **Project name**: `ai-agent-factory`
    - **Organization**: Select your org (if applicable)
 4. Click "Create"
 

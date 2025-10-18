@@ -24,7 +24,7 @@ Replace your current MCP server configuration with this:
   "icon": "🤖",
   "transport": "stdio",
   "command": "python3",
-  "args": ["/Users/jason/Repositories/end-cap-agent-factory/scripts/mcp/devin-mcp-server.py"],
+  "args": ["/Users/jason/Repositories/ai-agent-factory/scripts/mcp/devin-mcp-server.py"],
   "secrets": {
     "ENDCAP_API_URL": "AI Agent Factory API URL (default: http://localhost:8000)",
     "GITHUB_TOKEN_TELLENAI": "GitHub personal access token for tellenai organization",
@@ -81,7 +81,7 @@ If you continue having issues with the stdio MCP server:
 
 1. **Start HTTP MCP Server**:
    ```bash
-   cd /Users/jason/Repositories/end-cap-agent-factory/scripts/mcp
+   cd /Users/jason/Repositories/ai-agent-factory/scripts/mcp
    python3 mcp-http-server.py
    ```
 
