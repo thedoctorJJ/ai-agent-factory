@@ -50,10 +50,10 @@ The AI Agent Factory is **fully operational** and ready for production use. All 
 ## 🚀 **Production Deployment**
 
 ### **Live Services**
-- **Backend API**: https://ai-agent-factory-backend-xxx-uc.a.run.app
-- **Frontend Dashboard**: https://ai-agent-factory-frontend-xxx-uc.a.run.app
-- **MCP Server**: Available locally via `scripts/mcp/mcp-http-server.py`
-- **API Documentation**: https://ai-agent-factory-backend-xxx-uc.a.run.app/docs
+- **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app
+- **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
+- **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app
+- **API Documentation**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/docs
 
 ### **Database**
 - **Supabase Project**: Fully configured with complete schema

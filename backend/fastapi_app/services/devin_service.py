@@ -162,8 +162,7 @@ class DevinService:
         if task.status != DevinTaskStatus.PENDING.value:
             raise HTTPException(
                 status_code=400,
-                detail=f"Task is not in pending status. Current status: {
-                    task.status}")
+                detail=f"Task is not in pending status. Current status: {task.status}")
 
         # Update task status to in_devin
         task_dict = self._tasks_db[task_id]

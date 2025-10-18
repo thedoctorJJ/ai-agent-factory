@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,7 +41,7 @@ interface PRD {
   requirements?: string[]
 }
 
-export default function Dashboard() {
+function Dashboard() {
   const searchParams = useSearchParams()
   const [agents, setAgents] = useState<Agent[]>([])
   const [prds, setPrds] = useState<PRD[]>([])
@@ -1198,5 +1198,13 @@ export default function Dashboard() {
       )}
 
     </div>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Dashboard />
+    </Suspense>
   )
 }

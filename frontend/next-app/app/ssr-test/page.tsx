@@ -11,7 +11,7 @@ async function getData() {
       return { error: `HTTP ${response.status}` }
     }
   } catch (error) {
-    return { error: error.message }
+    return { error: error instanceof Error ? error.message : 'Unknown error' }
   }
 }
 

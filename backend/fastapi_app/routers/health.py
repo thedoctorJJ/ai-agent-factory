@@ -39,8 +39,7 @@ async def health_check():
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Health check failed: {
-                str(e)}")
+            detail=f"Health check failed: {str(e)}")
 
 
 @router.get("/health/detailed")
@@ -81,8 +80,7 @@ async def detailed_health_check():
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Detailed health check failed: {
-                str(e)}")
+            detail=f"Detailed health check failed: {str(e)}")
 
 
 @router.get("/config")
@@ -93,5 +91,4 @@ async def get_configuration():
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Configuration check failed: {
-                str(e)}")
+            detail=f"Configuration check failed: {str(e)}")

@@ -10,6 +10,23 @@ This comprehensive deployment guide covers deploying the AI Agent Factory to pro
 
 This guide covers deploying the AI Agent Factory to production environments, including backend, frontend, and MCP server deployments.
 
+## 🌐 **Current Live Deployment**
+
+The AI Agent Factory is **currently deployed and running** in production on Google Cloud Run:
+
+### **Live Production URLs**
+- **Frontend Application**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
+- **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app
+- **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app
+- **API Documentation**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/docs
+
+### **Deployment Status**
+- ✅ **All services deployed** and responding
+- ✅ **Auto-scaling enabled** (1-10 instances per service)
+- ✅ **Health monitoring** active
+- ✅ **Environment variables** configured
+- ✅ **Database connections** established
+
 ## 🏗️ **Deployment Architecture**
 
 ### **Production Stack**

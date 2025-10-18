@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 
 export default function DebugPage() {
-  const [agents, setAgents] = useState([])
-  const [prds, setPrds] = useState([])
+  const [agents, setAgents] = useState<any[]>([])
+  const [prds, setPrds] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +42,7 @@ export default function DebugPage() {
         }
       } catch (error) {
         console.error('❌ Debug: Error fetching data:', error)
-        setError(`Error: ${error.message}`)
+        setError(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
       } finally {
         setLoading(false)
       }
