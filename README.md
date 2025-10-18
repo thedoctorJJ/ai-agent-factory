@@ -23,11 +23,14 @@ This repository contains all core infrastructure, libraries, and documentation t
 - [MCP Server Setup Guide](./docs/setup/13-mcp-server-setup-guide.md) — comprehensive MCP server configuration guide.
 - [Unified MCP Setup Guide](./docs/setup/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
 - [Devin MCP Real Integration](./docs/setup/15-devin-mcp-real-integration.md) — real Devin AI MCP integration with multi-token GitHub support.
+- [Devin Setup Instructions](./docs/setup/16-devin-setup-instructions.md) — environment issues fixed and setup instructions.
+- [Google Cloud Run Setup](./docs/setup/17-google-cloud-run-setup.md) — Google Cloud Run deployment configuration.
 
 ### 📖 Implementation Guides
 - [DevOps & Deployment Flow](./docs/guides/02-devops-deployment-flow.md) — local dev, CI/CD, monitoring, and rollback.
 - [Agent Lifecycle Framework](./docs/guides/03-agent-lifecycle-framework.md) — lifecycle stages, metadata, versioning, and governance.
 - [Devin AI Integration Framework](./docs/guides/04-devin-ai-integration.md) — autonomous agent orchestration and execution.
+- [Devin Workflow Guide](./docs/guides/05-devin-workflow.md) — complete workflow guide for using Devin AI with the AI Agent Factory.
 - [UI Integration & Transition Layer](./docs/guides/06-ui-integration.md) — Next.js + shadcn dashboard for monitoring and execution.
 - [GitHub MCP Service](./docs/guides/07-github-mcp-service.md) — automated repository creation for each new PRD.
 - [Security Improvements](./docs/guides/17-security-improvements.md) — security check fixes and GitHub sync improvements.
