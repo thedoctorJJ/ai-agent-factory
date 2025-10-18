@@ -23,6 +23,9 @@ interface PRDStatusSectionProps {
   onToggle: () => void
   onDelete: (prdId: string) => void
   onDownload: (prdId: string, title: string) => void
+  onApprove?: (prdId: string) => void
+  onRequestChanges?: (prdId: string, feedback: string) => void
+  onReject?: (prdId: string) => void
   generateAgentDescription: (prd: PRD) => string
 }
 
@@ -33,17 +36,44 @@ export default function PRDStatusSection({
   onToggle,
   onDelete,
   onDownload,
+  onApprove,
+  onRequestChanges,
+  onReject,
   generateAgentDescription
 }: PRDStatusSectionProps) {
   const getStatusConfig = (status: string) => {
     const statusConfig = {
+      uploaded: { 
+        label: 'Uploaded', 
+        variant: 'secondary' as const, 
+        icon: '📤',
+        colorClass: 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-800',
+        badgeClass: 'bg-purple-100 text-purple-800',
+        description: 'Uploaded and awaiting standardization'
+      },
+      standardizing: { 
+        label: 'Standardizing', 
+        variant: 'secondary' as const, 
+        icon: '🔧',
+        colorClass: 'bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-800',
+        badgeClass: 'bg-orange-100 text-orange-800',
+        description: 'Being converted to AI Agent Factory format'
+      },
+      review: { 
+        label: 'Review', 
+        variant: 'secondary' as const, 
+        icon: '👀',
+        colorClass: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-800',
+        badgeClass: 'bg-indigo-100 text-indigo-800',
+        description: 'Awaiting user review and approval'
+      },
       queue: { 
         label: 'Queue', 
         variant: 'secondary' as const, 
         icon: '⏳',
         colorClass: 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200 text-yellow-800',
         badgeClass: 'bg-yellow-100 text-yellow-800',
-        description: 'Waiting to be processed into an AI agent'
+        description: 'Approved and waiting to be processed into an AI agent'
       },
       in_progress: { 
         label: 'In Progress', 
@@ -157,6 +187,39 @@ export default function PRDStatusSection({
                       >
                         <Download className="h-4 w-4" />
                       </Button>
+                      {status === 'review' && (
+                        <>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => onApprove?.(prd.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            ✅ Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const feedback = prompt('Please provide feedback for changes needed:')
+                              if (feedback) {
+                                onRequestChanges?.(prd.id, feedback)
+                              }
+                            }}
+                            className="border-orange-300 text-orange-600 hover:bg-orange-50"
+                          >
+                            🔄 Request Changes
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onReject?.(prd.id)}
+                            className="border-red-300 text-red-600 hover:bg-red-50"
+                          >
+                            ❌ Reject
+                          </Button>
+                        </>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

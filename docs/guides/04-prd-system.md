@@ -13,10 +13,10 @@ The AI Agent Factory PRD (Product Requirements Document) system is designed to r
 ## 📋 **PRD Templates**
 
 ### **Available Templates**
-- **`prd-template-basic.md`** - Basic PRD template with essential sections
-- **`prd-template-comprehensive.md`** - Comprehensive PRD with all 17+ sections
-- **`prd-template-agent.md`** - Agent-specific PRD template
-- **`prd-template-platform.md`** - Platform-specific PRD template
+- **`prd-template-agent.md`** - AI Agent PRD template with full technical infrastructure integration
+- **`prd-template-platform.md`** - Platform PRD template for infrastructure and platform features
+
+Both templates are pre-configured to leverage the AI Agent Factory's technical infrastructure including FastAPI, Supabase, Google Cloud Run, MCP protocol, and GitHub integration.
 
 ### **PRD Sections**
 #### **Core Sections**
@@ -43,41 +43,46 @@ The AI Agent Factory PRD (Product Requirements Document) system is designed to r
 ## 🔄 **PRD Processing Workflow**
 
 ### **1. PRD Upload**
-- **Markdown Upload** - Upload completed PRDs as markdown files
-- **Manual Entry** - Enter completed PRDs using the form interface
-- **API Integration** - Receive PRDs via API endpoints
+- **Upload** - Users upload PRDs in any format to the `uploaded/` folder
+- **Classification** - System determines if it's an agent or platform PRD
+- **Initial Processing** - PRD is prepared for standardization
 
-### **2. PRD Validation**
-- **Structure Validation** - Validate PRD structure and format
-- **Completeness Check** - Calculate completion percentage
-- **Field Extraction** - Extract all fields from PRD templates
-- **Data Mapping** - Map extracted data to database schema
+### **2. PRD Standardization**
+- **Template Selection** - System chooses appropriate template (agent or platform)
+- **Content Mapping** - User content is mapped to template structure
+- **Infrastructure Addition** - Technical requirements are added from templates
+- **Validation** - Standardized PRD is validated for completeness
 
-### **3. PRD Storage**
-- **Database Storage** - Store PRD data in Supabase
-- **File Storage** - Store original markdown files
-- **Metadata Tracking** - Track PRD status and processing history
+### **3. User Review**
+- **Review Process** - Users review standardized PRDs and approve or request changes
+- **Approval Actions**:
+  - **Approve** - Move PRD to queue for processing
+  - **Request Changes** - Send feedback and move back to standardizing
+  - **Reject** - Remove PRD from workflow
 
 ### **4. PRD Processing**
-- **Status Management** - Track PRD processing status
-- **Queue Management** - Manage PRD processing queue
-- **Devin Integration** - Mark PRDs as ready for Devin AI processing
+- **Queue Management** - Approved PRDs move to processing queue
+- **Devin Integration** - Devin AI processes PRDs into AI agents
+- **Deployment** - Agents are deployed to Google Cloud Run
+- **Registration** - Agents are registered with the platform
 
 ## 📊 **PRD Status System**
 
 ### **Status Types**
-- **`draft`** - PRD is being created or edited
-- **`queued`** - PRD is in the processing queue
-- **`in_progress`** - PRD is being processed
-- **`ready_for_devin`** - PRD is ready for Devin AI processing
-- **`completed`** - PRD has been successfully processed
+- **`uploaded`** - PRD uploaded and awaiting standardization
+- **`standardizing`** - PRD being converted to AI Agent Factory format
+- **`review`** - PRD awaiting user review and approval
+- **`queue`** - PRD approved and waiting for processing
+- **`in_progress`** - PRD being processed by Devin AI
+- **`completed`** - PRD successfully processed and agent deployed
 - **`failed`** - PRD processing failed
 
 ### **Status Transitions**
 ```
-draft → queued → in_progress → ready_for_devin → completed
-  ↓       ↓         ↓            ↓
-failed ← failed ← failed ←───────┘
+uploaded → standardizing → review → queue → in_progress → completed
+    ↓           ↓            ↓        ↓         ↓
+archive/   standardizing/  archive/  failed ←──┘
+           (if changes)
 ```
 
 ## 🗂️ **PRD Organization**
@@ -85,7 +90,10 @@ failed ← failed ← failed ←───────┘
 ### **Directory Structure**
 ```
 prds/
-├── queue/                    # PRDs waiting for processing
+├── uploaded/                # PRDs uploaded by users (any format)
+├── standardizing/           # PRDs being converted to AI Agent Factory format
+├── review/                  # PRDs awaiting user review and approval
+├── queue/                   # PRDs approved and waiting for processing
 ├── in-progress/             # PRDs currently being processed
 ├── completed/               # Successfully completed PRDs
 ├── failed/                  # PRDs that failed processing

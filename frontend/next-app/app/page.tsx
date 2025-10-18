@@ -48,6 +48,9 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [prdTypeFilter, setPrdTypeFilter] = useState<'all' | 'platform' | 'agent'>('all')
   const [prdStatusFilter, setPrdStatusFilter] = useState<string>('all')
+  const [showUploadedSection, setShowUploadedSection] = useState(false)
+  const [showStandardizingSection, setShowStandardizingSection] = useState(false)
+  const [showReviewSection, setShowReviewSection] = useState(false)
   const [showQueueSection, setShowQueueSection] = useState(false)
   const [showClearDialog, setShowClearDialog] = useState(false)
   const [clearConfirmText, setClearConfirmText] = useState('')
@@ -373,6 +376,87 @@ function Dashboard() {
     }
   }
 
+  const approvePRD = async (prdId: string) => {
+    try {
+      const response = await fetch(`/api/v1/prds/${prdId}/approve`, {
+        method: 'POST',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        // Update the PRD in local state
+        setPrds(prds.map(prd => 
+          prd.id === prdId 
+            ? { ...prd, status: 'queue' }
+            : prd
+        ))
+        alert('PRD approved and moved to queue!')
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.detail || `Failed to approve PRD (${response.status})`
+        alert(`Error: ${errorMessage}`)
+        console.error('Failed to approve PRD:', errorMessage)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Error approving PRD: ${errorMessage}`)
+      console.error('Error approving PRD:', error)
+    }
+  }
+
+  const requestPRDChanges = async (prdId: string, feedback: string) => {
+    try {
+      const response = await fetch(`/api/v1/prds/${prdId}/request-changes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ feedback }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        // Update the PRD in local state
+        setPrds(prds.map(prd => 
+          prd.id === prdId 
+            ? { ...prd, status: 'standardizing' }
+            : prd
+        ))
+        alert('Changes requested! PRD moved back to standardizing.')
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.detail || `Failed to request changes (${response.status})`
+        alert(`Error: ${errorMessage}`)
+        console.error('Failed to request changes:', errorMessage)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Error requesting changes: ${errorMessage}`)
+      console.error('Error requesting changes:', error)
+    }
+  }
+
+  const rejectPRD = async (prdId: string) => {
+    try {
+      const response = await fetch(`/api/v1/prds/${prdId}/reject`, {
+        method: 'POST',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        // Remove the PRD from local state (moved to archive)
+        setPrds(prds.filter(prd => prd.id !== prdId))
+        alert('PRD rejected and moved to archive.')
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.detail || `Failed to reject PRD (${response.status})`
+        alert(`Error: ${errorMessage}`)
+        console.error('Failed to reject PRD:', errorMessage)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Error rejecting PRD: ${errorMessage}`)
+      console.error('Error rejecting PRD:', error)
+    }
+  }
+
   const findPRDForAgent = (agent: Agent) => {
     if (agent.prd_id) {
       return prds.find(prd => prd.id === agent.prd_id)
@@ -687,7 +771,7 @@ function Dashboard() {
             <h2 className="text-2xl font-semibold">PRD Repository</h2>
             <p className="text-muted-foreground">
               View your uploaded Product Requirements Documents organized by status. PRDs flow through the workflow:
-              Queue → Ready for Devin → In Progress → Completed (or Failed). Each status shows the current state of your PRDs in the agent creation process.
+              Uploaded → Standardizing → Review → Queue → In Progress → Completed (or Failed). Each status shows the current state of your PRDs in the agent creation process.
             </p>
           </div>
 
@@ -695,6 +779,9 @@ function Dashboard() {
           {Object.keys(prdsByStatus || {}).length > 0 ? (
             Object.entries(prdsByStatus || {}).map(([status, statusPrds]) => {
               const getToggleHandler = (status: string) => {
+                if (status === 'uploaded') return () => setShowUploadedSection(!showUploadedSection)
+                if (status === 'standardizing') return () => setShowStandardizingSection(!showStandardizingSection)
+                if (status === 'review') return () => setShowReviewSection(!showReviewSection)
                 if (status === 'queue') return () => setShowQueueSection(!showQueueSection)
                 if (status === 'ready_for_devin') return () => setShowReadyForDevinSection(!showReadyForDevinSection)
                 if (status === 'in_progress') return () => setShowInProgressSection(!showInProgressSection)
@@ -704,6 +791,9 @@ function Dashboard() {
               }
 
               const getShowState = (status: string) => {
+                if (status === 'uploaded') return showUploadedSection
+                if (status === 'standardizing') return showStandardizingSection
+                if (status === 'review') return showReviewSection
                 if (status === 'queue') return showQueueSection
                 if (status === 'ready_for_devin') return showReadyForDevinSection
                 if (status === 'in_progress') return showInProgressSection
@@ -714,6 +804,9 @@ function Dashboard() {
 
               const getStatusConfig = (status: string) => {
                 const configs = {
+                  uploaded: { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: '📤' },
+                  standardizing: { color: 'bg-orange-100 text-orange-800 border-orange-200', icon: '🔧' },
+                  review: { color: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: '👀' },
                   queue: { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: '⏳' },
                   ready_for_devin: { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: '🤖' },
                   in_progress: { color: 'bg-orange-100 text-orange-800 border-orange-200', icon: '⚙️' },
@@ -806,6 +899,39 @@ function Dashboard() {
                                     <Bot className="h-4 w-4 mr-1" />
                                     View Agents ({agentsByPRD[prd.id].length})
                                   </Button>
+                                )}
+                                {status === 'review' && (
+                                  <>
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      onClick={() => approvePRD(prd.id)}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      ✅ Approve
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        const feedback = prompt('Please provide feedback for changes needed:')
+                                        if (feedback) {
+                                          requestPRDChanges(prd.id, feedback)
+                                        }
+                                      }}
+                                      className="border-orange-300 text-orange-600 hover:bg-orange-50"
+                                    >
+                                      🔄 Request Changes
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => rejectPRD(prd.id)}
+                                      className="border-red-300 text-red-600 hover:bg-red-50"
+                                    >
+                                      ❌ Reject
+                                    </Button>
+                                  </>
                                 )}
                                 {status === 'ready_for_devin' && (
                                   <Button

@@ -35,10 +35,11 @@ The AI Agent Factory is a production-ready platform that receives completed PRDs
 
 ## 🔄 **Workflow**
 
-### **Phase 1: PRD Reception**
+### **Phase 1: PRD Reception & Standardization**
 1. **External PRD Creation** - Users create PRDs outside the platform
-2. **PRD Upload** - Upload completed PRDs to the platform
-3. **Validation** - Platform validates and processes PRDs
+2. **PRD Upload** - Upload PRDs in any format to the platform
+3. **Standardization** - Platform converts PRDs to AI Agent Factory format using templates
+4. **User Review** - Users review and approve standardized PRDs
 
 ### **Phase 2: Agent Creation**
 1. **Devin AI Integration** - Devin AI receives completed PRDs
