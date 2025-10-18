@@ -13,7 +13,7 @@ from .services.prd_service import prd_service
 
 app = FastAPI(
     title="AI Agent Factory",
-    description="A repeatable, voice-first, AI-driven platform for creating modular agents",
+    description="A repeatable, AI-driven platform for creating modular agents from completed PRDs",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc")

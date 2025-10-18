@@ -10,10 +10,11 @@ export enum PRDType {
 
 export enum PRDStatus {
   QUEUE = 'queue',
-  PROCESSED = 'processed',
+  READY_FOR_DEVIN = 'ready_for_devin',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
-  FAILED = 'failed'
+  FAILED = 'failed',
+  PROCESSED = 'processed'
 }
 
 export enum PRDPriority {

@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'AI Agent Factory',
-  description: 'A repeatable, voice-first, AI-driven platform for creating modular agents',
+  description: 'A repeatable, AI-driven platform for creating modular agents from completed PRDs',
 }
 
 export default function RootLayout({

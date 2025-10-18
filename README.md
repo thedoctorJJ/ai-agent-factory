@@ -8,42 +8,39 @@ This repository contains all core infrastructure, libraries, and documentation t
 
 ## 📚 Documentation
 
-### 🏗️ Architecture
-- [Infrastructure Blueprint](./docs/architecture/01-infrastructure-blueprint.md) — folder structure, frontend/backend setup, hosting, AI core, and key principles.
-- [Platform Architecture Diagram](./docs/architecture/08-platform-architecture-diagram.md) — full architecture overview, data flow, and component interaction.
-- [Architectural Improvements Summary](./docs/architecture/21-architectural-improvements-summary.md) — detailed review of code and architecture improvements.
-- [Devin AI Role and Boundaries](./docs/architecture/22-devin-ai-role-and-boundaries.md) — comprehensive guide for Devin AI integration boundaries.
-- [Architecture Clarification](./docs/architecture/23-architecture-clarification.md) — architecture decisions and clarifications.
-- [Codebase Refactoring](./docs/architecture/24-codebase-refactoring.md) — comprehensive documentation of the major architectural refactoring.
-- [File Organization](./docs/architecture/25-file-organization.md) — detailed documentation of file structure organization and cleanup.
+### **Organized Documentation Structure**
+The documentation has been restructured for better navigation and user experience:
 
-### 🛠️ Setup & Configuration
-- [Accounts and APIs Setup Guide](./docs/setup/09-accounts-and-apis-setup.md) — complete guide for setting up all required accounts and APIs.
-- [Devin MCP Setup Guide](./docs/setup/10-devin-mcp-setup.md) — step-by-step guide for configuring Devin AI MCP integration.
-- [MCP Server Setup Guide](./docs/setup/13-mcp-server-setup-guide.md) — comprehensive MCP server configuration guide.
-- [Unified MCP Setup Guide](./docs/setup/14-unified-mcp-setup.md) — complete guide for the unified MCP server configuration.
-- [Devin MCP Real Integration](./docs/setup/15-devin-mcp-real-integration.md) — real Devin AI MCP integration with multi-token GitHub support.
-- [Devin Setup Instructions](./docs/setup/16-devin-setup-instructions.md) — environment issues fixed and setup instructions.
-- [Google Cloud Run Setup](./docs/setup/17-google-cloud-run-setup.md) — Google Cloud Run deployment configuration.
+#### 🚀 **Getting Started**
+- **[Quick Start](./docs/getting-started/quick-start.md)** — Get up and running in minutes
+- **[Setup Guide](./docs/getting-started/setup-guide.md)** — Complete installation and configuration guide
+- **[Project Status](./docs/getting-started/project-status.md)** — Current project status and achievements
 
-### 📖 Implementation Guides
-- [DevOps & Deployment Flow](./docs/guides/02-devops-deployment-flow.md) — local dev, CI/CD, monitoring, and rollback.
-- [Agent Lifecycle Framework](./docs/guides/03-agent-lifecycle-framework.md) — lifecycle stages, metadata, versioning, and governance.
-- [Devin AI Integration Framework](./docs/guides/04-devin-ai-integration.md) — autonomous agent orchestration and execution.
-- [Devin Workflow Guide](./docs/guides/05-devin-workflow.md) — complete workflow guide for using Devin AI with the AI Agent Factory.
-- [UI Integration & Transition Layer](./docs/guides/06-ui-integration.md) — Next.js + shadcn dashboard for monitoring and execution.
-- [GitHub MCP Service](./docs/guides/07-github-mcp-service.md) — automated repository creation for each new PRD.
-- [Security Improvements](./docs/guides/17-security-improvements.md) — security check fixes and GitHub sync improvements.
-- [Agent Repository Strategy](./docs/guides/19-agent-repository-strategy.md) — comprehensive guide for separate repository strategy implementation.
-- [Repository Strategy Quick Reference](./docs/guides/20-repository-strategy-quick-reference.md) — quick reference for repository management.
-- [PRD Organization System](./docs/guides/prd-organization-system.md) — comprehensive PRD template structure and data processing.
+#### 🏗️ **Architecture**
+- **[Architecture Overview](./docs/architecture/architecture-overview.md)** — Complete system architecture and technical overview
 
-### 📊 Project Summaries
-- [Architecture Review Summary](./docs/summaries/ARCHITECTURE_REVIEW_SUMMARY.md) — detailed review of code and architecture improvements.
-- [Directory Reorganization](./docs/summaries/DIRECTORY_REORGANIZATION.md) — summary of directory structure improvements and organization.
-- [Documentation Update Summary](./docs/summaries/DOCUMENTATION_UPDATE_SUMMARY.md) — comprehensive documentation updates and improvements.
-- [Environment Organization](./docs/summaries/ENVIRONMENT_ORGANIZATION.md) — comprehensive environment management system documentation.
-- [Final Status Summary](./docs/summaries/FINAL_STATUS_SUMMARY.md) — current project status and next steps.
+#### 📖 **Guides**
+- **[PRD System](./docs/guides/prd-system.md)** — PRD management and processing system
+- **[Agent Management](./docs/guides/agent-management.md)** — Agent lifecycle and management system
+- **[Devin AI Integration](./docs/guides/devin-ai-integration.md)** — Comprehensive Devin AI integration guide
+- **[Cursor Agent Integration](./docs/guides/cursor-agent-integration.md)** — Cursor Agent MCP server integration
+
+#### 🚀 **Deployment**
+- **[Deployment Guide](./docs/deployment/deployment-guide.md)** — Production deployment and DevOps guide
+
+#### 🔌 **API Reference**
+- **[REST API](./docs/api-reference/)** — Complete API documentation and reference
+
+#### 🤝 **Contributing**
+- **[Contributing Guide](./docs/contributing/)** — Guidelines for contributing to the project
+
+### **Documentation Index**
+📖 **[Complete Documentation Index](./docs/README.md)** — Comprehensive navigation and overview
+
+### **Legacy Documentation**
+⚠️ **Legacy documentation has been moved to `docs/legacy/` and should NOT be used.**
+
+All legacy files contain clear warnings and redirect to the new organized documentation.
 
 ---
 
@@ -61,9 +58,10 @@ Features:
 - Views: Roadmap list, Prioritization Matrix, Kanban, Analytics
 
 Endpoints:
-- `GET /api/v1/prds/roadmap/overview`
-- `GET /api/v1/prds/roadmap/prds?prd_type=platform|agent&...`
-- `GET /api/v1/prds/roadmap/prioritization-matrix`
+- `GET /api/v1/roadmap/categories`
+- `GET /api/v1/roadmap/statuses`
+- `GET /api/v1/roadmap/priorities`
+- `GET /api/v1/roadmap?prd_type=platform|agent&...`
 
 ---
 
@@ -180,10 +178,14 @@ npm run dev
 - **Frontend Dashboard**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
-- **HTTP MCP Server**: https://ai-agent-factory-mcp-server-http-fdqqqinvyq-uc.a.run.app
+- **HTTP MCP Server**: Available locally via `scripts/mcp/mcp-http-server.py`
   - **Health Check**: `/health`
   - **Tools List**: `/tools`
   - **MCP Protocol**: `/mcp` (JSON-RPC 2.0)
+- **Cursor Agent Integration**: Configured MCP server for Cursor Agent management
+  - **Configuration**: `config/cursor-agent-mcp-config.json`
+  - **MCP Server**: `scripts/mcp/cursor-agent-mcp-server.py`
+  - **Setup Script**: `scripts/setup-cursor-agent-integration.sh`
 
 ## 🧪 **Testing the Streamlined Workflow**
 
@@ -206,11 +208,11 @@ npm run dev
 Your AI Agent Factory is **fully configured** and ready for development:
 - ✅ **All APIs configured** (Supabase, OpenAI, Google Cloud, GitHub)
 - ✅ **Devin AI integration** with MCP server setup
-- ✅ **OpenAI voice workflow** - Create agents through ChatGPT conversations
+- ✅ **OpenAI integration** - AI processing and analysis capabilities
 - ✅ **GitHub token validated** and working correctly
 - ✅ **MCP server functional** - Creates repositories automatically
-- ✅ **HTTP MCP Server deployed** - Publicly accessible at `https://ai-agent-factory-mcp-server-http-fdqqqinvyq-uc.a.run.app`
-- ✅ **Configuration validated** (15/15 checks passing)
+- ✅ **HTTP MCP Server** - Available locally for development and testing
+- ✅ **Configuration validated** (8/8 checks passing)
 - ✅ **Development environment ready**
 - ✅ **PRD System** - Comprehensive PRD creation and management
 - ✅ **PRD-First UI Design** - Home page prominently features PRD submission as primary entry point
@@ -502,6 +504,7 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 - [x] **🤖 Manual Devin Workflow** - Complete manual Devin AI integration with ready_for_devin status
 - [x] **📊 Enhanced PRD Status System** - New ready_for_devin status for manual Devin workflow
 - [x] **🔗 Supabase Integration** - Full database integration with schema updates for manual workflow
+- [x] **🎯 Cursor Agent Integration** - Complete MCP server integration for Cursor Agent management
 
 ### 🚧 In Progress
 - [ ] Advanced agent orchestration features
@@ -509,14 +512,12 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 - [ ] Modular agent architecture implementation
 
 ### 📋 Next Steps
-1. ✅ **Set up accounts and APIs** - Complete! All services configured
-2. ✅ **Validate configuration** - All validations passing
-3. ✅ **Start development** - Platform is ready to run
-4. ✅ **Test PRD submission workflow** - Submit test PRDs and validate the process
-5. ✅ **UI/UX review and improvements** - Review and enhance the user interface
-6. **Build GitHub MCP service** for automated repo creation
-7. **Integrate Devin AI** for agent orchestration
-8. **Deploy to Google Cloud Run** for production use
+1. **Advanced Agent Orchestration** - Implement advanced agent management features
+2. **Production Deployment** - Deploy to Google Cloud Run for production use
+3. **Modular Agent Architecture** - Implement modular agent architecture patterns
+4. **Enhanced Monitoring** - Add comprehensive monitoring and alerting
+5. **Performance Optimization** - Optimize platform performance and scalability
+6. **Additional Integrations** - Add support for more AI platforms and services
 
 ## 🔗 Contacts / Contributors
 
