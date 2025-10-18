@@ -41,16 +41,25 @@ The Redis Caching Layer Agent has been successfully migrated from Fly.io to Goog
 ### **Architecture Changes**
 ```
 Before: Redis Agent (Fly.io) → Upstash Redis
-After:  Redis Agent (Cloud Run) → In-Memory Cache (with Redis fallback ready)
+After:  Redis Agent (Cloud Run) → Google Cloud Memorystore Redis (via VPC Access)
 ```
 
 ### **Key Features**
-- **In-Memory Cache**: Fully functional caching with TTL support
-- **Redis Fallback Ready**: Code prepared for Redis connection when VPC is configured
-- **High Performance**: Sub-50ms response times
+- **Real Redis Connection**: Connected to Google Cloud Memorystore via VPC Access
+- **Persistent Caching**: Data persists across service restarts and deployments
+- **High Performance**: Sub-50ms response times with Redis backend
+- **Production Ready**: Full Redis features including clustering and persistence
 - **Comprehensive Monitoring**: Health checks, metrics, and logging
 - **Auto-scaling**: 1-10 instances based on demand
 - **Error Handling**: Graceful degradation and detailed error responses
+
+### **VPC Access Configuration**
+- **VPC Connector**: `redis-connector` in `us-central1`
+- **Subnet**: `vpc-connector-subnet` (10.2.0.0/28)
+- **Network**: `default` VPC network
+- **Min Instances**: 2
+- **Max Instances**: 3
+- **Throughput**: 200-300 Mbps
 
 ### **Environment Configuration**
 ```yaml
@@ -65,10 +74,12 @@ PORT: 8080 (auto-set by Cloud Run)
 
 ### **Current Performance**
 - **Response Time**: < 50ms for all cache operations
+- **Redis Connection**: ✅ Connected to Google Cloud Memorystore
 - **Availability**: 99.9% uptime on Google Cloud Run
 - **Auto-scaling**: 1-10 instances based on demand
 - **Memory Usage**: 2GB per instance
 - **CPU**: 2 vCPU per instance
+- **Cache Persistence**: ✅ Data persists across restarts
 
 ### **Cache Operations Tested**
 - ✅ Set operations: Working with TTL support

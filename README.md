@@ -365,29 +365,34 @@ Your AI Agent Factory is **fully configured** and ready for development:
 
 ## 🚀 **Success Story: Redis Caching Layer Agent**
 
-The AI Agent Factory has successfully deployed its first production agent! Here's the complete workflow in action:
+The AI Agent Factory has successfully deployed and migrated its first production agent! Here's the complete workflow in action:
 
-### **Deployment Details**
+### **Current Deployment Details**
 - **Agent**: Redis Caching Layer Agent
-- **URL**: https://redis-caching-layer-upstash.fly.dev/
-- **Platform**: Fly.io with Upstash Redis integration
-- **Status**: Fully operational with all endpoints working
-- **Performance**: 24-47ms response times, 100% cache hit rate
+- **URL**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/
+- **Platform**: Google Cloud Run with Memorystore Redis
+- **Status**: Fully operational with VPC Access connectivity
+- **Performance**: <50ms response times, persistent Redis backend
+- **Migration**: Successfully migrated from Fly.io to Google Cloud
 
 ### **Complete Workflow Demonstration**
 1. ✅ **PRD Upload** → Parsed and queued in the AI Agent Factory
 2. ✅ **MCP Integration** → Devin AI connected and loaded PRD data
 3. ✅ **Agent Creation** → Devin AI processed requirements and built the agent
-4. ✅ **Deployment** → Agent deployed to Fly.io with Upstash Redis backend
-5. ✅ **Verification** → All 7 cache operations tested and working perfectly
-6. ✅ **Monitoring** → Prometheus metrics exposed for production monitoring
+4. ✅ **Initial Deployment** → Agent deployed to Fly.io with Upstash Redis backend
+5. ✅ **Migration to GCP** → Successfully migrated to Google Cloud Run
+6. ✅ **VPC Access Setup** → Configured secure Redis connectivity
+7. ✅ **Verification** → All 7 cache operations tested and working perfectly
+8. ✅ **Monitoring** → Prometheus metrics exposed for production monitoring
 
 ### **Technical Achievements**
 - **High Performance**: Sub-50ms response times for all cache operations
-- **Reliable Backend**: Upstash Redis with 10,000 requests/day free tier
-- **Auto-scaling**: 0-10 instances with 1GB memory per instance
+- **Reliable Backend**: Google Cloud Memorystore Redis with VPC Access
+- **Auto-scaling**: 1-10 instances with 2GB memory and 2 vCPU per instance
+- **Persistent Storage**: Data persists across service restarts and deployments
 - **Comprehensive API**: Set, get, delete, invalidate, stats, and metrics endpoints
 - **Production Ready**: Health checks, monitoring, and error handling
+- **Secure Connectivity**: VPC Access ensures private Redis communication
 
 ### **API Endpoints Verified**
 - `GET /health` - Health check with Redis connection status

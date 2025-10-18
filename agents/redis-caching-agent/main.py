@@ -159,12 +159,8 @@ async def get_redis_client() -> redis.Redis:
         redis_port = int(os.getenv("REDIS_PORT", "6379"))
         redis_url = os.getenv("REDIS_URL", f"redis://{redis_host}:{redis_port}")
         
-        # For now, use a simple in-memory cache for testing
-        # TODO: Configure VPC connector for Google Cloud Memorystore
-        if redis_host == "10.1.93.195":
-            # Use in-memory cache for testing
-            logger.warning("Using in-memory cache for testing. Redis connection not available.")
-            return None
+        # Try to connect to Redis - VPC connector should now be available
+        logger.info(f"Attempting to connect to Redis at {redis_host}:{redis_port}")
         
         try:
             # Create Redis connection with connection pooling
@@ -278,6 +274,63 @@ async def set_cache(request: CacheSetRequest):
         error_count += 1
         logger.error(f"Error setting cache: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to set cache: {str(e)}")
+
+@app.get("/cache/stats", response_model=CacheStats)
+async def get_cache_stats():
+    """Get comprehensive cache statistics"""
+    start_time_op = time.time()
+    global operation_counts, response_times, error_count
+    
+    try:
+        redis_client = await get_redis_client()
+        
+        if redis_client is None:
+            # Use in-memory cache stats
+            total_keys = len(in_memory_cache)
+            memory_usage = f"{len(str(in_memory_cache))} bytes"
+            uptime_seconds = int(time.time() - start_time)
+            
+            operation_counts["stats"] += 1
+            response_times["stats"] = (time.time() - start_time_op) * 1000
+            
+            return CacheStats(
+                total_keys=total_keys,
+                memory_usage=memory_usage,
+                connected_clients=1,
+                uptime_seconds=uptime_seconds,
+                total_commands_processed=sum(operation_counts.values()),
+                keyspace_hits=operation_counts.get("get", 0),
+                keyspace_misses=0,
+                hit_rate=100.0 if operation_counts.get("get", 0) > 0 else 0.0
+            )
+        
+        # Get Redis info
+        info = await redis_client.info()
+        
+        # Calculate hit rate
+        hits = int(info.get('keyspace_hits', 0))
+        misses = int(info.get('keyspace_misses', 0))
+        total_requests = hits + misses
+        hit_rate = (hits / total_requests * 100) if total_requests > 0 else 0
+        
+        operation_counts["stats"] += 1
+        response_times["stats"] = (time.time() - start_time_op) * 1000
+        
+        return CacheStats(
+            total_keys=info.get('db0', {}).get('keys', 0) if 'db0' in info else 0,
+            memory_usage=info.get('used_memory_human', '0B'),
+            connected_clients=info.get('connected_clients', 0),
+            uptime_seconds=info.get('uptime_in_seconds', 0),
+            total_commands_processed=info.get('total_commands_processed', 0),
+            keyspace_hits=hits,
+            keyspace_misses=misses,
+            hit_rate=round(hit_rate, 2)
+        )
+        
+    except Exception as e:
+        error_count += 1
+        logger.error(f"Error getting cache stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get cache stats: {str(e)}")
 
 @app.get("/cache/{key}", response_model=Dict[str, Any])
 async def get_cache(key: str):
@@ -424,62 +477,6 @@ async def invalidate_cache(request: CacheInvalidateRequest):
         logger.error(f"Error invalidating cache: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to invalidate cache: {str(e)}")
 
-@app.get("/cache/stats", response_model=CacheStats)
-async def get_cache_stats():
-    """Get comprehensive cache statistics"""
-    start_time_op = time.time()
-    global operation_counts, response_times, error_count
-    
-    try:
-        redis_client = await get_redis_client()
-        
-        if redis_client is None:
-            # Use in-memory cache stats
-            total_keys = len(in_memory_cache)
-            memory_usage = f"{len(str(in_memory_cache))} bytes"
-            uptime_seconds = int(time.time() - start_time)
-            
-            operation_counts["stats"] += 1
-            response_times["stats"] = (time.time() - start_time_op) * 1000
-            
-            return CacheStats(
-                total_keys=total_keys,
-                memory_usage=memory_usage,
-                connected_clients=1,
-                uptime_seconds=uptime_seconds,
-                total_commands_processed=sum(operation_counts.values()),
-                keyspace_hits=operation_counts.get("get", 0),
-                keyspace_misses=0,
-                hit_rate=100.0 if operation_counts.get("get", 0) > 0 else 0.0
-            )
-        
-        # Get Redis info
-        info = await redis_client.info()
-        
-        # Calculate hit rate
-        hits = int(info.get('keyspace_hits', 0))
-        misses = int(info.get('keyspace_misses', 0))
-        total_requests = hits + misses
-        hit_rate = (hits / total_requests * 100) if total_requests > 0 else 0
-        
-        operation_counts["stats"] += 1
-        response_times["stats"] = (time.time() - start_time_op) * 1000
-        
-        return CacheStats(
-            total_keys=info.get('db0', {}).get('keys', 0) if 'db0' in info else 0,
-            memory_usage=info.get('used_memory_human', '0B'),
-            connected_clients=info.get('connected_clients', 0),
-            uptime_seconds=info.get('uptime_in_seconds', 0),
-            total_commands_processed=info.get('total_commands_processed', 0),
-            keyspace_hits=hits,
-            keyspace_misses=misses,
-            hit_rate=round(hit_rate, 2)
-        )
-        
-    except Exception as e:
-        error_count += 1
-        logger.error(f"Error getting cache stats: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get cache stats: {str(e)}")
 
 @app.get("/metrics", response_model=MetricsResponse)
 async def get_metrics():
