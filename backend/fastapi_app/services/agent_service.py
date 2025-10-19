@@ -59,6 +59,13 @@ class AgentService:
             except Exception as e:
                 print(f"Failed to update PRD status: {e}")
         
+        # Convert datetime strings back to datetime objects for response
+        if saved_agent:
+            saved_agent["created_at"] = datetime.fromisoformat(saved_agent["created_at"].replace('Z', '+00:00'))
+            saved_agent["updated_at"] = datetime.fromisoformat(saved_agent["updated_at"].replace('Z', '+00:00'))
+            if saved_agent.get("last_health_check"):
+                saved_agent["last_health_check"] = datetime.fromisoformat(saved_agent["last_health_check"].replace('Z', '+00:00'))
+        
         return AgentResponse(**saved_agent)
 
     async def _update_prd_status_to_completed(self, prd_id: str):
