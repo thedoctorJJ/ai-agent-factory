@@ -92,7 +92,7 @@ class Config:
     def validate_config(self) -> dict:
         """Validate configuration and return status"""
         required_vars = [
-            "DATABASE_URL", "SUPABASE_URL", "SUPABASE_KEY",
+            "SUPABASE_URL", "SUPABASE_KEY",
             "OPENAI_API_KEY", "GITHUB_TOKEN", "GOOGLE_CLOUD_PROJECT_ID"
         ]
 

@@ -86,25 +86,21 @@ class AgentService:
 
     async def get_agent(self, agent_id: str) -> AgentResponse:
         """Get an agent by ID."""
-        # Try to get from database first
-        try:
-            if data_manager.is_connected():
-                agent_data = await data_manager.get_agent(agent_id)
-                if agent_data:
-                    # Convert datetime strings back to datetime objects
-                    agent_data["created_at"] = datetime.fromisoformat(agent_data["created_at"].replace('Z', '+00:00'))
-                    agent_data["updated_at"] = datetime.fromisoformat(agent_data["updated_at"].replace('Z', '+00:00'))
-                    if agent_data.get("last_health_check"):
-                        agent_data["last_health_check"] = datetime.fromisoformat(agent_data["last_health_check"].replace('Z', '+00:00'))
-                    return AgentResponse(**agent_data)
-        except Exception as e:
-            print(f"Database get failed, trying in-memory storage: {e}")
+        # Use data manager to get agent
+        agent_data = await data_manager.get_agent(agent_id)
         
-        # Fallback to in-memory storage
-        if agent_id not in self._agents_db:
+        if not agent_data:
             raise HTTPException(status_code=404, detail="Agent not found")
-
-        return AgentResponse(**self._agents_db[agent_id])
+        
+        # Convert datetime strings back to datetime objects if needed
+        if isinstance(agent_data.get("created_at"), str):
+            agent_data["created_at"] = datetime.fromisoformat(agent_data["created_at"].replace('Z', '+00:00'))
+        if isinstance(agent_data.get("updated_at"), str):
+            agent_data["updated_at"] = datetime.fromisoformat(agent_data["updated_at"].replace('Z', '+00:00'))
+        if agent_data.get("last_health_check") and isinstance(agent_data["last_health_check"], str):
+            agent_data["last_health_check"] = datetime.fromisoformat(agent_data["last_health_check"].replace('Z', '+00:00'))
+        
+        return AgentResponse(**agent_data)
 
     async def get_agents(
         self,
@@ -199,10 +195,12 @@ class AgentService:
         status = random.choice(health_statuses)
         response_time = random.randint(50, 500)
 
-        # Update agent's health status
-        agent_dict = self._agents_db[agent_id]
-        agent_dict["health_status"] = status.value
-        agent_dict["last_health_check"] = datetime.now(timezone.utc).isoformat()
+        # Update agent's health status in the database
+        agent_data = {
+            "health_status": status.value,
+            "last_health_check": datetime.now(timezone.utc).isoformat()
+        }
+        await data_manager.update_agent(agent_id, agent_data)
 
         return AgentHealthResponse(
             agent_id=agent_id,
