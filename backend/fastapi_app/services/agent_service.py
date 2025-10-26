@@ -34,7 +34,6 @@ class AgentService:
             "description": agent_data.description,
             "purpose": agent_data.purpose,
             "version": agent_data.version,
-            "tools": [],  # Will be populated by Devin AI
             "status": AgentStatus.DRAFT.value,
             "repository_url": agent_data.repository_url,
             "deployment_url": agent_data.deployment_url,

@@ -87,6 +87,7 @@ The AI Agent Factory is now **fully deployed** and running in production on Goog
 - **Frontend Application**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
 - **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app
 - **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app
+- **Redis Caching Agent**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app
 
 ### **✅ Production Features**
 
@@ -96,6 +97,20 @@ The AI Agent Factory is now **fully deployed** and running in production on Goog
 - **Environment variables**: All production configurations set
 - **Database integration**: Connected to Supabase PostgreSQL
 - **AI integration**: Ready for Devin AI and Cursor Agent
+- **Deployed Agents**: Redis Caching Layer Agent successfully deployed and visible in frontend
+
+### **🤖 Deployed Agents**
+
+#### **Redis Caching Layer Agent**
+- **Status**: ✅ Deployed and Running
+- **URL**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app
+- **Purpose**: High-performance caching service with in-memory fallback
+- **Capabilities**: 
+  - Cache operations (set, get, delete, invalidate)
+  - Statistics and monitoring
+  - Health checks and metrics
+  - TTL support
+- **Configuration**: 2 vCPU, 2GB RAM, auto-scaling 1-10 instances
 
 ### **🔧 Service Architecture**
 
@@ -127,6 +142,26 @@ The AI Agent Factory is now **fully deployed** and running in production on Goog
 2. **Use secure setup**: Always use `./setup-secure-config.sh`
 3. **Regular updates**: Update API keys through the secure manager
 4. **Backup encryption key**: Keep `.master-key` safe (losing it means losing access)
+
+## 🔧 **Recent Fixes & Updates**
+
+### **✅ Frontend API Proxy Fixed (Oct 26, 2025)**
+- **Issue**: Frontend API proxy was returning 500 errors
+- **Root Cause**: Next.js rewrites configuration wasn't picking up environment variables during build
+- **Solution**: Updated `next.config.js` to use production fallback URL when `NEXT_PUBLIC_API_URL` is not available
+- **Result**: Frontend now successfully proxies API calls to production backend
+
+### **✅ Backend Schema Fixed (Oct 26, 2025)**
+- **Issue**: Backend was failing to create agents due to missing `tools` column in database
+- **Root Cause**: Code was trying to insert `tools` field that doesn't exist in Supabase schema
+- **Solution**: Removed `tools` field from `agent_service.py` and `AgentResponse` model
+- **Result**: Agent registration now works correctly
+
+### **✅ Production Environment Configuration (Oct 26, 2025)**
+- **Issue**: Production backend was missing environment variables
+- **Root Cause**: Environment variables weren't set during Cloud Run deployment
+- **Solution**: Updated Cloud Run service with all required environment variables using secure config
+- **Result**: Backend now has full access to Supabase, OpenAI, and other services
 
 #### **🚨 Troubleshooting**
 
