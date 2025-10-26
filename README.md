@@ -1,8 +1,24 @@
 # AI Agent Factory
 
+> **🚀 LIVE PRODUCTION APPLICATION**  
+> This is a **production application** running on **Google Cloud Run**.  
+> **Access it now**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
+
 Welcome to the **AI Agent Factory** — a repeatable, AI-driven platform that receives completed, formatted PRDs and automatically creates modular agents with fully automated orchestration and deployment.
 
 This repository contains all core infrastructure, libraries, and documentation to build, orchestrate, and deploy AI agents efficiently from completed PRDs.
+
+## 🌐 **LIVE PRODUCTION APPLICATION**
+
+**⚠️ IMPORTANT**: This is a **production application** currently running on **Google Cloud Run**. The application is **live and operational** - you can access it immediately without any local setup.
+
+**🌐 Access the Live Application:**
+- **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
+- **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app
+- **API Documentation**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/docs
+- **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app
+
+**📝 For Local Development**: See the [Quick Start](#-quick-start) section below for setting up a local development environment.
 
 ---
 
@@ -78,9 +94,9 @@ python3 config/secure-api-manager.py setup
 - **Cloud Run**: All services deployed and responding
 - **Deployment Platform**: Google Cloud Run (not Fly.io)
 
-## 🌐 **Live Production Deployment**
+## 🌐 **Production Deployment Status**
 
-The AI Agent Factory is now **fully deployed** and running in production on Google Cloud Run:
+The AI Agent Factory is **fully deployed** and running in production on Google Cloud Run:
 
 ### **🚀 Live Services**
 
@@ -93,11 +109,82 @@ The AI Agent Factory is now **fully deployed** and running in production on Goog
 
 - **Auto-scaling**: 1-10 instances per service based on demand
 - **High availability**: Google Cloud Run reliability and uptime
-- **Health monitoring**: All services have health check endpoints
+- **Health monitoring**: All services have robust health check endpoints
 - **Environment variables**: All production configurations set
 - **Database integration**: Connected to Supabase PostgreSQL
 - **AI integration**: Ready for Devin AI and Cursor Agent
 - **Deployed Agents**: Redis Caching Layer Agent successfully deployed and visible in frontend
+- **Robust Health Checks**: Enhanced health monitoring with graceful error handling
+
+### **🔧 Recent Improvements**
+
+#### **Enhanced Health Check System**
+- **Robust Error Handling**: Health checks now gracefully handle errors instead of throwing HTTP 500 errors
+- **Smart Environment Detection**: Automatically detects production vs development environments
+- **Comprehensive Status Reporting**: Three-tier status system (healthy, degraded, unhealthy)
+- **Future-Proof Design**: Handles configuration changes and missing environment variables gracefully
+- **Better Monitoring**: More detailed service configuration checks and error reporting
+
+### **🏥 Health Check System**
+
+The AI Agent Factory includes a comprehensive health monitoring system that provides real-time status information about all services and configurations.
+
+#### **Health Check Endpoints**
+
+| Endpoint | Purpose | Response |
+|----------|---------|----------|
+| `/api/v1/health` | Basic health status | Overall system health and service status |
+| `/api/v1/health/detailed` | Detailed diagnostics | Environment variables and service connectivity |
+| `/api/v1/config` | Configuration validation | Environment configuration status |
+
+#### **Health Status Levels**
+
+- **🟢 Healthy**: All services configured and operational
+- **🟡 Degraded**: Some services missing or misconfigured
+- **🔴 Unhealthy**: Critical errors or system failures
+
+#### **How Health Checks Work**
+
+1. **Environment Detection**:
+   - **Production**: Validates environment variables from Google Cloud Run
+   - **Development**: Checks for `.env` files or environment variables
+   - **Fallback**: Gracefully handles missing configurations
+
+2. **Service Validation**:
+   - **Supabase**: Database connection and API key validation
+   - **OpenAI**: API key presence and validity
+   - **GitHub**: Token authentication status
+   - **Google Cloud**: Project ID and service configuration
+
+3. **Error Handling**:
+   - No more HTTP 500 errors from health checks
+   - Structured error responses with detailed information
+   - Graceful degradation when services are unavailable
+
+#### **Example Health Check Response**
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-10-26T17:13:28.415382",
+  "version": "1.0.0",
+  "environment": "production",
+  "environment_config": "configured",
+  "services": {
+    "supabase": "configured",
+    "openai": "configured",
+    "github": "configured",
+    "google_cloud": "configured"
+  }
+}
+```
+
+#### **Monitoring and Alerting**
+
+- **Real-time Status**: Health checks update every request
+- **Service Dependencies**: Validates all required external services
+- **Configuration Drift**: Detects when environment variables change
+- **Error Reporting**: Provides detailed error information for debugging
 
 ### **🤖 Deployed Agents**
 
@@ -111,6 +198,12 @@ The AI Agent Factory is now **fully deployed** and running in production on Goog
   - Health checks and metrics
   - TTL support
 - **Configuration**: 2 vCPU, 2GB RAM, auto-scaling 1-10 instances
+
+**Agent Health Monitoring**:
+- **Health Check URL**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health
+- **API Health Check**: `/api/v1/agents/{agent_id}/health` (via main backend)
+- **Status Levels**: Healthy, Degraded, Unhealthy
+- **Real-time Monitoring**: Health status updates automatically in the dashboard
 
 ### **🔧 Service Architecture**
 
@@ -290,7 +383,54 @@ The AI Agent Factory provides a **flexible workflow** that works with both autom
 
 ## ⚙️ Quick Start
 
-### Prerequisites
+### **🌐 Using the Live Production Application (Recommended)**
+
+The AI Agent Factory is **already running** in production! You can start using it immediately:
+
+1. **Visit the Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
+2. **Submit a PRD**: Use the "Submit PRD" tab to upload or paste your PRD
+3. **Create Agents**: Use the "Create Agent" tab to generate agents from your PRDs
+4. **Manage Agents**: View and manage all your agents in the "Agents" tab
+
+**No setup required** - the application is fully operational with all services configured!
+
+#### **🏥 Testing Health Checks**
+
+You can verify the system is working properly by testing the health check endpoints:
+
+```bash
+# Basic health check
+curl https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/health
+
+# Detailed health check with service diagnostics
+curl https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/health/detailed
+
+# Configuration validation
+curl https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/config
+```
+
+**Expected Response** (when healthy):
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-10-26T17:13:28.415382",
+  "version": "1.0.0",
+  "environment": "production",
+  "environment_config": "configured",
+  "services": {
+    "supabase": "configured",
+    "openai": "configured", 
+    "github": "configured",
+    "google_cloud": "configured"
+  }
+}
+```
+
+### **🛠️ Local Development Setup (Optional)**
+
+If you want to run the application locally for development or customization:
+
+#### Prerequisites
 - Python 3.11+
 - Node.js 18+
 - Docker & Docker Compose
@@ -320,14 +460,14 @@ DEFAULT_GITHUB_ORG=thedoctorJJ
 - ✅ **Personal Accounts**: `thedoctorJJ`
 - ✅ **Automatic Detection**: MCP server automatically selects correct token and API endpoint
 
-### 1. Clone and Setup
+#### 1. Clone and Setup
 ```bash
 git clone https://github.com/thedoctorJJ/ai-agent-factory.git
 cd ai-agent-factory
 ./scripts/setup/dev-setup.sh
 ```
 
-### 2. Configure Environment
+#### 2. Configure Environment
 ```bash
 # Initialize environment configuration
 ./scripts/config/env-manager.sh init
@@ -336,7 +476,7 @@ cd ai-agent-factory
 # See setup/SETUP-CHECKLIST.md for detailed account setup
 ```
 
-### 3. Start Development
+#### 3. Start Development
 ```bash
 # Terminal 1: Backend
 cd backend
@@ -348,7 +488,7 @@ cd frontend/next-app
 npm run dev
 ```
 
-### 4. Access the Platform
+#### 4. Access Local Development
 - **Frontend Dashboard**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
@@ -361,16 +501,20 @@ npm run dev
   - **MCP Server**: `scripts/mcp/cursor-agent-mcp-server.py`
   - **Setup Script**: `scripts/setup-cursor-agent-integration.sh`
 
-## 🧪 **Testing the Streamlined Workflow**
+## 🧪 **Testing the Complete Workflow**
 
-### **How to Test the Complete Workflow:**
-1. **Start the platform** (see Quick Start section below)
+### **🌐 Using the Live Production Application:**
+1. **Visit the dashboard** at https://ai-agent-factory-frontend-952475323593.us-central1.run.app
+2. **Submit a PRD** using the "Submit PRD" tab (upload file or paste content)
+3. **View in PRD Repository** - PRD appears in the "In Queue" section
+4. **Create an Agent** - Go to "Create Agent" tab and select your PRD
+5. **Monitor Progress** - Watch the automated agent creation process
+6. **Manage Agents** - View your created agent in the "Agents" tab
+
+### **🛠️ Using Local Development:**
+1. **Start the platform** (see Local Development Setup above)
 2. **Navigate to the dashboard** at http://localhost:3000
-3. **Submit a PRD** using the "Submit PRD" tab (upload file or paste content)
-4. **View in PRD Repository** - PRD appears in the "In Queue" section
-5. **Create an Agent** - Go to "Create Agent" tab and select your PRD
-6. **Monitor Progress** - Watch the automated agent creation process
-7. **Manage Agents** - View your created agent in the "Agents" tab
+3. **Follow the same workflow** as the production application
 
 ### **Sample PRDs Available:**
 - Run `python scripts/create-sample-prds.py` to populate the system with test PRDs
@@ -379,7 +523,14 @@ npm run dev
 
 ## 🎉 **Ready to Go!**
 
-Your AI Agent Factory is **fully configured** and ready for development:
+### **🌐 Production Application**
+The AI Agent Factory is **live and operational** - you can start using it immediately:
+- **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
+- **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app
+- **API Documentation**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/docs
+
+### **🛠️ Local Development**
+If you want to run locally for development, the system is **fully configured** and ready:
 - ✅ **All APIs configured** (Supabase, OpenAI, Google Cloud, GitHub)
 - ✅ **Devin AI integration** with MCP server setup
 - ✅ **OpenAI integration** - AI processing and analysis capabilities
