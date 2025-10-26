@@ -13,16 +13,17 @@ This repository contains all core infrastructure, libraries, and documentation t
 **⚠️ IMPORTANT**: This is a **production application** currently running on **Google Cloud Run**. The application is **live and operational** - you can access it immediately without any local setup.
 
 **🌐 Access the Live Application:**
-- **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app ✅ **WORKING**
-- **API Documentation**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/docs ✅ **WORKING**
+- **Backend API**: https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app ✅ **WORKING**
+- **API Documentation**: https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app/docs ✅ **WORKING**
 - **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app ✅ **WORKING**
-- **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app ⚠️ **ROUTING ISSUE**
+- **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app ⚠️ **SSR ISSUE**
 
 **📊 Current Status:**
 - ✅ **Backend API**: Fully functional with Redis agent integration
 - ✅ **Redis Caching Agent**: Successfully deployed and running
 - ✅ **Database**: Connected and operational
-- ⚠️ **Frontend**: Experiencing Next.js 15 routing issues (APIs accessible directly)
+- ✅ **Network Connectivity**: All services properly connected
+- ⚠️ **Frontend**: Next.js SSR issue (client-side functionality works)
 
 **📝 For Local Development**: See the [Quick Start](#-quick-start) section below for setting up a local development environment.
 
@@ -40,8 +41,28 @@ The AI Agent Factory has successfully created and deployed its first production 
 
 **🔗 Access the Agent:**
 - **Direct Access**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app
-- **API Data**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/agents
+- **API Data**: https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app/api/v1/agents
 - **Health Status**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health
+
+---
+
+## 🔧 **Recent Updates & Fixes**
+
+### **✅ Backend URL Configuration Fixed (October 2025)**
+- **Issue**: Frontend was configured with incorrect backend URL fallback
+- **Resolution**: Updated Next.js configuration to use correct backend URL
+- **Current Backend URL**: `https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app`
+- **Status**: ✅ **RESOLVED** - All services properly connected
+
+### **✅ Environment Variables Configured**
+- **Backend**: All environment variables properly set via secure configuration system
+- **Frontend**: `NEXT_PUBLIC_API_URL` correctly configured
+- **Status**: ✅ **RESOLVED** - Production environment fully operational
+
+### **⚠️ Known Issues**
+- **Frontend SSR Issue**: Next.js server-side rendering shows `BAILOUT_TO_CLIENT_SIDE_RENDERING`
+- **Impact**: Minimal - client-side functionality works correctly
+- **Workaround**: Application loads and functions properly once JavaScript executes
 
 ---
 

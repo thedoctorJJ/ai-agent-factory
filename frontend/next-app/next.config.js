@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  trailingSlash: false,
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   },
@@ -8,7 +9,7 @@ const nextConfig = {
     // Get the API URL from environment variable or use production default
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 
                    process.env.NODE_ENV === 'production' 
-                     ? 'https://ai-agent-factory-backend-952475323593.us-central1.run.app'
+                     ? 'https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app'
                      : 'http://localhost:8000'
     
     console.log('🔧 Next.js rewrites config - API URL:', apiUrl)
