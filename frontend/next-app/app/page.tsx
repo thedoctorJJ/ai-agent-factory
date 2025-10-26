@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -42,7 +41,6 @@ interface PRD {
 }
 
 function Dashboard() {
-  const searchParams = useSearchParams()
   const [agents, setAgents] = useState<Agent[]>([])
   const [prds, setPrds] = useState<PRD[]>([])
   const [loading, setLoading] = useState(true)
@@ -62,10 +60,7 @@ function Dashboard() {
   const [showCompletedSection, setShowCompletedSection] = useState(false)
   const [showFailedSection, setShowFailedSection] = useState(false)
   const [showSubmitPRDSection, setShowSubmitPRDSection] = useState(true)
-  const [activeTab, setActiveTab] = useState<string>('')
-  
-  // Get default tab from URL params
-  const defaultTab = searchParams.get('tab') || 'prds'
+  const [activeTab, setActiveTab] = useState<string>('prds')
 
   const activeAgentsCount = useMemo(() => 
     Array.isArray(agents) ? agents.filter(a => a.status === 'active').length : 0,
@@ -133,13 +128,12 @@ function Dashboard() {
     }
   }, [prds])
 
-  useEffect(() => {
-    setActiveTab(defaultTab)
-  }, [defaultTab])
 
   const fetchData = async () => {
     try {
       console.log('🔄 Starting data fetch...')
+      console.log('🌐 Current URL:', window.location.href)
+      
       const [agentsRes, prdsRes] = await Promise.all([
         fetch('/api/v1/agents'),
         fetch('/api/v1/prds')
@@ -147,7 +141,9 @@ function Dashboard() {
       
       console.log('📡 API responses received:', {
         agentsStatus: agentsRes.status,
-        prdsStatus: prdsRes.status
+        agentsOk: agentsRes.ok,
+        prdsStatus: prdsRes.status,
+        prdsOk: prdsRes.ok
       })
       
       if (agentsRes.ok) {
@@ -156,7 +152,9 @@ function Dashboard() {
         setAgents(agentsData.agents || [])
         console.log('✅ Agents state updated:', agentsData.agents?.length || 0, 'agents')
       } else {
-        console.error('❌ Failed to fetch agents:', agentsRes.status)
+        console.error('❌ Failed to fetch agents:', agentsRes.status, agentsRes.statusText)
+        const errorText = await agentsRes.text()
+        console.error('❌ Agents error response:', errorText)
         setAgents([]) // Clear agents if fetch fails
       }
       
@@ -166,11 +164,18 @@ function Dashboard() {
         setPrds(prdsData.prds || [])
         console.log('✅ PRDs state updated:', prdsData.prds?.length || 0, 'PRDs')
       } else {
-        console.error('❌ Failed to fetch PRDs:', prdsRes.status)
+        console.error('❌ Failed to fetch PRDs:', prdsRes.status, prdsRes.statusText)
+        const errorText = await prdsRes.text()
+        console.error('❌ PRDs error response:', errorText)
         setPrds([]) // Clear PRDs if fetch fails
       }
     } catch (error) {
       console.error('❌ Error fetching data:', error)
+      console.error('❌ Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      })
       // Clear data on error to prevent stale state
       setAgents([])
       setPrds([])
@@ -1327,10 +1332,10 @@ function Dashboard() {
   )
 }
 
+function ClientDashboard() {
+  return <Dashboard />
+}
+
 export default function Page() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Dashboard />
-    </Suspense>
-  )
+  return <ClientDashboard />
 }

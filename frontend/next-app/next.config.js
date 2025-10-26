@@ -24,8 +24,10 @@ const nextConfig = {
   },
   // Add experimental features for better API handling
   experimental: {
-    serverComponentsExternalPackages: [],
+    // serverComponentsExternalPackages is deprecated in Next.js 15
   },
+  // Use the new serverExternalPackages instead
+  serverExternalPackages: [],
   // Ensure proper headers for API proxy
   async headers() {
     return [
