@@ -7,7 +7,7 @@ import requests
 import json
 
 # Test the Devin AI integration endpoints
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1"
 
 def test_devin_integration():
     print("🤖 Testing Devin AI Integration")

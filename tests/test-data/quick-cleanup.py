@@ -7,7 +7,7 @@ import requests
 import json
 
 # API base URL
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1"
 
 def cleanup_all_data():
     """Remove all agents and PRDs."""

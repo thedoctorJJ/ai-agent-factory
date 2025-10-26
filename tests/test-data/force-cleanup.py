@@ -36,7 +36,7 @@ def force_cleanup():
     print("⏳ Waiting for backend to start...")
     for i in range(10):
         try:
-            response = requests.get("http://localhost:8000/api/v1/health", timeout=2)
+            response = requests.get("https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/health", timeout=2)
             if response.status_code == 200:
                 print("✅ Backend is ready")
                 break
@@ -49,8 +49,8 @@ def force_cleanup():
     
     # Check if data is cleared
     try:
-        agents_response = requests.get("http://localhost:8000/api/v1/agents")
-        prds_response = requests.get("http://localhost:8000/api/v1/prds")
+        agents_response = requests.get("https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/agents")
+        prds_response = requests.get("https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/prds")
         
         if agents_response.status_code == 200 and prds_response.status_code == 200:
             agents_data = agents_response.json()

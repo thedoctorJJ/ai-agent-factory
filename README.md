@@ -13,12 +13,35 @@ This repository contains all core infrastructure, libraries, and documentation t
 **⚠️ IMPORTANT**: This is a **production application** currently running on **Google Cloud Run**. The application is **live and operational** - you can access it immediately without any local setup.
 
 **🌐 Access the Live Application:**
-- **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
-- **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app
-- **API Documentation**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/docs
-- **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app
+- **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app ✅ **WORKING**
+- **API Documentation**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/docs ✅ **WORKING**
+- **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app ✅ **WORKING**
+- **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app ⚠️ **ROUTING ISSUE**
+
+**📊 Current Status:**
+- ✅ **Backend API**: Fully functional with Redis agent integration
+- ✅ **Redis Caching Agent**: Successfully deployed and running
+- ✅ **Database**: Connected and operational
+- ⚠️ **Frontend**: Experiencing Next.js 15 routing issues (APIs accessible directly)
 
 **📝 For Local Development**: See the [Quick Start](#-quick-start) section below for setting up a local development environment.
+
+## 🎉 **SUCCESS STORY: Redis Caching Layer Agent**
+
+**✅ Successfully Deployed and Integrated!**
+
+The AI Agent Factory has successfully created and deployed its first production agent:
+
+- **Agent Name**: Redis Caching Layer Agent
+- **Agent URL**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app
+- **Health Check**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health
+- **Status**: ✅ **RUNNING** and **INTEGRATED**
+- **Features**: High-performance caching service for Google Cloud Run with in-memory fallback
+
+**🔗 Access the Agent:**
+- **Direct Access**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app
+- **API Data**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/agents
+- **Health Status**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health
 
 ---
 

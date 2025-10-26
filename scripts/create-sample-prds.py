@@ -406,7 +406,7 @@ SAMPLE_PRDS = [
 
 def create_sample_prds():
     """Create sample PRDs via API"""
-    base_url = "http://localhost:8000"
+    base_url = "https://ai-agent-factory-backend-952475323593.us-central1.run.app"
     
     for prd_data in SAMPLE_PRDS:
         try:

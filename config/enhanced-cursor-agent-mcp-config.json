@@ -1,0 +1,119 @@
+{
+  "name": "AI Agent Factory - Enhanced Cursor Agent Integration",
+  "description": "Enhanced MCP server with Supabase database management and security tools for Cursor Agent",
+  "icon": "🤖",
+  "transport": "stdio",
+  "command": "python3",
+  "args": ["/Users/jason/Repositories/ai-agent-factory/scripts/mcp/enhanced-cursor-agent-mcp-server.py"],
+  "env": {
+    "SUPABASE_URL": "https://ssdcbhxctakgysnayzeq.supabase.co",
+    "SUPABASE_SERVICE_ROLE_KEY": "your-service-role-key-here",
+    "GITHUB_TOKEN": "your-github-token-here",
+    "OPENAI_API_KEY": "your-openai-api-key-here",
+    "GOOGLE_CLOUD_PROJECT_ID": "agent-factory-474201",
+    "ENVIRONMENT": "production",
+    "DEBUG": "true"
+  },
+  "capabilities": [
+    "database_management",
+    "security_analysis",
+    "table_access_control",
+    "sql_execution",
+    "agent_registration",
+    "prd_management",
+    "health_monitoring"
+  ],
+  "tools": [
+    {
+      "name": "check_database_security",
+      "description": "Check security status and RLS policies for all database tables",
+      "category": "security"
+    },
+    {
+      "name": "fix_agents_table_security",
+      "description": "Fix security issues preventing access to the agents table",
+      "category": "security"
+    },
+    {
+      "name": "get_database_schema",
+      "description": "Get comprehensive database schema information",
+      "category": "database"
+    },
+    {
+      "name": "test_database_connection",
+      "description": "Test database connection and basic operations",
+      "category": "database"
+    },
+    {
+      "name": "get_security_recommendations",
+      "description": "Get security recommendations based on current database state",
+      "category": "security"
+    },
+    {
+      "name": "check_agents_endpoint",
+      "description": "Check if the agents endpoint is working and diagnose issues",
+      "category": "monitoring"
+    },
+    {
+      "name": "register_redis_agent",
+      "description": "Register the Redis agent once security issues are fixed",
+      "category": "agents"
+    },
+    {
+      "name": "list_prds",
+      "description": "List all PRDs in the system",
+      "category": "prds"
+    }
+  ],
+  "features": {
+    "supabase_integration": {
+      "enabled": true,
+      "capabilities": [
+        "table_security_analysis",
+        "rls_policy_management",
+        "permission_auditing",
+        "sql_query_execution"
+      ]
+    },
+    "security_tools": {
+      "enabled": true,
+      "capabilities": [
+        "vulnerability_scanning",
+        "access_control_analysis",
+        "policy_recommendations",
+        "automated_fixes"
+      ]
+    },
+    "database_management": {
+      "enabled": true,
+      "capabilities": [
+        "schema_inspection",
+        "table_creation",
+        "index_management",
+        "data_migration"
+      ]
+    }
+  },
+  "setup_instructions": [
+    "1. Copy this config to your Cursor Agent MCP configuration",
+    "2. Update the environment variables with your actual credentials",
+    "3. Restart Cursor Agent to load the new MCP server",
+    "4. Use the security tools to diagnose and fix database issues"
+  ],
+  "troubleshooting": {
+    "common_issues": [
+      {
+        "issue": "Agents endpoint returns 500 error",
+        "solution": "Use 'check_database_security' and 'fix_agents_table_security' tools"
+      },
+      {
+        "issue": "Table access denied",
+        "solution": "Check RLS policies and permissions using security tools"
+      },
+      {
+        "issue": "Redis agent not visible",
+        "solution": "Fix agents table security, then use 'register_redis_agent' tool"
+      }
+    ]
+  }
+}

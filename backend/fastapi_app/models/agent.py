@@ -31,6 +31,7 @@ class AgentRegistration(BaseModel):
     description: str = Field(..., min_length=1,
                              description="Agent description")
     purpose: str = Field(..., min_length=1, description="Agent purpose")
+    agent_type: str = Field(default="other", description="Agent type")
     version: str = Field(..., description="Agent version")
     repository_url: str = Field(..., description="Repository URL")
     deployment_url: str = Field(..., description="Deployment URL")
@@ -72,6 +73,7 @@ class AgentResponse(BaseModel):
     name: str = Field(..., description="Agent name")
     description: str = Field(..., description="Agent description")
     purpose: str = Field(..., description="Agent purpose")
+    agent_type: str = Field(default="other", description="Agent type")
     version: str = Field(..., description="Agent version")
     status: AgentStatus = Field(..., description="Agent status")
     repository_url: Optional[str] = Field(None, description="Repository URL")
@@ -85,6 +87,8 @@ class AgentResponse(BaseModel):
         description="Agent capabilities")
     configuration: Dict[str, Any] = Field(
         default_factory=dict, description="Agent configuration")
+    metrics: Dict[str, Any] = Field(
+        default_factory=dict, description="Agent metrics")
     last_health_check: Optional[datetime] = Field(
         None, description="Last health check timestamp")
     health_status: AgentHealthStatus = Field(

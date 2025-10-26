@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime, timezone
 
 # API base URL
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1"
 
 # Test agents data
 TEST_AGENTS = [
