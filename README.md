@@ -18,6 +18,11 @@ This repository contains all core infrastructure, libraries, and documentation t
 - **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app ✅ **WORKING**
 - **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app ⚠️ **SSR ISSUE**
 
+**🤖 Cursor Agent Integration:**
+- **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app ✅ **WORKING**
+- **Available Tools**: 11 comprehensive tools for platform management
+- **Status**: Ready for Cursor Agent connection and full platform control
+
 **📊 Current Status:**
 - ✅ **Backend API**: Fully functional with Redis agent integration
 - ✅ **Redis Caching Agent**: Successfully deployed, running, and linked to PRD
@@ -25,6 +30,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - ✅ **Network Connectivity**: All services properly connected
 - ✅ **Environment Variables**: All production environment variables configured
 - ✅ **Agent-PRD Linking**: Redis agent properly linked to its originating PRD
+- ✅ **MCP Server**: Fully operational with 11 tools for Cursor Agent integration
 - ⚠️ **Frontend**: Next.js SSR issue (client-side functionality works)
 
 **📝 For Local Development**: See the [Quick Start](#-quick-start) section below for setting up a local development environment.
@@ -49,6 +55,14 @@ The AI Agent Factory has successfully created and deployed its first production 
 ---
 
 ## 🔧 **Recent Updates & Fixes**
+
+### **✅ Cursor Agent Integration - FULLY OPERATIONAL (October 27, 2025)**
+- **Issue**: Cursor Agent integration status needed verification
+- **Resolution**: 
+  - MCP Server fully operational with all 11 tools working
+  - Successfully tested backend integration and data access
+  - Configuration files ready for Cursor Agent connection
+- **Status**: ✅ **READY** - Cursor Agent can now fully integrate with AI Agent Factory
 
 ### **✅ Redis Agent-PRD Linking Fixed (October 27, 2025)**
 - **Issue**: Redis agent was showing as "Standalone Agent" despite having a PRD
