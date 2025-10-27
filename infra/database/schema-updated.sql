@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Create custom types
 CREATE TYPE prd_type AS ENUM ('platform', 'agent');
-CREATE TYPE prd_status AS ENUM ('queue', 'ready_for_devin', 'in_progress', 'completed', 'failed', 'processed');
+CREATE TYPE prd_status AS ENUM ('uploaded', 'standardizing', 'review', 'queue', 'ready_for_devin', 'in_progress', 'completed', 'failed', 'processed');
 CREATE TYPE prd_priority AS ENUM ('low', 'medium', 'high', 'critical');
 CREATE TYPE prd_effort AS ENUM ('small', 'medium', 'large', 'epic');
 CREATE TYPE agent_status AS ENUM ('draft', 'active', 'inactive', 'deprecated', 'error');
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS prds (
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     prd_type prd_type NOT NULL DEFAULT 'agent',
-    status prd_status NOT NULL DEFAULT 'queue',
+    status prd_status NOT NULL DEFAULT 'uploaded',
     github_repo_url VARCHAR(500),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

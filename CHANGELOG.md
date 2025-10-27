@@ -4,7 +4,26 @@ All notable changes to the AI Agent Factory project will be documented in this f
 
 ## [Unreleased] - 2025-10-26
 
-### 🔧 **Configuration & Deployment Fixes**
+### 🔧 **PRD Status Standardization**
+- **✅ Database Schema**: Updated to include all 9 PRD states
+- **✅ Backend Models**: Standardized PRD status enumeration
+- **✅ Frontend Types**: Aligned TypeScript types with backend
+- **✅ Documentation**: Updated all PRD workflow documentation
+- **✅ Default Status**: Changed from `queue` to `uploaded` for new PRDs
+- **Status**: All PRD states now consistent across the entire system
+
+### **Standardized PRD States**
+- **`uploaded`** - PRD uploaded and awaiting standardization
+- **`standardizing`** - PRD being converted to AI Agent Factory format
+- **`review`** - PRD awaiting user review and approval
+- **`queue`** - PRD approved and waiting for processing
+- **`ready_for_devin`** - PRD ready to be picked up by Devin AI
+- **`in_progress`** - PRD being processed by Devin AI
+- **`completed`** - PRD successfully processed and agent deployed
+- **`failed`** - PRD processing failed
+- **`processed`** - Final state after completion
+
+### **Configuration & Deployment Fixes**
 - **✅ Backend URL Configuration**: Fixed Next.js configuration to use correct backend URL
 - **✅ Environment Variables**: Resolved missing production environment variables
 - **✅ Network Connectivity**: All services properly connected and operational

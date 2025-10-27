@@ -26,19 +26,25 @@ PRDs that have been standardized and are awaiting user review and approval.
 PRDs that are standardized, reviewed, and approved - ready for processing.
 - **Status**: `queue`
 - **Action**: Ready for agent creation workflow
-- **Next Step**: Will be picked up by Devin AI for processing
+- **Next Step**: Will be marked as `ready_for_devin` for Devin AI processing
 
 ### `in-progress/`
 PRDs that are currently being processed by Devin AI.
 - **Status**: `in_progress` 
 - **Action**: Being worked on by Devin AI
-- **Next Step**: Will move to `completed/` or `failed/` when done
+- **Next Step**: Will move to `completed` or `failed` when done
 
 ### `completed/`
 PRDs that have been successfully processed and agents have been created.
 - **Status**: `completed`
 - **Action**: Agent creation workflow finished successfully
-- **Next Step**: Agents are deployed and operational
+- **Next Step**: Will move to `processed` status
+
+### `processed/`
+PRDs that have completed the full workflow and are archived.
+- **Status**: `processed`
+- **Action**: Final state - PRD workflow complete
+- **Next Step**: Used for historical analysis and reference
 
 ### `failed/`
 PRDs that failed during the agent creation process.
@@ -80,9 +86,9 @@ Template PRDs for creating new requirements documents and standardizing uploaded
 ## 🔄 Workflow
 
 ```
-uploaded/ → standardizing/ → review/ → queue/ → in-progress/ → completed/ (or failed/)
-                ↓              ↓                              ↓
-            archive/      standardizing/ (if changes)    archive/
+uploaded/ → standardizing/ → review/ → queue/ → ready_for_devin → in-progress/ → completed/ → processed/
+                ↓              ↓                              ↓           ↓
+            archive/      standardizing/ (if changes)    failed/ ←─────────┘
 ```
 
 ### **Complete Process**

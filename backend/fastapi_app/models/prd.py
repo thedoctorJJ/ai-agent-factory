@@ -15,6 +15,9 @@ class PRDType(str, Enum):
 
 class PRDStatus(str, Enum):
     """PRD status enumeration."""
+    UPLOADED = "uploaded"
+    STANDARDIZING = "standardizing"
+    REVIEW = "review"
     QUEUE = "queue"
     READY_FOR_DEVIN = "ready_for_devin"
     IN_PROGRESS = "in_progress"

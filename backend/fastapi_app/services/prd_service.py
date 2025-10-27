@@ -38,7 +38,7 @@ class PRDService:
             "description": prd_data.description,
             "requirements": prd_data.requirements,
             "prd_type": prd_data.prd_type.value,
-            "status": PRDStatus.QUEUE.value,
+            "status": PRDStatus.UPLOADED.value,
             "github_repo_url": None,
             "created_at": now.isoformat(),
             "updated_at": now.isoformat(),

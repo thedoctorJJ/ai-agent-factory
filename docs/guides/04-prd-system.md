@@ -106,15 +106,17 @@ The system automatically determines the appropriate repository strategy based on
 - **`standardizing`** - PRD being converted to AI Agent Factory format
 - **`review`** - PRD awaiting user review and approval
 - **`queue`** - PRD approved and waiting for processing
+- **`ready_for_devin`** - PRD ready to be picked up by Devin AI
 - **`in_progress`** - PRD being processed by Devin AI
 - **`completed`** - PRD successfully processed and agent deployed
 - **`failed`** - PRD processing failed
+- **`processed`** - Final state after completion
 
 ### **Status Transitions**
 ```
-uploaded → standardizing → review → queue → in_progress → completed
-    ↓           ↓            ↓        ↓         ↓
-archive/   standardizing/  archive/  failed ←──┘
+uploaded → standardizing → review → queue → ready_for_devin → in_progress → completed → processed
+    ↓           ↓            ↓        ↓           ↓             ↓           ↓
+archive/   standardizing/  archive/  failed ←─────────────────────────────────┘
            (if changes)
 ```
 
