@@ -2,6 +2,21 @@
 
 All notable changes to the AI Agent Factory project will be documented in this file.
 
+## [Unreleased] - 2025-10-27
+
+### 🔗 **Redis Agent-PRD Linking Fixed**
+- **✅ Agent Update Endpoint**: Added comprehensive agent update API endpoint
+- **✅ Redis Agent Linked**: Successfully linked Redis agent to its PRD
+- **✅ Production Environment**: Fixed missing environment variables using secure configuration
+- **✅ Backend Health**: All services now properly configured and operational
+- **Status**: Redis agent no longer shows as "Standalone Agent"
+
+### **Technical Details**
+- **Agent Update Model**: Added `AgentUpdate` model for partial agent updates
+- **API Endpoint**: `PUT /api/v1/agents/{agent_id}` for updating agent properties
+- **Environment Variables**: Used secure API manager to set production environment variables
+- **Agent-PRD Link**: Redis agent now properly linked to PRD `1191e06d-453b-4903-9edd-f3a4d11f9d99`
+
 ## [Unreleased] - 2025-10-26
 
 ### 🔧 **PRD Status Standardization**

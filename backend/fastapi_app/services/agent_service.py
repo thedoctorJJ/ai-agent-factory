@@ -144,6 +144,38 @@ class AgentService:
 
         return AgentResponse(**agent_dict)
 
+    async def update_agent(
+            self,
+            agent_id: str,
+            agent_data: Dict[str, Any]) -> AgentResponse:
+        """Update an agent."""
+        # Try to update in database first
+        try:
+            if data_manager.is_connected():
+                updated_agent = await data_manager.update_agent(agent_id, agent_data)
+                if updated_agent:
+                    # Convert datetime strings back to datetime objects
+                    if isinstance(updated_agent.get("created_at"), str):
+                        updated_agent["created_at"] = datetime.fromisoformat(updated_agent["created_at"].replace('Z', '+00:00'))
+                    if isinstance(updated_agent.get("updated_at"), str):
+                        updated_agent["updated_at"] = datetime.fromisoformat(updated_agent["updated_at"].replace('Z', '+00:00'))
+                    if updated_agent.get("last_health_check") and isinstance(updated_agent["last_health_check"], str):
+                        updated_agent["last_health_check"] = datetime.fromisoformat(updated_agent["last_health_check"].replace('Z', '+00:00'))
+                    return AgentResponse(**updated_agent)
+        except Exception as e:
+            print(f"Database update failed, trying in-memory storage: {e}")
+        
+        # Fallback to in-memory storage
+        if agent_id not in self._agents_db:
+            raise HTTPException(status_code=404, detail="Agent not found")
+
+        # Update the agent data
+        agent_dict = self._agents_db[agent_id]
+        agent_dict.update(agent_data)
+        agent_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        return AgentResponse(**agent_dict)
+
     async def delete_agent(self, agent_id: str) -> Dict[str, str]:
         """Delete an agent."""
         # Try to delete from database first

@@ -17,10 +17,10 @@ cat > /tmp/get_env_vars.py << 'EOF'
 import sys
 import os
 sys.path.append('.')
-from config.secure_config import SecureConfig
+from config.secure_api_manager import SecureAPIManager
 
-config = SecureConfig()
-env_vars = config.get_all_environment_variables()
+manager = SecureAPIManager()
+env_vars = manager.load_api_keys()
 
 # Print the variables we need for production
 required_vars = [
@@ -41,7 +41,7 @@ EOF
 
 # Run the script to get environment variables
 cd /Users/jason/Repositories/ai-agent-factory
-python3 /tmp/get_env_vars.py > /tmp/env_vars.txt
+PYTHONPATH=. python3 /tmp/get_env_vars.py > /tmp/env_vars.txt
 
 # Read the environment variables
 ENV_VARS=""

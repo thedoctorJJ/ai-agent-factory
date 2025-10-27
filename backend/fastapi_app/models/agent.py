@@ -67,6 +67,42 @@ class AgentRegistration(BaseModel):
         return v.strip()
 
 
+class AgentUpdate(BaseModel):
+    """Model for agent update requests."""
+    name: Optional[str] = Field(None, description="Agent name")
+    description: Optional[str] = Field(None, description="Agent description")
+    purpose: Optional[str] = Field(None, description="Agent purpose")
+    agent_type: Optional[str] = Field(None, description="Agent type")
+    version: Optional[str] = Field(None, description="Agent version")
+    status: Optional[AgentStatus] = Field(None, description="Agent status")
+    repository_url: Optional[str] = Field(None, description="Repository URL")
+    deployment_url: Optional[str] = Field(None, description="Deployment URL")
+    health_check_url: Optional[str] = Field(
+        None, description="Health check URL")
+    prd_id: Optional[str] = Field(None, description="Associated PRD ID")
+    devin_task_id: Optional[str] = Field(None, description="Devin task ID")
+    capabilities: Optional[List[str]] = Field(
+        None, description="Agent capabilities")
+    configuration: Optional[Dict[str, Any]] = Field(
+        None, description="Agent configuration")
+    health_status: Optional[AgentHealthStatus] = Field(
+        None, description="Health status")
+
+    @validator('name')
+    def validate_name(cls, v):
+        if v is not None and (not v or not v.strip()):
+            raise ValueError('Agent name cannot be empty')
+        return v.strip() if v else v
+
+    @validator('description')
+    def validate_description(cls, v):
+        return v.strip() if v else v
+
+    @validator('purpose')
+    def validate_purpose(cls, v):
+        return v.strip() if v else v
+
+
 class AgentResponse(BaseModel):
     """Model for agent API responses."""
     id: str = Field(..., description="Agent ID")

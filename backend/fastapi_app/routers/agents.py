@@ -5,7 +5,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
 
 from ..models.agent import (
-    AgentRegistration, AgentResponse, AgentStatus, AgentHealthStatus,
+    AgentRegistration, AgentUpdate, AgentResponse, AgentStatus, AgentHealthStatus,
     AgentListResponse, AgentHealthResponse, AgentMetricsResponse
 )
 from ..services.agent_service import agent_service
@@ -40,6 +40,14 @@ async def get_agent(agent_id: str):
 async def update_agent_status(agent_id: str, status: AgentStatus):
     """Update agent status."""
     return await agent_service.update_agent_status(agent_id, status)
+
+
+@router.put("/agents/{agent_id}", response_model=AgentResponse)
+async def update_agent(agent_id: str, agent_data: AgentUpdate):
+    """Update an agent."""
+    # Convert Pydantic model to dict, excluding None values
+    update_data = {k: v for k, v in agent_data.dict().items() if v is not None}
+    return await agent_service.update_agent(agent_id, update_data)
 
 
 @router.delete("/agents/{agent_id}")
