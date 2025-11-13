@@ -339,6 +339,42 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 
 ---
 
+## 📋 **API Contract Specification**
+
+The AI Agent Factory uses **OpenAPI 3.1** specification to define the contract between backend and frontend, ensuring type safety and API consistency.
+
+### **🔧 Quick Start**
+
+```bash
+# Generate OpenAPI spec from production API
+python3 scripts/api/generate-openapi-spec.py
+
+# Generate TypeScript types for frontend
+./scripts/api/generate-typescript-types.sh
+
+# Validate API contract
+./scripts/api/validate-api-contract.sh
+```
+
+### **📁 Files**
+
+- **`api-spec/openapi.json`** - OpenAPI 3.1 specification (JSON)
+- **`api-spec/openapi.yaml`** - OpenAPI 3.1 specification (YAML)
+- **`frontend/next-app/types/api.ts`** - Generated TypeScript types
+- **`docs/api/API_CONTRACT.md`** - Complete API contract documentation
+
+### **✨ Features**
+
+- ✅ **28 API endpoints** fully documented
+- ✅ **28 data schemas** with validation rules
+- ✅ **Automatic TypeScript type generation**
+- ✅ **Contract validation** on CI/CD
+- ✅ **Type-safe frontend integration**
+
+**📖 Full Documentation**: See [API Contract Guide](docs/api/API_CONTRACT.md)
+
+---
+
 ## 📚 Documentation
 
 ### **Organized Documentation Structure**

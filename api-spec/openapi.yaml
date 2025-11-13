@@ -1,0 +1,2314 @@
+openapi: 3.1.0
+info:
+  title: AI Agent Factory
+  description: A repeatable, AI-driven platform for creating modular agents from completed
+    PRDs
+  version: 1.0.0
+  contact:
+    name: AI Agent Factory
+    url: https://github.com/thedoctorJJ/ai-agent-factory
+  license:
+    name: MIT
+    identifier: MIT
+paths:
+  /api/v1/health:
+    get:
+      tags:
+      - health
+      summary: Health Check
+      description: Comprehensive health check endpoint
+      operationId: health_check_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/health/detailed:
+    get:
+      tags:
+      - health
+      summary: Detailed Health Check
+      description: Detailed health check with service connectivity
+      operationId: detailed_health_check_api_v1_health_detailed_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/config:
+    get:
+      tags:
+      - health
+      summary: Get Configuration
+      description: Get application configuration status
+      operationId: get_configuration_api_v1_config_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/agents:
+    post:
+      tags:
+      - agents
+      summary: Create Agent
+      description: Create a new agent.
+      operationId: create_agent_api_v1_agents_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentRegistration'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - agents
+      summary: Get Agents
+      description: Get a list of agents with optional filtering and pagination.
+      operationId: get_agents_api_v1_agents_get
+      parameters:
+      - name: skip
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of agents to skip
+          default: 0
+          title: Skip
+        description: Number of agents to skip
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          description: Number of agents to return
+          default: 100
+          title: Limit
+        description: Number of agents to return
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/AgentStatus'
+          - type: 'null'
+          description: Filter by agent status
+          title: Status
+        description: Filter by agent status
+      - name: prd_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by PRD ID
+          title: Prd Id
+        description: Filter by PRD ID
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - agents
+      summary: Clear All Agents
+      description: Clear all agents from the system.
+      operationId: clear_all_agents_api_v1_agents_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/agents/{agent_id}:
+    get:
+      tags:
+      - agents
+      summary: Get Agent
+      description: Get a specific agent by ID.
+      operationId: get_agent_api_v1_agents__agent_id__get
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Agent Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - agents
+      summary: Update Agent
+      description: Update an agent.
+      operationId: update_agent_api_v1_agents__agent_id__put
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Agent Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - agents
+      summary: Delete Agent
+      description: Delete an agent.
+      operationId: delete_agent_api_v1_agents__agent_id__delete
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Agent Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/agents/{agent_id}/status:
+    put:
+      tags:
+      - agents
+      summary: Update Agent Status
+      description: Update agent status.
+      operationId: update_agent_status_api_v1_agents__agent_id__status_put
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Agent Id
+      - name: status
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/AgentStatus'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/agents/{agent_id}/health:
+    get:
+      tags:
+      - agents
+      summary: Check Agent Health
+      description: Check agent health status.
+      operationId: check_agent_health_api_v1_agents__agent_id__health_get
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Agent Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentHealthResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/agents/{agent_id}/metrics:
+    get:
+      tags:
+      - agents
+      summary: Get Agent Metrics
+      description: Get agent metrics.
+      operationId: get_agent_metrics_api_v1_agents__agent_id__metrics_get
+      parameters:
+      - name: agent_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Agent Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentMetricsResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/agents/by-prd/{prd_id}:
+    get:
+      tags:
+      - agents
+      summary: Get Agents By Prd
+      description: Get all agents created from a specific PRD.
+      operationId: get_agents_by_prd_api_v1_agents_by_prd__prd_id__get
+      parameters:
+      - name: prd_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Prd Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentResponse'
+                title: Response Get Agents By Prd Api V1 Agents By Prd  Prd Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/prds:
+    post:
+      tags:
+      - prds
+      summary: Create Prd
+      description: Create a new PRD.
+      operationId: create_prd_api_v1_prds_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PRDCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PRDResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - prds
+      summary: Get Prds
+      description: Get a list of PRDs with optional filtering and pagination.
+      operationId: get_prds_api_v1_prds_get
+      parameters:
+      - name: skip
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of PRDs to skip
+          default: 0
+          title: Skip
+        description: Number of PRDs to skip
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          description: Number of PRDs to return
+          default: 100
+          title: Limit
+        description: Number of PRDs to return
+      - name: prd_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/PRDType'
+          - type: 'null'
+          description: Filter by PRD type
+          title: Prd Type
+        description: Filter by PRD type
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/PRDStatus'
+          - type: 'null'
+          description: Filter by PRD status
+          title: Status
+        description: Filter by PRD status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PRDListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - prds
+      summary: Clear All Prds
+      description: Clear all PRDs from the system.
+      operationId: clear_all_prds_api_v1_prds_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/prds/ready-for-devin:
+    get:
+      tags:
+      - prds
+      summary: Get Prds Ready For Devin
+      description: Get all PRDs that are ready for Devin AI processing.
+      operationId: get_prds_ready_for_devin_api_v1_prds_ready_for_devin_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/prds/{prd_id}:
+    get:
+      tags:
+      - prds
+      summary: Get Prd
+      description: Get a specific PRD by ID.
+      operationId: get_prd_api_v1_prds__prd_id__get
+      parameters:
+      - name: prd_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Prd Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PRDResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - prds
+      summary: Update Prd
+      description: Update an existing PRD.
+      operationId: update_prd_api_v1_prds__prd_id__put
+      parameters:
+      - name: prd_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Prd Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PRDUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PRDResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - prds
+      summary: Delete Prd
+      description: Delete a PRD.
+      operationId: delete_prd_api_v1_prds__prd_id__delete
+      parameters:
+      - name: prd_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Prd Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/prds/upload:
+    post:
+      tags:
+      - prds
+      summary: Upload Prd File
+      description: Upload a PRD file (.md or .txt).
+      operationId: upload_prd_file_api_v1_prds_upload_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_prd_file_api_v1_prds_upload_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PRDResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/prds/{prd_id}/markdown:
+    get:
+      tags:
+      - prds
+      summary: Get Prd Markdown
+      description: Get PRD as markdown for sharing with Devin AI.
+      operationId: get_prd_markdown_api_v1_prds__prd_id__markdown_get
+      parameters:
+      - name: prd_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Prd Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PRDMarkdownResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/prds/{prd_id}/markdown/download:
+    get:
+      tags:
+      - prds
+      summary: Download Prd Markdown
+      description: Download PRD as markdown file.
+      operationId: download_prd_markdown_api_v1_prds__prd_id__markdown_download_get
+      parameters:
+      - name: prd_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Prd Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/roadmap/categories:
+    get:
+      tags:
+      - prds
+      summary: Get Roadmap Categories
+      description: Get all roadmap categories.
+      operationId: get_roadmap_categories_api_v1_roadmap_categories_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/roadmap/statuses:
+    get:
+      tags:
+      - prds
+      summary: Get Roadmap Statuses
+      description: Get all roadmap statuses.
+      operationId: get_roadmap_statuses_api_v1_roadmap_statuses_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/roadmap/priorities:
+    get:
+      tags:
+      - prds
+      summary: Get Roadmap Priorities
+      description: Get all roadmap priorities.
+      operationId: get_roadmap_priorities_api_v1_roadmap_priorities_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/roadmap:
+    get:
+      tags:
+      - prds
+      summary: Get Roadmap
+      description: Get the complete roadmap with all PRDs organized by category and
+        status.
+      operationId: get_roadmap_api_v1_roadmap_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/prds/{prd_id}/ready-for-devin:
+    post:
+      tags:
+      - prds
+      summary: Mark Prd Ready For Devin
+      description: Mark a PRD as ready for Devin AI processing.
+      operationId: mark_prd_ready_for_devin_api_v1_prds__prd_id__ready_for_devin_post
+      parameters:
+      - name: prd_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Prd Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/devin/tasks:
+    post:
+      tags:
+      - devin
+      summary: Create Devin Task
+      description: Create a new Devin AI task.
+      operationId: create_devin_task_api_v1_devin_tasks_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevinTaskCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevinTaskResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - devin
+      summary: Get Devin Tasks
+      description: Get a list of Devin tasks with optional filtering and pagination.
+      operationId: get_devin_tasks_api_v1_devin_tasks_get
+      parameters:
+      - name: skip
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of tasks to skip
+          default: 0
+          title: Skip
+        description: Number of tasks to skip
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          description: Number of tasks to return
+          default: 100
+          title: Limit
+        description: Number of tasks to return
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/DevinTaskStatus'
+          - type: 'null'
+          description: Filter by task status
+          title: Status
+        description: Filter by task status
+      - name: prd_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by PRD ID
+          title: Prd Id
+        description: Filter by PRD ID
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevinTaskListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/devin/tasks/{task_id}:
+    get:
+      tags:
+      - devin
+      summary: Get Devin Task
+      description: Get a specific Devin task by ID.
+      operationId: get_devin_task_api_v1_devin_tasks__task_id__get
+      parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Task Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevinTaskResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/devin/tasks/{task_id}/execute:
+    post:
+      tags:
+      - devin
+      summary: Execute Devin Task
+      description: Execute a Devin task (submit to Devin AI).
+      operationId: execute_devin_task_api_v1_devin_tasks__task_id__execute_post
+      parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Task Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevinTaskExecuteResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/devin/tasks/{task_id}/complete:
+    post:
+      tags:
+      - devin
+      summary: Complete Devin Task
+      description: Mark a Devin task as completed.
+      operationId: complete_devin_task_api_v1_devin_tasks__task_id__complete_post
+      parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Task Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevinTaskComplete'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevinTaskResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/mcp/load-prd:
+    post:
+      tags:
+      - mcp
+      summary: Load Prd To Mcp
+      description: Load PRD data into the MCP server cache
+      operationId: load_prd_to_mcp_api_v1_mcp_load_prd_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoadPRDRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MCPResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/mcp/status:
+    get:
+      tags:
+      - mcp
+      summary: Get Mcp Status
+      description: Get the status of the MCP server
+      operationId: get_mcp_status_api_v1_mcp_status_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /:
+    get:
+      summary: Root
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/clear-all:
+    delete:
+      summary: Clear All Data
+      description: Clear all agents and PRDs from the system.
+      operationId: clear_all_data_api_v1_clear_all_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    AgentHealthResponse:
+      properties:
+        agent_id:
+          type: string
+          title: Agent Id
+          description: Agent ID
+        agent_name:
+          type: string
+          title: Agent Name
+          description: Agent name
+        health_check_url:
+          type: string
+          title: Health Check Url
+          description: Health check URL
+        last_checked:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Checked
+          description: Last check timestamp
+        status:
+          $ref: '#/components/schemas/AgentHealthStatus'
+          description: Health status
+        details:
+          additionalProperties: true
+          type: object
+          title: Details
+          description: Health check details
+        response_time_ms:
+          type: integer
+          title: Response Time Ms
+          description: Response time in milliseconds
+          default: 0
+      type: object
+      required:
+      - agent_id
+      - agent_name
+      - health_check_url
+      - status
+      title: AgentHealthResponse
+      description: Model for agent health check responses.
+    AgentHealthStatus:
+      type: string
+      enum:
+      - healthy
+      - unhealthy
+      - unknown
+      - degraded
+      title: AgentHealthStatus
+      description: Agent health status enumeration.
+    AgentListResponse:
+      properties:
+        agents:
+          items:
+            $ref: '#/components/schemas/AgentResponse'
+          type: array
+          title: Agents
+          description: List of agents
+        total:
+          type: integer
+          title: Total
+          description: Total number of agents
+        page:
+          type: integer
+          title: Page
+          description: Current page number
+        size:
+          type: integer
+          title: Size
+          description: Page size
+        has_next:
+          type: boolean
+          title: Has Next
+          description: Whether there are more pages
+      type: object
+      required:
+      - agents
+      - total
+      - page
+      - size
+      - has_next
+      title: AgentListResponse
+      description: Model for agent list API responses.
+    AgentMetricsResponse:
+      properties:
+        agent_id:
+          type: string
+          title: Agent Id
+          description: Agent ID
+        agent_name:
+          type: string
+          title: Agent Name
+          description: Agent name
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+          description: Agent status
+        health_status:
+          $ref: '#/components/schemas/AgentHealthStatus'
+          description: Health status
+        last_health_check:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Health Check
+          description: Last health check
+        deployment_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Deployment Url
+          description: Deployment URL
+        repository_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Repository Url
+          description: Repository URL
+        version:
+          type: string
+          title: Version
+          description: Agent version
+        capabilities:
+          items:
+            type: string
+          type: array
+          title: Capabilities
+          description: Agent capabilities
+        uptime_seconds:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Uptime Seconds
+          description: Uptime in seconds
+        request_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Request Count
+          description: Total request count
+        error_count:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Error Count
+          description: Total error count
+        avg_response_time_ms:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Avg Response Time Ms
+          description: Average response time
+      type: object
+      required:
+      - agent_id
+      - agent_name
+      - status
+      - health_status
+      - version
+      title: AgentMetricsResponse
+      description: Model for agent metrics responses.
+    AgentRegistration:
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Name
+          description: Agent name
+        description:
+          type: string
+          minLength: 1
+          title: Description
+          description: Agent description
+        purpose:
+          type: string
+          minLength: 1
+          title: Purpose
+          description: Agent purpose
+        agent_type:
+          type: string
+          title: Agent Type
+          description: Agent type
+          default: other
+        version:
+          type: string
+          title: Version
+          description: Agent version
+        repository_url:
+          type: string
+          title: Repository Url
+          description: Repository URL
+        deployment_url:
+          type: string
+          title: Deployment Url
+          description: Deployment URL
+        health_check_url:
+          type: string
+          title: Health Check Url
+          description: Health check URL
+        prd_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Prd Id
+          description: Associated PRD ID
+        devin_task_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Devin Task Id
+          description: Devin task ID
+        capabilities:
+          items:
+            type: string
+          type: array
+          title: Capabilities
+          description: Agent capabilities
+        configuration:
+          additionalProperties: true
+          type: object
+          title: Configuration
+          description: Agent configuration
+      type: object
+      required:
+      - name
+      - description
+      - purpose
+      - version
+      - repository_url
+      - deployment_url
+      - health_check_url
+      title: AgentRegistration
+      description: Model for agent registration.
+    AgentResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Agent ID
+        name:
+          type: string
+          title: Name
+          description: Agent name
+        description:
+          type: string
+          title: Description
+          description: Agent description
+        purpose:
+          type: string
+          title: Purpose
+          description: Agent purpose
+        agent_type:
+          type: string
+          title: Agent Type
+          description: Agent type
+          default: other
+        version:
+          type: string
+          title: Version
+          description: Agent version
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+          description: Agent status
+        repository_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Repository Url
+          description: Repository URL
+        deployment_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Deployment Url
+          description: Deployment URL
+        health_check_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Health Check Url
+          description: Health check URL
+        prd_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Prd Id
+          description: Associated PRD ID
+        devin_task_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Devin Task Id
+          description: Devin task ID
+        capabilities:
+          items:
+            type: string
+          type: array
+          title: Capabilities
+          description: Agent capabilities
+        configuration:
+          additionalProperties: true
+          type: object
+          title: Configuration
+          description: Agent configuration
+        metrics:
+          additionalProperties: true
+          type: object
+          title: Metrics
+          description: Agent metrics
+        last_health_check:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Health Check
+          description: Last health check timestamp
+        health_status:
+          $ref: '#/components/schemas/AgentHealthStatus'
+          description: Health status
+          default: unknown
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+          description: Last update timestamp
+      type: object
+      required:
+      - id
+      - name
+      - description
+      - purpose
+      - version
+      - status
+      - created_at
+      - updated_at
+      title: AgentResponse
+      description: Model for agent API responses.
+    AgentStatus:
+      type: string
+      enum:
+      - draft
+      - active
+      - inactive
+      - deprecated
+      - error
+      title: AgentStatus
+      description: Agent status enumeration.
+    AgentUpdate:
+      properties:
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+          description: Agent name
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+          description: Agent description
+        purpose:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Purpose
+          description: Agent purpose
+        agent_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Agent Type
+          description: Agent type
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Version
+          description: Agent version
+        status:
+          anyOf:
+          - $ref: '#/components/schemas/AgentStatus'
+          - type: 'null'
+          description: Agent status
+        repository_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Repository Url
+          description: Repository URL
+        deployment_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Deployment Url
+          description: Deployment URL
+        health_check_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Health Check Url
+          description: Health check URL
+        prd_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Prd Id
+          description: Associated PRD ID
+        devin_task_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Devin Task Id
+          description: Devin task ID
+        capabilities:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Capabilities
+          description: Agent capabilities
+        configuration:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Configuration
+          description: Agent configuration
+        health_status:
+          anyOf:
+          - $ref: '#/components/schemas/AgentHealthStatus'
+          - type: 'null'
+          description: Health status
+      type: object
+      title: AgentUpdate
+      description: Model for agent update requests.
+    Body_upload_prd_file_api_v1_prds_upload_post:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+      type: object
+      required:
+      - file
+      title: Body_upload_prd_file_api_v1_prds_upload_post
+    DevinTaskComplete:
+      properties:
+        agent_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Agent Code
+          description: Generated agent code
+        deployment_method:
+          type: string
+          title: Deployment Method
+          description: Deployment method
+          default: mcp_automatic
+        devin_output:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Devin Output
+          description: Devin AI output
+        error_message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Message
+          description: Error message if failed
+      type: object
+      title: DevinTaskComplete
+      description: Model for completing a Devin task.
+    DevinTaskCreate:
+      properties:
+        prd_id:
+          type: string
+          title: Prd Id
+          description: Associated PRD ID
+        title:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Title
+          description: Task title
+        description:
+          type: string
+          minLength: 1
+          title: Description
+          description: Task description
+        requirements:
+          items:
+            type: string
+          type: array
+          title: Requirements
+          description: Task requirements
+      type: object
+      required:
+      - prd_id
+      - title
+      - description
+      title: DevinTaskCreate
+      description: Model for creating a Devin task.
+    DevinTaskExecuteResponse:
+      properties:
+        message:
+          type: string
+          title: Message
+          description: Execution message
+        task_id:
+          type: string
+          title: Task Id
+          description: Task ID
+        status:
+          $ref: '#/components/schemas/DevinTaskStatus'
+          description: Task status
+        note:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Note
+          description: Additional notes
+      type: object
+      required:
+      - message
+      - task_id
+      - status
+      title: DevinTaskExecuteResponse
+      description: Model for Devin task execution responses.
+    DevinTaskListResponse:
+      properties:
+        tasks:
+          items:
+            $ref: '#/components/schemas/DevinTaskResponse'
+          type: array
+          title: Tasks
+          description: List of tasks
+        total:
+          type: integer
+          title: Total
+          description: Total number of tasks
+        page:
+          type: integer
+          title: Page
+          description: Current page number
+        size:
+          type: integer
+          title: Size
+          description: Page size
+        has_next:
+          type: boolean
+          title: Has Next
+          description: Whether there are more pages
+      type: object
+      required:
+      - tasks
+      - total
+      - page
+      - size
+      - has_next
+      title: DevinTaskListResponse
+      description: Model for Devin task list API responses.
+    DevinTaskResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Task ID
+        prd_id:
+          type: string
+          title: Prd Id
+          description: Associated PRD ID
+        title:
+          type: string
+          title: Title
+          description: Task title
+        description:
+          type: string
+          title: Description
+          description: Task description
+        requirements:
+          items:
+            type: string
+          type: array
+          title: Requirements
+          description: Task requirements
+        devin_prompt:
+          type: string
+          title: Devin Prompt
+          description: Generated Devin prompt
+        status:
+          $ref: '#/components/schemas/DevinTaskStatus'
+          description: Task status
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+          description: Last update timestamp
+        devin_output:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Devin Output
+          description: Devin AI output
+        agent_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Agent Code
+          description: Generated agent code
+      type: object
+      required:
+      - id
+      - prd_id
+      - title
+      - description
+      - requirements
+      - devin_prompt
+      - status
+      - created_at
+      - updated_at
+      title: DevinTaskResponse
+      description: Model for Devin task API responses.
+    DevinTaskStatus:
+      type: string
+      enum:
+      - pending
+      - in_devin
+      - completed
+      - failed
+      - cancelled
+      title: DevinTaskStatus
+      description: Devin task status enumeration.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    LoadPRDRequest:
+      properties:
+        prd_id:
+          type: string
+          title: Prd Id
+      type: object
+      required:
+      - prd_id
+      title: LoadPRDRequest
+    MCPResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          additionalProperties: true
+          type: object
+          title: Data
+          default: {}
+      type: object
+      required:
+      - success
+      - message
+      title: MCPResponse
+    PRDCreate:
+      properties:
+        title:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Title
+          description: PRD title
+        description:
+          type: string
+          minLength: 1
+          title: Description
+          description: PRD description
+        requirements:
+          items:
+            type: string
+          type: array
+          title: Requirements
+          description: List of requirements
+        prd_type:
+          $ref: '#/components/schemas/PRDType'
+          description: Type of PRD
+          default: agent
+        problem_statement:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Problem Statement
+          description: Problem statement
+        target_users:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Target Users
+          description: Target users
+        user_stories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: User Stories
+          description: User stories
+        acceptance_criteria:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Acceptance Criteria
+          description: Acceptance criteria
+        technical_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Technical Requirements
+          description: Technical requirements
+        performance_requirements:
+          anyOf:
+          - additionalProperties:
+              type: string
+            type: object
+          - type: 'null'
+          title: Performance Requirements
+          description: Performance requirements
+        security_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Security Requirements
+          description: Security requirements
+        integration_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Integration Requirements
+          description: Integration requirements
+        deployment_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Deployment Requirements
+          description: Deployment requirements
+        success_metrics:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Success Metrics
+          description: Success metrics
+        timeline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Timeline
+          description: Timeline
+        dependencies:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Dependencies
+          description: Dependencies
+        risks:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Risks
+          description: Risks
+        assumptions:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Assumptions
+          description: Assumptions
+        category:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+          description: PRD category
+        priority:
+          anyOf:
+          - $ref: '#/components/schemas/PRDPriority'
+          - type: 'null'
+          description: PRD priority
+        effort_estimate:
+          anyOf:
+          - $ref: '#/components/schemas/PRDEffort'
+          - type: 'null'
+          description: Effort estimate
+        business_value:
+          anyOf:
+          - type: integer
+            maximum: 10.0
+            minimum: 1.0
+          - type: 'null'
+          title: Business Value
+          description: Business value (1-10)
+        technical_complexity:
+          anyOf:
+          - type: integer
+            maximum: 10.0
+            minimum: 1.0
+          - type: 'null'
+          title: Technical Complexity
+          description: Technical complexity (1-10)
+        dependencies_list:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Dependencies List
+          description: Dependencies list
+        assignee:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Assignee
+          description: Assignee
+        target_sprint:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Sprint
+          description: Target sprint
+        original_filename:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Original Filename
+          description: Original filename
+        file_content:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: File Content
+          description: File content
+      type: object
+      required:
+      - title
+      - description
+      title: PRDCreate
+      description: Model for creating a new PRD.
+    PRDEffort:
+      type: string
+      enum:
+      - small
+      - medium
+      - large
+      - epic
+      title: PRDEffort
+      description: PRD effort estimation enumeration.
+    PRDListResponse:
+      properties:
+        prds:
+          items:
+            $ref: '#/components/schemas/PRDResponse'
+          type: array
+          title: Prds
+          description: List of PRDs
+        total:
+          type: integer
+          title: Total
+          description: Total number of PRDs
+        page:
+          type: integer
+          title: Page
+          description: Current page number
+        size:
+          type: integer
+          title: Size
+          description: Page size
+        has_next:
+          type: boolean
+          title: Has Next
+          description: Whether there are more pages
+      type: object
+      required:
+      - prds
+      - total
+      - page
+      - size
+      - has_next
+      title: PRDListResponse
+      description: Model for PRD list API responses.
+    PRDMarkdownResponse:
+      properties:
+        prd_id:
+          type: string
+          title: Prd Id
+          description: PRD ID
+        markdown:
+          type: string
+          title: Markdown
+          description: Markdown content
+        filename:
+          type: string
+          title: Filename
+          description: Suggested filename
+      type: object
+      required:
+      - prd_id
+      - markdown
+      - filename
+      title: PRDMarkdownResponse
+      description: Model for PRD markdown export responses.
+    PRDPriority:
+      type: string
+      enum:
+      - low
+      - medium
+      - high
+      - critical
+      title: PRDPriority
+      description: PRD priority enumeration.
+    PRDResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: PRD ID
+        title:
+          type: string
+          title: Title
+          description: PRD title
+        description:
+          type: string
+          title: Description
+          description: PRD description
+        requirements:
+          items:
+            type: string
+          type: array
+          title: Requirements
+          description: List of requirements
+        prd_type:
+          $ref: '#/components/schemas/PRDType'
+          description: Type of PRD
+        status:
+          $ref: '#/components/schemas/PRDStatus'
+          description: PRD status
+        github_repo_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Github Repo Url
+          description: GitHub repository URL
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+          description: Last update timestamp
+        problem_statement:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Problem Statement
+        target_users:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Target Users
+        user_stories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: User Stories
+        acceptance_criteria:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Acceptance Criteria
+        technical_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Technical Requirements
+        performance_requirements:
+          anyOf:
+          - additionalProperties:
+              type: string
+            type: object
+          - type: 'null'
+          title: Performance Requirements
+        security_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Security Requirements
+        integration_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Integration Requirements
+        deployment_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Deployment Requirements
+        success_metrics:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Success Metrics
+        timeline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Timeline
+        dependencies:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Dependencies
+        risks:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Risks
+        assumptions:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Assumptions
+        category:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+        priority:
+          anyOf:
+          - $ref: '#/components/schemas/PRDPriority'
+          - type: 'null'
+        effort_estimate:
+          anyOf:
+          - $ref: '#/components/schemas/PRDEffort'
+          - type: 'null'
+        business_value:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Business Value
+        technical_complexity:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Technical Complexity
+        dependencies_list:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Dependencies List
+        assignee:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Assignee
+        target_sprint:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Sprint
+        original_filename:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Original Filename
+        file_content:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: File Content
+      type: object
+      required:
+      - id
+      - title
+      - description
+      - requirements
+      - prd_type
+      - status
+      - created_at
+      - updated_at
+      title: PRDResponse
+      description: Model for PRD API responses.
+    PRDStatus:
+      type: string
+      enum:
+      - uploaded
+      - standardizing
+      - review
+      - queue
+      - ready_for_devin
+      - in_progress
+      - completed
+      - failed
+      - processed
+      title: PRDStatus
+      description: PRD status enumeration.
+    PRDType:
+      type: string
+      enum:
+      - platform
+      - agent
+      title: PRDType
+      description: PRD type enumeration.
+    PRDUpdate:
+      properties:
+        title:
+          anyOf:
+          - type: string
+            maxLength: 200
+            minLength: 1
+          - type: 'null'
+          title: Title
+        description:
+          anyOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+          title: Description
+        requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Requirements
+        prd_type:
+          anyOf:
+          - $ref: '#/components/schemas/PRDType'
+          - type: 'null'
+        status:
+          anyOf:
+          - $ref: '#/components/schemas/PRDStatus'
+          - type: 'null'
+        problem_statement:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Problem Statement
+        target_users:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Target Users
+        user_stories:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: User Stories
+        acceptance_criteria:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Acceptance Criteria
+        technical_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Technical Requirements
+        performance_requirements:
+          anyOf:
+          - additionalProperties:
+              type: string
+            type: object
+          - type: 'null'
+          title: Performance Requirements
+        security_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Security Requirements
+        integration_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Integration Requirements
+        deployment_requirements:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Deployment Requirements
+        success_metrics:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Success Metrics
+        timeline:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Timeline
+        dependencies:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Dependencies
+        risks:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Risks
+        assumptions:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Assumptions
+        category:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+        priority:
+          anyOf:
+          - $ref: '#/components/schemas/PRDPriority'
+          - type: 'null'
+        effort_estimate:
+          anyOf:
+          - $ref: '#/components/schemas/PRDEffort'
+          - type: 'null'
+        business_value:
+          anyOf:
+          - type: integer
+            maximum: 10.0
+            minimum: 1.0
+          - type: 'null'
+          title: Business Value
+        technical_complexity:
+          anyOf:
+          - type: integer
+            maximum: 10.0
+            minimum: 1.0
+          - type: 'null'
+          title: Technical Complexity
+        dependencies_list:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Dependencies List
+        assignee:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Assignee
+        target_sprint:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Target Sprint
+      type: object
+      title: PRDUpdate
+      description: Model for updating an existing PRD.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes: {}
+servers:
+- url: https://ai-agent-factory-backend-952475323593.us-central1.run.app
+  description: Production server
+- url: http://localhost:8000
+  description: Local development server

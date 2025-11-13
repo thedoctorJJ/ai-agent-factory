@@ -10,6 +10,10 @@ This directory contains documentation for bugs, issues, and their resolutions in
   - Fixed 500 error on `/api/v1/agents` endpoint
   - Root cause: Missing datetime conversion and enum validation
 
+- **[Redis Agent Not Showing in Dashboard](./redis-agent-not-showing-in-dashboard.md)** (2025-11-13)
+  - Fixed missing Redis agent in dashboard
+  - Root cause: Agent not registered in database + incorrect frontend backend URL
+
 ## 🔍 How to Use This Directory
 
 1. **For Known Issues**: Check the list above to see if your issue has been documented
