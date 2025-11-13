@@ -47,6 +47,12 @@ Security documentation and best practices.
 - **[Security Guide](./SECURITY.md)** - Comprehensive security documentation and API key management
 - **[Secure Configuration Complete](./security/SECURE-CONFIGURATION-COMPLETE.md)** - Complete implementation summary
 
+### 🔧 [Troubleshooting](./troubleshooting/)
+Bug fixes, issues, and resolutions.
+
+- **[Troubleshooting Guide](./troubleshooting/README.md)** - Index of documented issues and fixes
+- **[Agents Endpoint Error](./troubleshooting/agents-endpoint-internal-server-error.md)** - Fixed 500 error on agents endpoint
+
 ### 🤝 [Contributing](./contributing/)
 Guidelines for contributing to the project.
 

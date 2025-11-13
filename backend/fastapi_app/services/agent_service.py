@@ -52,21 +52,21 @@ class AgentService:
 
         # Use simplified data manager
         saved_agent = await data_manager.create_agent(agent_dict)
-        
+
         # Update PRD status to "completed" when agent is successfully created
         if agent_data.prd_id:
             try:
                 await self._update_prd_status_to_completed(agent_data.prd_id)
             except Exception as e:
                 print(f"Failed to update PRD status: {e}")
-        
+
         # Convert datetime strings back to datetime objects for response
         if saved_agent:
             saved_agent["created_at"] = datetime.fromisoformat(saved_agent["created_at"].replace('Z', '+00:00'))
             saved_agent["updated_at"] = datetime.fromisoformat(saved_agent["updated_at"].replace('Z', '+00:00'))
             if saved_agent.get("last_health_check"):
                 saved_agent["last_health_check"] = datetime.fromisoformat(saved_agent["last_health_check"].replace('Z', '+00:00'))
-        
+
         return AgentResponse(**saved_agent)
 
     async def _update_prd_status_to_completed(self, prd_id: str):
@@ -77,7 +77,7 @@ class AgentService:
                 await data_manager.update_prd(prd_id, {"status": "completed"})
                 print(f"✅ Updated PRD {prd_id} status to 'completed' in database")
                 return
-            
+
             # Fallback to in-memory storage
             from ..services.prd_service import prd_service
             if hasattr(prd_service, '_prds_db') and prd_id in prd_service._prds_db:
@@ -90,10 +90,10 @@ class AgentService:
         """Get an agent by ID."""
         # Use data manager to get agent
         agent_data = await data_manager.get_agent(agent_id)
-        
+
         if not agent_data:
             raise HTTPException(status_code=404, detail="Agent not found")
-        
+
         # Convert datetime strings back to datetime objects if needed
         if isinstance(agent_data.get("created_at"), str):
             agent_data["created_at"] = datetime.fromisoformat(agent_data["created_at"].replace('Z', '+00:00'))
@@ -101,7 +101,7 @@ class AgentService:
             agent_data["updated_at"] = datetime.fromisoformat(agent_data["updated_at"].replace('Z', '+00:00'))
         if agent_data.get("last_health_check") and isinstance(agent_data["last_health_check"], str):
             agent_data["last_health_check"] = datetime.fromisoformat(agent_data["last_health_check"].replace('Z', '+00:00'))
-        
+
         return AgentResponse(**agent_data)
 
     async def get_agents(
@@ -114,14 +114,51 @@ class AgentService:
         """Get a list of agents with optional filtering."""
         # Use simplified data manager
         agents_data = await data_manager.get_agents(skip, limit)
-        
+
+        # Convert datetime strings and ensure proper formatting
+        processed_agents = []
+        for agent in agents_data:
+            try:
+                # Convert datetime strings to datetime objects if needed
+                if isinstance(agent.get("created_at"), str):
+                    agent["created_at"] = datetime.fromisoformat(agent["created_at"].replace('Z', '+00:00'))
+                if isinstance(agent.get("updated_at"), str):
+                    agent["updated_at"] = datetime.fromisoformat(agent["updated_at"].replace('Z', '+00:00'))
+                if agent.get("last_health_check") and isinstance(agent["last_health_check"], str):
+                    agent["last_health_check"] = datetime.fromisoformat(agent["last_health_check"].replace('Z', '+00:00'))
+
+                # Ensure status and health_status are valid enum values
+                if agent.get("status"):
+                    try:
+                        AgentStatus(agent["status"])
+                    except ValueError:
+                        agent["status"] = AgentStatus.DRAFT.value
+                else:
+                    agent["status"] = AgentStatus.DRAFT.value
+
+                if agent.get("health_status"):
+                    try:
+                        AgentHealthStatus(agent["health_status"])
+                    except ValueError:
+                        agent["health_status"] = AgentHealthStatus.UNKNOWN.value
+                else:
+                    agent["health_status"] = AgentHealthStatus.UNKNOWN.value
+
+                processed_agents.append(agent)
+            except Exception as e:
+                # Log the error but continue processing other agents
+                print(f"❌ Error processing agent {agent.get('id', 'unknown')}: {e}")
+                print(f"   Agent data: {agent}")
+                # Skip this agent and continue
+                continue
+
         # Apply filters
-        filtered_agents = agents_data
+        filtered_agents = processed_agents
         if status:
             filtered_agents = [a for a in filtered_agents if a["status"] == status.value]
         if prd_id:
             filtered_agents = [a for a in filtered_agents if a.get("prd_id") == prd_id]
-        
+
         return AgentListResponse(
             agents=[AgentResponse(**agent) for agent in filtered_agents],
             total=len(filtered_agents),
@@ -164,7 +201,7 @@ class AgentService:
                     return AgentResponse(**updated_agent)
         except Exception as e:
             print(f"Database update failed, trying in-memory storage: {e}")
-        
+
         # Fallback to in-memory storage
         if agent_id not in self._agents_db:
             raise HTTPException(status_code=404, detail="Agent not found")

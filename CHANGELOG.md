@@ -2,6 +2,22 @@
 
 All notable changes to the AI Agent Factory project will be documented in this file.
 
+## [Unreleased] - 2025-11-13
+
+### 🐛 **Agents Endpoint Internal Server Error - Fixed**
+- **✅ Issue**: `/api/v1/agents` endpoint returning 500 Internal Server Error
+- **✅ Root Cause**: Missing datetime conversion and enum validation in `get_agents()` method
+- **✅ Fix**: Added proper data type conversion for datetime fields and enum validation
+- **✅ Error Handling**: Added graceful error handling for malformed agent records
+- **Status**: Code fix completed, pending production deployment
+- **Documentation**: See `docs/troubleshooting/agents-endpoint-internal-server-error.md`
+
+### **Technical Details**
+- **File**: `backend/fastapi_app/services/agent_service.py`
+- **Method**: `get_agents()` - Added datetime conversion and enum validation
+- **Impact**: Agents endpoint now properly handles Supabase data format
+- **Testing**: Endpoint now returns proper JSON response instead of 500 error
+
 ## [Unreleased] - 2025-10-27
 
 ### 🤖 **Cursor Agent Integration - FULLY OPERATIONAL**
