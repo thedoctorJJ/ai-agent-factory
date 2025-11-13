@@ -1,0 +1,265 @@
+# Cursor Startup Script - AI Agent Factory
+
+## 🎯 Objective
+
+You are starting a new session on the **AI Agent Factory** project. Your first task is to thoroughly understand the application, its current state, configuration, and any documented issues. Follow these steps systematically:
+
+---
+
+## 📋 Step 1: Understand What This Application Does
+
+### 1.1 Read the README
+- **File**: `README.md` (project root)
+- **Action**: Read the entire README file carefully
+- **Focus on**:
+  - Project purpose and description
+  - Live production URLs and status
+  - Architecture overview
+  - Technology stack
+  - Key features and capabilities
+  - Recent updates and fixes
+
+### 1.2 Scan Key Documentation Files
+Read these files to understand the application structure:
+- `docs/architecture/01-architecture-overview.md` - System architecture
+- `docs/getting-started/quick-start.md` - Quick start guide
+- `docs/guides/04-prd-system.md` - PRD system documentation
+- `docs/guides/05-agent-management.md` - Agent management system
+- `CHANGELOG.md` - Recent changes and updates
+
+### 1.3 Examine Project Structure
+Scan the entire file structure to identify key components:
+
+**Backend**:
+- `backend/fastapi_app/main.py` - Main FastAPI application
+- `backend/fastapi_app/routers/` - API route handlers
+- `backend/fastapi_app/services/` - Business logic services
+- `backend/fastapi_app/models/` - Data models
+- `backend/fastapi_app/utils/` - Utility functions
+
+**Frontend**:
+- `frontend/next-app/` - Next.js frontend application
+- `frontend/next-app/types/` - TypeScript type definitions
+
+**Infrastructure**:
+- `infra/` - Infrastructure configuration
+- `scripts/` - Automation scripts
+- `api-spec/` - OpenAPI specifications
+
+**Documentation**:
+- `docs/` - Complete documentation suite
+- `docs/resolution-summaries/` - Previous issue resolutions
+
+---
+
+## 📚 Step 2: Review Previous Issue Resolutions
+
+### 2.1 Read Resolution Summaries
+- **Directory**: `docs/resolution-summaries/`
+- **Action**: Read all resolution summary documents
+- **Files to read**:
+  - `agent-display-issue-resolution.md` - Agent endpoint fix (November 13, 2025)
+
+### 2.2 Review Troubleshooting Documentation
+- **Directory**: `docs/troubleshooting/`
+- **Action**: Review all troubleshooting guides
+- **Focus on**:
+  - Known issues and their solutions
+  - Common problems and fixes
+  - Error patterns and resolutions
+
+### 2.3 Check CHANGELOG
+- **File**: `CHANGELOG.md`
+- **Action**: Review recent entries to understand:
+  - Recent fixes and improvements
+  - Known issues
+  - Deployment history
+  - Breaking changes
+
+---
+
+## 🔐 Step 3: Check Environment Configuration
+
+### 3.1 Locate Environment Files
+Search for environment configuration files:
+- `.env` - Local development environment
+- `.env.local` - Local overrides
+- `.env.production` - Production configuration
+- `config/` - Configuration directory
+- `backend/.env` - Backend-specific environment
+- `frontend/next-app/.env*` - Frontend environment files
+
+### 3.2 Check for API Keys and Secrets
+**IMPORTANT**: When checking environment files, identify but **DO NOT DISPLAY** sensitive values:
+
+1. **Check for presence** of these keys (but don't show values):
+   - `SUPABASE_URL` and `SUPABASE_KEY`
+   - `OPENAI_API_KEY`
+   - `GITHUB_TOKEN`
+   - `GOOGLE_CLOUD_PROJECT_ID`
+   - Any other API keys or secrets
+
+2. **Report status**:
+   - Which keys are configured
+   - Which keys are missing
+   - Environment (development/production)
+   - Configuration method (env files, secure config system, etc.)
+
+3. **Security Note**: 
+   - Never display actual API key values
+   - Report only presence/absence and configuration status
+   - Note if using secure configuration system
+
+### 3.3 Review Configuration System
+- **File**: `config/secure-api-manager.py` (if exists)
+- **Action**: Understand how configuration is managed
+- **Check**: Secure configuration system usage
+
+---
+
+## 🏥 Step 4: Run Health Checks
+
+### 4.1 Backend Health Check
+Test the production backend API:
+
+**Endpoints to check**:
+1. **Basic Health**: 
+   - URL: `https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/health`
+   - Expected: `200 OK` with health status
+
+2. **Detailed Health**:
+   - URL: `https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/health/detailed`
+   - Expected: Detailed service status
+
+3. **Configuration Status**:
+   - URL: `https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/config`
+   - Expected: Configuration validation status
+
+**Report**:
+- HTTP status codes
+- Service status (healthy/degraded/unhealthy)
+- Environment configuration status
+- Service connectivity (Supabase, OpenAI, GitHub, Google Cloud)
+
+### 4.2 Key API Endpoints
+Test critical endpoints:
+
+1. **Agents Endpoint**:
+   - URL: `https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/agents`
+   - Expected: `200 OK` with agents list (or empty array)
+
+2. **PRDs Endpoint**:
+   - URL: `https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/prds`
+   - Expected: `200 OK` with PRDs list
+
+3. **MCP Server Status**:
+   - URL: `https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app/health`
+   - Expected: MCP server health status
+
+### 4.3 Frontend Status
+- **URL**: `https://ai-agent-factory-frontend-952475323593.us-central1.run.app`
+- **Check**: Frontend accessibility and status
+- **Note**: Known SSR issue (documented in README)
+
+### 4.4 Deployed Agents
+Check deployed agents:
+- **Redis Caching Agent**: `https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health`
+- **Status**: Verify agent is running and healthy
+
+---
+
+## 📊 Step 5: Generate Summary Report
+
+After completing all steps, provide a comprehensive summary:
+
+### 5.1 Application Overview
+- **What it does**: Brief description of the AI Agent Factory
+- **Purpose**: Main goal and use case
+- **Architecture**: High-level architecture (backend, frontend, infrastructure)
+- **Technology Stack**: Key technologies used
+
+### 5.2 Current Status
+- **Production URLs**: All live service URLs
+- **Health Status**: Overall system health
+- **Service Status**: Status of each service (backend, frontend, MCP, agents)
+- **Known Issues**: Any documented issues or limitations
+
+### 5.3 Configuration Status
+- **Environment**: Development or production
+- **API Keys**: Which keys are configured (without showing values)
+- **Missing Keys**: Any missing required configuration
+- **Configuration Method**: How configuration is managed
+
+### 5.4 Recent Changes
+- **Latest Fixes**: Recent bug fixes and improvements
+- **Deployments**: Recent deployment history
+- **Documented Issues**: Issues resolved in resolution summaries
+
+### 5.5 Project Structure
+- **Key Directories**: Important directories and their purposes
+- **Key Files**: Critical files for understanding the codebase
+- **Documentation**: Available documentation resources
+
+---
+
+## 🎯 Execution Instructions
+
+1. **Start with README**: Always begin by reading `README.md`
+2. **Systematic Approach**: Follow steps 1-4 in order
+3. **Document Findings**: Take notes as you go
+4. **Verify Health**: Always run health checks to confirm current state
+5. **Security First**: Never display sensitive information
+6. **Comprehensive Summary**: Provide detailed summary in Step 5
+
+---
+
+## 📝 Expected Output Format
+
+After completing all steps, provide your findings in this format:
+
+```markdown
+# AI Agent Factory - Session Startup Report
+
+## Application Overview
+[Brief description of what the application does]
+
+## Current Status
+- Backend: [Status]
+- Frontend: [Status]
+- MCP Server: [Status]
+- Deployed Agents: [List and status]
+
+## Health Check Results
+- Backend Health: [Status]
+- API Endpoints: [Status]
+- Services: [Status of each service]
+
+## Configuration Status
+- Environment: [dev/prod]
+- API Keys Configured: [List without values]
+- Missing Keys: [List if any]
+
+## Recent Issues & Resolutions
+[Summary of documented issues and fixes]
+
+## Project Structure
+[Key directories and files]
+
+## Ready for Development
+[Confirmation that you understand the codebase and are ready to work]
+```
+
+---
+
+## ⚠️ Important Notes
+
+1. **Security**: Never display API keys, tokens, or secrets
+2. **Production**: This is a live production application - be careful with changes
+3. **Documentation**: Always check documentation before making assumptions
+4. **Health Checks**: Always verify current state before making changes
+5. **Resolution History**: Review previous fixes to avoid repeating mistakes
+
+---
+
+**Start Now**: Begin with Step 1.1 - Read the README file.
+
