@@ -79,10 +79,11 @@ The AI Agent Factory has successfully created and deployed its first production 
 - **Current Backend URL**: `https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app`
 - **Status**: ✅ **RESOLVED** - All services properly connected
 
-### **✅ Environment Variables Configured**
-- **Backend**: All environment variables properly set via secure configuration system
-- **Frontend**: `NEXT_PUBLIC_API_URL` correctly configured
-- **Status**: ✅ **RESOLVED** - Production environment fully operational
+### **✅ Secrets Management System**
+- **Local Development**: Encrypted file storage (`config/api-secrets.enc`) - Source of truth
+- **Production**: Google Cloud Secrets Manager (recommended) or Environment Variables
+- **Sync Strategy**: Local → Cloud (always update local first)
+- **Status**: ✅ **OPERATIONAL** - See `docs/security/SECRETS_QUICK_REFERENCE.md` for workflows
 
 ### **⚠️ Known Issues**
 - **Frontend SSR Issue**: Next.js server-side rendering shows `BAILOUT_TO_CLIENT_SIDE_RENDERING`
@@ -93,9 +94,20 @@ The AI Agent Factory has successfully created and deployed its first production 
 
 ## ⚙️ Secure Configuration System
 
-### **🔐 Secure API Key Management**
+### **🔐 Secrets Management Overview**
 
-The AI Agent Factory uses a **secure, encrypted configuration system** that safely stores all API keys and creates working configuration files. All sensitive data is encrypted and protected.
+The AI Agent Factory uses a **two-tier secrets management approach**:
+
+1. **Local Development**: Encrypted file storage (`config/api-secrets.enc`) - **Source of Truth**
+2. **Production**: Google Cloud Secrets Manager
+
+**⚠️ Important**: Local encrypted storage is the **source of truth**. Always update local first, then sync to cloud.
+
+**Quick Reference**: See `docs/security/SECRETS_QUICK_REFERENCE.md` for common workflows.
+
+### **🔐 Secure API Key Management (Local Development)**
+
+For local development, the AI Agent Factory uses a **secure, encrypted configuration system** that safely stores all API keys and creates working configuration files. All sensitive data is encrypted and protected.
 
 #### **🚀 Quick Secure Setup (Recommended)**
 
@@ -155,6 +167,40 @@ python3 config/secure-api-manager.py validate
 python3 config/secure-api-manager.py setup
 ```
 
+#### **☁️ Production Secrets Management**
+
+For production, secrets are stored in **Google Cloud Secrets Manager**:
+
+**Setup** (one-time):
+```bash
+# 1. Create secrets in Secrets Manager
+./scripts/setup-cloud-secrets.sh
+
+# 2. Grant service account access
+./scripts/grant-secret-access.sh
+
+# 3. Deploy with secrets
+./scripts/deploy-with-secrets.sh
+```
+
+**Syncing Secrets** (after updating local):
+```bash
+# 1. Update local encrypted storage (source of truth)
+python3 config/secure-api-manager.py import config/env/.env.local
+
+# 2. Sync to Google Cloud Secrets Manager
+./scripts/sync-secrets-to-cloud.sh
+
+# 3. Verify sync
+./scripts/verify-secrets-sync.sh
+```
+
+**Key Points**:
+- ✅ Local encrypted storage is the **source of truth**
+- ✅ Always update local first, then sync to cloud
+- ✅ Cloud Run automatically uses latest secret versions
+- 📖 See `docs/security/SECRETS_SYNC_STRATEGY.md` for full details
+
 #### **📊 Current Service Status**
 
 ✅ **Google Cloud** - Fully configured and working
@@ -162,6 +208,7 @@ python3 config/secure-api-manager.py setup
 - Redis: `10.1.93.195:6379`
 - **Cloud Run**: All services deployed and responding
 - **Deployment Platform**: Google Cloud Run (not Fly.io)
+- **Secrets Management**: Google Cloud Secrets Manager (recommended) / Environment Variables (current)
 
 ## 🌐 **Production Deployment Status**
 
@@ -304,6 +351,11 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 2. **Use secure setup**: Always use `./setup-secure-config.sh`
 3. **Regular updates**: Update API keys through the secure manager
 4. **Backup encryption key**: Keep `.master-key` safe (losing it means losing access)
+5. **Secrets Management**: 
+   - Local encrypted storage is the **source of truth**
+   - Always update local first, then sync to cloud
+   - Verify sync status regularly: `./scripts/verify-secrets-sync.sh`
+   - See `docs/security/SECRETS_QUICK_REFERENCE.md` for workflows
 
 ## 🔧 **Recent Fixes & Updates**
 
@@ -319,11 +371,13 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 - **Solution**: Removed `tools` field from `agent_service.py` and `AgentResponse` model
 - **Result**: Agent registration now works correctly
 
-### **✅ Production Environment Configuration (Oct 26, 2025)**
-- **Issue**: Production backend was missing environment variables
-- **Root Cause**: Environment variables weren't set during Cloud Run deployment
-- **Solution**: Updated Cloud Run service with all required environment variables using secure config
-- **Result**: Backend now has full access to Supabase, OpenAI, and other services
+### **✅ Secrets Management Strategy (Nov 16, 2025)**
+- **Approach**: Two-tier system (local encrypted storage + Google Cloud Secrets Manager)
+- **Source of Truth**: Local encrypted storage (`config/api-secrets.enc`)
+- **Production**: Google Cloud Secrets Manager (recommended) for secure secret storage
+- **Sync Workflow**: Local → Cloud (always update local first, then sync)
+- **Documentation**: Complete sync strategy and workflows documented
+- **Status**: ✅ **DOCUMENTED** - Ready for implementation
 
 #### **🚨 Troubleshooting**
 

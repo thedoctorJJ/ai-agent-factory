@@ -6,6 +6,11 @@ This directory contains documentation for bugs, issues, and their resolutions in
 
 ### Production Issues
 
+- **[Health Check Environment Variables](./health-check-environment-variables.md)** (2025-11-16)
+  - Fixed health check showing environment variables as "missing" in production
+  - Root cause: Health check using `os.getenv()` directly instead of config object
+  - Resolution: Health check now uses config object for accurate detection
+
 - **[Agents Endpoint Internal Server Error](./agents-endpoint-internal-server-error.md)** (2025-11-13)
   - Fixed 500 error on `/api/v1/agents` endpoint
   - Root cause: Missing datetime conversion and enum validation

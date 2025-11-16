@@ -90,11 +90,21 @@ class Config:
         return os.getenv("STRICT_PRD", "true").lower() == "true"
 
     def validate_config(self) -> dict:
-        """Validate configuration and return status"""
-        required_vars = [
-            "SUPABASE_URL", "SUPABASE_KEY",
-            "OPENAI_API_KEY", "GITHUB_TOKEN", "GOOGLE_CLOUD_PROJECT_ID"
-        ]
+        """Validate configuration and return status
+        
+        Note: This method checks configuration via config properties, which ensures
+        consistency with how the application actually loads configuration. In production,
+        variables may be set via Cloud Run environment variables or Cloud Secrets Manager,
+        and this method will detect them correctly.
+        """
+        # Map of environment variable names to config properties
+        var_mapping = {
+            "SUPABASE_URL": self.supabase_url,
+            "SUPABASE_KEY": self.supabase_key,
+            "OPENAI_API_KEY": self.openai_api_key,
+            "GITHUB_TOKEN": self.github_token,
+            "GOOGLE_CLOUD_PROJECT_ID": self.google_cloud_project_id
+        }
 
         status = {
             "environment_source": self.env_source,
@@ -105,11 +115,10 @@ class Config:
         }
 
         missing_vars = []
-        for var in required_vars:
-            value = os.getenv(var)
-            status["variables"][var] = "configured" if value else "missing"
-            if not value:
-                missing_vars.append(var)
+        for var_name, config_value in var_mapping.items():
+            status["variables"][var_name] = "configured" if config_value else "missing"
+            if not config_value:
+                missing_vars.append(var_name)
 
         if missing_vars:
             status["overall_status"] = "incomplete"

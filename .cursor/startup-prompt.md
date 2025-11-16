@@ -6,6 +6,64 @@ You are starting a new session on the **AI Agent Factory** project. Your first t
 
 ---
 
+## 🔐 CRITICAL: Secrets Management Briefing
+
+**⚠️ READ THIS FIRST - Before making any changes to secrets or configuration**
+
+### **Secrets Management Strategy**
+
+The AI Agent Factory uses a **two-tier secrets management approach**:
+
+1. **Local Development**: Encrypted file storage (`config/api-secrets.enc`)
+2. **Production**: Google Cloud Secrets Manager
+
+### **⚠️ IMPORTANT RULES**
+
+1. **Source of Truth**: Local encrypted storage (`config/api-secrets.enc`) is the **source of truth**
+2. **Update Order**: **ALWAYS update local first, then sync to cloud**
+   - ✅ Local → Cloud (correct)
+   - ❌ Cloud → Local (wrong, except emergency recovery)
+3. **Never Update Cloud First**: Cloud is a sync target, not the source
+4. **Sync After Changes**: Always sync to cloud after updating local secrets
+
+### **Secrets Management Workflow**
+
+**When updating secrets:**
+```bash
+# 1. Update local (source of truth)
+vim config/env/.env.local
+python3 config/secure-api-manager.py import config/env/.env.local
+
+# 2. Sync to cloud
+./scripts/sync-secrets-to-cloud.sh
+
+# 3. Verify sync
+./scripts/verify-secrets-sync.sh
+```
+
+**When checking secrets:**
+```bash
+# Verify local and cloud are in sync
+./scripts/verify-secrets-sync.sh
+```
+
+### **Key Documentation**
+
+- **Quick Reference**: `docs/security/SECRETS_QUICK_REFERENCE.md`
+- **Sync Strategy**: `docs/security/SECRETS_SYNC_STRATEGY.md`
+- **Full Details**: `docs/security/SECRETS_MANAGEMENT_RECOMMENDATION.md`
+
+### **⚠️ Before Making Any Secret Changes**
+
+1. **Read the secrets documentation first**
+2. **Understand the update order** (local → cloud)
+3. **Verify current sync status** before making changes
+4. **Never commit secrets** (they're encrypted and gitignored)
+
+**Remember**: Local is source of truth. Always update local first, then sync to cloud.
+
+---
+
 ## 📋 Step 1: Understand What This Application Does
 
 ### 1.1 Read the README
@@ -59,6 +117,7 @@ Scan the entire file structure to identify key components:
 - **Action**: Read all resolution summary documents
 - **Files to read**:
   - `agent-display-issue-resolution.md` - Agent endpoint fix (November 13, 2025)
+  - `secrets-management-implementation-resolution.md` - Secrets management system implementation (November 16, 2025)
 
 ### 2.2 Review Troubleshooting Documentation
 - **Directory**: `docs/troubleshooting/`
@@ -103,12 +162,26 @@ Search for environment configuration files:
    - Which keys are configured
    - Which keys are missing
    - Environment (development/production)
-   - Configuration method (env files, secure config system, etc.)
+   - Configuration method (local encrypted storage, Cloud Secrets Manager, etc.)
 
 3. **Security Note**: 
    - Never display actual API key values
    - Report only presence/absence and configuration status
    - Note if using secure configuration system
+
+4. **Secrets Management Note**:
+   - **Local Development**: Uses encrypted file storage (`config/api-secrets.enc`)
+   - **Production**: Uses Google Cloud Secrets Manager
+   - **Source of Truth**: Local encrypted storage is the source of truth
+   - **Sync Status**: Check if local and cloud are in sync using `./scripts/verify-secrets-sync.sh`
+   - **Update Order**: Always update local first, then sync to cloud
+   - See `docs/security/SECRETS_QUICK_REFERENCE.md` for workflow details
+
+5. **Production Configuration Note**:
+   - In production, secrets are stored in Google Cloud Secrets Manager
+   - The health check uses the `config` object to detect configuration, which handles all sources correctly
+   - If health check shows "degraded" but API endpoints work, check sync status
+   - See `docs/troubleshooting/health-check-environment-variables.md` for details
 
 ### 3.3 Review Configuration System
 - **File**: `config/secure-api-manager.py` (if exists)
@@ -140,6 +213,12 @@ Test the production backend API:
 - Service status (healthy/degraded/unhealthy)
 - Environment configuration status
 - Service connectivity (Supabase, OpenAI, GitHub, Google Cloud)
+
+**Important Notes**:
+- Health checks use the `config` object to detect configuration, which correctly handles all sources (env vars, Cloud Run vars, secrets)
+- If health check shows "degraded" but endpoints work, configuration is likely correct
+- The health check was updated (Nov 16, 2025) to use config object instead of `os.getenv()` directly for accurate detection
+- See `docs/troubleshooting/health-check-environment-variables.md` for details on health check behavior
 
 ### 4.2 Key API Endpoints
 Test critical endpoints:
@@ -189,6 +268,12 @@ After completing all steps, provide a comprehensive summary:
 - **API Keys**: Which keys are configured (without showing values)
 - **Missing Keys**: Any missing required configuration
 - **Configuration Method**: How configuration is managed
+  - **Local**: Encrypted file storage (`config/api-secrets.enc`) - Source of truth
+  - **Production**: Google Cloud Secrets Manager (recommended) or Environment Variables
+- **Secrets Sync Status**: Check if local and cloud are in sync (use `./scripts/verify-secrets-sync.sh`)
+- **Secrets Update Order**: Always update local first, then sync to cloud
+- **Health Check Status**: Note if health check shows "degraded" but endpoints work (likely detection issue, now fixed)
+- **Production Configuration**: Note that production uses Cloud Secrets Manager or Cloud Run environment variables
 
 ### 5.4 Recent Changes
 - **Latest Fixes**: Recent bug fixes and improvements

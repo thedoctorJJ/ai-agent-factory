@@ -46,6 +46,10 @@ Security documentation and best practices.
 
 - **[Security Guide](./SECURITY.md)** - Comprehensive security documentation and API key management
 - **[Secure Configuration Complete](./security/SECURE-CONFIGURATION-COMPLETE.md)** - Complete implementation summary
+- **[Secrets Management](./security/SECRETS_MANAGEMENT.md)** - Current secrets management state
+- **[Secrets Management Recommendation](./security/SECRETS_MANAGEMENT_RECOMMENDATION.md)** - Recommended approach
+- **[Secrets Sync Strategy](./security/SECRETS_SYNC_STRATEGY.md)** - Sync workflow and strategy
+- **[Secrets Quick Reference](./security/SECRETS_QUICK_REFERENCE.md)** - Quick reference guide
 
 ### 🔧 [Troubleshooting](./troubleshooting/)
 Bug fixes, issues, and resolutions.

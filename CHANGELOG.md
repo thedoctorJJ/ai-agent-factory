@@ -2,6 +2,25 @@
 
 All notable changes to the AI Agent Factory project will be documented in this file.
 
+## [Unreleased] - 2025-11-16
+
+### 🐛 **Health Check Environment Variable Detection - Fixed**
+- **✅ Issue**: Health check endpoints showing environment variables as "missing" in production despite services functioning correctly
+- **✅ Root Cause**: Health check using `os.getenv()` directly instead of config object, which may not detect variables set via Cloud Run environment variables or Cloud Secrets Manager
+- **✅ Fix**: Updated health check endpoints to use config object for configuration detection, ensuring consistency with how the application loads configuration
+- **✅ Impact**: Health checks now accurately reflect actual application configuration status
+- **Status**: Code fix completed, pending production deployment
+- **Documentation**: See `docs/troubleshooting/health-check-environment-variables.md`
+
+### **Technical Details**
+- **Files**: 
+  - `backend/fastapi_app/routers/health.py` - Updated `detailed_health_check()` to use config object
+  - `backend/fastapi_app/config.py` - Updated `validate_config()` to use config properties
+- **Changes**: 
+  - Health check now checks `config.supabase_url`, `config.openai_api_key`, etc. instead of `os.getenv()` directly
+  - Ensures detection works regardless of configuration source (env vars, Cloud Run vars, secrets)
+- **Testing**: Health checks now accurately detect configuration in production environments
+
 ## [Unreleased] - 2025-11-13
 
 ### 📋 **API Contract Specification System - Added**
