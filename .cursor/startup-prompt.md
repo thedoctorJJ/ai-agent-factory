@@ -64,6 +64,63 @@ python3 config/secure-api-manager.py import config/env/.env.local
 
 ---
 
+## 📋 CRITICAL: PRD Management Briefing
+
+**⚠️ READ THIS - Before making any changes to PRDs**
+
+### **PRD Management Strategy**
+
+The AI Agent Factory uses a **file-based PRD system**:
+
+1. **Source of Truth**: PRD files in `prds/queue/`
+2. **Database**: Supabase (sync target only)
+
+### **⚠️ IMPORTANT RULES**
+
+1. **Source of Truth**: PRD files in `prds/queue/` are the **source of truth**
+2. **Update Order**: **ALWAYS update files first, then sync to database**
+   - ✅ Files → Database (correct)
+   - ❌ Database → Files (wrong, except emergency recovery)
+3. **Never Update Database First**: Database is a sync target, not the source
+4. **Sync After Changes**: Always sync to database after updating PRD files
+
+### **PRD Management Workflow**
+
+**When updating PRDs:**
+```bash
+# 1. Update PRD file (source of truth)
+vim prds/queue/2024-11-16_my-prd.md
+
+# 2. Sync to database
+./scripts/prd-management/sync-prds-to-database.sh
+
+# 3. Verify sync
+./scripts/prd-management/verify-prds-sync.sh
+```
+
+**When checking PRDs:**
+```bash
+# Verify files and database are in sync
+./scripts/prd-management/verify-prds-sync.sh
+```
+
+### **Key Documentation**
+
+- **Quick Reference**: `docs/guides/PRD_QUICK_REFERENCE.md`
+- **Sync Strategy**: `docs/guides/PRD_SYNC_STRATEGY.md`
+- **File System**: `docs/troubleshooting/file-based-prd-system.md`
+
+### **⚠️ Before Making Any PRD Changes**
+
+1. **Read the PRD documentation first**
+2. **Understand the update order** (files → database)
+3. **Verify current sync status** before making changes
+4. **Always commit PRD file changes** to git
+
+**Remember**: Files are source of truth. Always update files first, then sync to database.
+
+---
+
 ## 📋 Step 1: Understand What This Application Does
 
 ### 1.1 Read the README

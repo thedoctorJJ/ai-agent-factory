@@ -29,6 +29,18 @@ class PRDService:
 
     async def create_prd(self, prd_data: PRDCreate) -> PRDResponse:
         """Create a new PRD."""
+        # Check for duplicate by title (normalized)
+        existing_prd = await data_manager.get_prd_by_title(prd_data.title)
+        if existing_prd:
+            print(f"⚠️  PRD with title '{prd_data.title}' already exists (ID: {existing_prd.get('id')})")
+            print(f"   Returning existing PRD instead of creating duplicate")
+            # Return existing PRD instead of creating duplicate
+            if isinstance(existing_prd.get("created_at"), str):
+                existing_prd["created_at"] = datetime.fromisoformat(existing_prd["created_at"].replace('Z', '+00:00'))
+            if isinstance(existing_prd.get("updated_at"), str):
+                existing_prd["updated_at"] = datetime.fromisoformat(existing_prd["updated_at"].replace('Z', '+00:00'))
+            return PRDResponse(**existing_prd)
+        
         prd_id = str(uuid.uuid4())
         now = datetime.utcnow()
 

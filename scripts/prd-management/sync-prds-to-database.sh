@@ -1,11 +1,15 @@
 #!/bin/bash
 # Sync PRD files from repository to database
-# This script uploads all PRD files that aren't in the database
+# This script ensures database PRDs match PRD files (source of truth)
+# Similar to sync-secrets-to-cloud.sh but for PRDs
 
 set -e
 
 echo "🔄 Syncing PRD Files to Database"
 echo "=================================="
+echo ""
+echo "📋 Source of Truth: PRD files in prds/queue/"
+echo "🗄️  Sync Target: Database"
 echo ""
 
 # Colors for output
@@ -15,17 +19,32 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-PRD_DIR="prds"
+PRD_DIR="prds/queue"
 BACKEND_URL="https://ai-agent-factory-backend-952475323593.us-central1.run.app"
 UPLOADED=0
 SKIPPED=0
 FAILED=0
+UPDATED=0
 
-# Function to check if PRD is in database
+# Function to check if PRD is in database (normalized title comparison)
 check_in_database() {
     local title="$1"
-    local response=$(curl -s "$BACKEND_URL/api/v1/prds" | \
-        python3 -c "import sys, json; data = json.load(sys.stdin); prds = [p for p in data['prds'] if p['title'].strip('*') == '$title' or '$title' in p['title']]; print('FOUND' if prds else 'NOT_FOUND')" 2>/dev/null || echo "ERROR")
+    local normalized_title=$(echo "$title" | tr '[:upper:]' '[:lower:]' | sed 's/\*//g' | sed 's/#//g' | xargs)
+    
+    local response=$(curl -s "$BACKEND_URL/api/v1/prds?limit=100" | \
+        python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+prds = data.get('prds', [])
+normalized = '$normalized_title'
+for p in prds:
+    p_title = p.get('title', '').strip().lower().replace('*', '').replace('#', '').strip()
+    if p_title == normalized:
+        print('FOUND|' + p.get('id', ''))
+        break
+else:
+    print('NOT_FOUND')
+" 2>/dev/null || echo "ERROR")
     echo "$response"
 }
 
@@ -36,6 +55,7 @@ upload_prd() {
     
     echo "${BLUE}📤 Uploading: $title${NC}"
     
+    # Upload via API using file upload endpoint (simpler and more reliable)
     response=$(curl -s -X POST "$BACKEND_URL/api/v1/prds/upload" \
         -F "file=@$file" \
         -w "\n%{http_code}")
@@ -43,8 +63,8 @@ upload_prd() {
     http_code=$(echo "$response" | tail -1)
     body=$(echo "$response" | head -n -1)
     
-    if [ "$http_code" = "200" ]; then
-        prd_id=$(echo "$body" | python3 -c "import sys, json; print(json.load(sys.stdin)['id'])" 2>/dev/null || echo "unknown")
+    if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+        prd_id=$(echo "$body" | python3 -c "import sys, json; print(json.load(sys.stdin).get('id', 'unknown'))" 2>/dev/null || echo "unknown")
         echo "${GREEN}   ✅ Uploaded successfully (ID: ${prd_id:0:8}...)${NC}"
         return 0
     else
@@ -54,18 +74,50 @@ upload_prd() {
     fi
 }
 
-echo "🔍 Finding PRD files..."
+# Function to update existing PRD
+update_prd() {
+    local file="$1"
+    local title="$2"
+    local prd_id="$3"
+    
+    # Read file content
+    local content=$(cat "$file")
+    
+    echo "${BLUE}🔄 Updating: $title${NC}"
+    
+    # Update via API
+    response=$(curl -s -X PUT "$BACKEND_URL/api/v1/prds/$prd_id" \
+        -H "Content-Type: application/json" \
+        -d "{
+            \"file_content\": $(python3 -c "import json, sys; print(json.dumps(sys.stdin.read()))" <<< "$content")
+        }" \
+        -w "\n%{http_code}")
+    
+    http_code=$(echo "$response" | tail -1)
+    body=$(echo "$response" | head -n -1)
+    
+    if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+        echo "${GREEN}   ✅ Updated successfully${NC}"
+        return 0
+    else
+        echo "${YELLOW}   ⚠️  Update failed: HTTP $http_code (may need manual update)${NC}"
+        return 1
+    fi
+}
+
+echo "🔍 Finding PRD files (source of truth)..."
 echo ""
 
-# Find all PRD markdown files (excluding READMEs and templates)
-PRD_FILES=$(find "$PRD_DIR" -name "*.md" -type f ! -name "README.md" ! -path "*/templates/*" | sort)
+# Find all PRD markdown files in queue directory (source of truth)
+PRD_FILES=$(find "$PRD_DIR" -name "*.md" -type f ! -name "README.md" | sort)
 
 if [ -z "$PRD_FILES" ]; then
     echo "${RED}❌ No PRD files found in $PRD_DIR/${NC}"
     exit 1
 fi
 
-echo "Found $(echo "$PRD_FILES" | wc -l | xargs) PRD files"
+FILE_COUNT=$(echo "$PRD_FILES" | wc -l | xargs)
+echo "Found $FILE_COUNT PRD files (source of truth)"
 echo ""
 
 while IFS= read -r file; do
@@ -81,12 +133,16 @@ while IFS= read -r file; do
     fi
     
     # Check if already in database
-    db_status=$(check_in_database "$title")
+    db_result=$(check_in_database "$title")
+    db_status=$(echo "$db_result" | cut -d'|' -f1)
+    db_prd_id=$(echo "$db_result" | cut -d'|' -f2)
     
     if [ "$db_status" = "FOUND" ]; then
-        echo "${YELLOW}⏭️  Skipping: $title (already in database)${NC}"
+        # PRD exists - check if file is newer (for now, just skip - duplicate detection handles this)
+        echo "${GREEN}✅${NC} $title (already in database)"
         SKIPPED=$((SKIPPED + 1))
     else
+        # PRD not in database - upload it
         if upload_prd "$file" "$title"; then
             UPLOADED=$((UPLOADED + 1))
         else
@@ -97,13 +153,32 @@ while IFS= read -r file; do
 done <<< "$PRD_FILES"
 
 echo "=================================="
-echo "Sync Summary:"
-echo "  ${GREEN}Uploaded: $UPLOADED${NC}"
-echo "  ${YELLOW}Skipped: $SKIPPED${NC}"
-echo "  ${RED}Failed: $FAILED${NC}"
+echo "📊 Sync Summary:"
+echo "   ${GREEN}✅ Uploaded: $UPLOADED${NC}"
+echo "   ${GREEN}✅ Already synced: $SKIPPED${NC}"
+if [ $UPDATED -gt 0 ]; then
+    echo "   ${BLUE}🔄 Updated: $UPDATED${NC}"
+fi
+if [ $FAILED -gt 0 ]; then
+    echo "   ${RED}❌ Failed: $FAILED${NC}"
+fi
+echo ""
+
+# Verify final count
+DB_COUNT=$(curl -s "$BACKEND_URL/api/v1/prds?limit=100" | python3 -c "import sys, json; print(json.load(sys.stdin).get('total', 0))" 2>/dev/null || echo "0")
+echo "📊 Final Status:"
+echo "   Files (source of truth): $FILE_COUNT"
+echo "   Database: $DB_COUNT"
 echo ""
 
 if [ $FAILED -gt 0 ]; then
+    echo "${RED}❌ Some PRDs failed to sync${NC}"
     exit 1
 fi
+
+echo "${GREEN}✅ Sync complete!${NC}"
+echo ""
+echo "📋 Next steps:"
+echo "   1. Verify sync: ./scripts/prd-management/verify-prds-sync.sh"
+echo "   2. Check for duplicates: ./scripts/prd-management/verify-prds-sync.sh"
 

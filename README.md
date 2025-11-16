@@ -20,8 +20,9 @@ This repository contains all core infrastructure, libraries, and documentation t
 
 **🤖 Cursor Agent Integration:**
 - **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app ✅ **WORKING**
-- **Available Tools**: 11 comprehensive tools for platform management
+- **Available Tools**: 12 comprehensive tools for platform management (including SQL execution)
 - **Status**: Ready for Cursor Agent connection and full platform control
+- **New**: Direct Supabase SQL execution from Cursor Agent (no context switching needed!)
 
 **📊 Current Status:**
 - ✅ **Backend API**: Fully functional with Redis agent integration
@@ -30,7 +31,7 @@ This repository contains all core infrastructure, libraries, and documentation t
 - ✅ **Network Connectivity**: All services properly connected
 - ✅ **Environment Variables**: All production environment variables configured
 - ✅ **Agent-PRD Linking**: Redis agent properly linked to its originating PRD
-- ✅ **MCP Server**: Fully operational with 11 tools for Cursor Agent integration
+- ✅ **MCP Server**: Fully operational with 12 tools for Cursor Agent integration (including SQL execution)
 - ⚠️ **Frontend**: Next.js SSR issue (client-side functionality works)
 
 **📝 For Local Development**: See the [Quick Start](#-quick-start) section below for setting up a local development environment.
@@ -56,10 +57,19 @@ The AI Agent Factory has successfully created and deployed its first production 
 
 ## 🔧 **Recent Updates & Fixes**
 
+### **✅ Cursor Agent SQL Execution - NEW FEATURE (November 16, 2025)**
+- **Feature**: Direct Supabase SQL execution from Cursor Agent via MCP server
+- **Implementation**: 
+  - Added `execute_supabase_sql` tool to MCP server
+  - Direct PostgreSQL connection using psycopg2
+  - No context switching needed - run SQL queries directly from Cursor
+- **Status**: ✅ **READY** - Execute SQL, fix RLS policies, and manage database from Cursor Agent
+- **Documentation**: See `docs/guides/MCP_SETUP_SIMPLIFIED.md` for setup
+
 ### **✅ Cursor Agent Integration - FULLY OPERATIONAL (October 27, 2025)**
 - **Issue**: Cursor Agent integration status needed verification
 - **Resolution**: 
-  - MCP Server fully operational with all 11 tools working
+  - MCP Server fully operational with all tools working
   - Successfully tested backend integration and data access
   - Configuration files ready for Cursor Agent connection
 - **Status**: ✅ **READY** - Cursor Agent can now fully integrate with AI Agent Factory
@@ -447,6 +457,7 @@ The documentation has been restructured for better navigation and user experienc
 - **[Agent Management](./docs/guides/agent-management.md)** — Agent lifecycle and management system
 - **[Devin AI Integration](./docs/guides/devin-ai-integration.md)** — Comprehensive Devin AI integration guide
 - **[Cursor Agent Integration](./docs/guides/cursor-agent-integration.md)** — Cursor Agent MCP server integration
+- **[MCP Supabase SQL Execution](./docs/guides/MCP_SETUP_SIMPLIFIED.md)** — Run SQL queries directly from Cursor Agent
 
 #### 🚀 **Deployment**
 - **[Deployment Guide](./docs/deployment/deployment-guide.md)** — Production deployment and DevOps guide

@@ -42,7 +42,8 @@ class CursorAgentMCPServer:
             if self.config.supabase_url and self.config.supabase_service_role_key:
                 self.supabase_service = SimpleSupabaseService(
                     self.config.supabase_url,
-                    self.config.supabase_service_role_key
+                    self.config.supabase_service_role_key,
+                    database_url=self.config.database_url  # For SQL execution
                 )
             
             # Initialize GitHub
@@ -226,6 +227,20 @@ class CursorAgentMCPServer:
                 }
             },
             {
+                "name": "execute_supabase_sql",
+                "description": "Execute SQL queries directly on Supabase database. Use this to fix RLS policies, check foreign keys, or run any SQL command.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sql": {
+                            "type": "string",
+                            "description": "SQL query to execute (e.g., SELECT, UPDATE, CREATE POLICY, etc.)"
+                        }
+                    },
+                    "required": ["sql"]
+                }
+            },
+            {
                 "name": "validate_environment",
                 "description": "Validate all environment configuration",
                 "inputSchema": {
@@ -283,6 +298,8 @@ class CursorAgentMCPServer:
                 return await self._test_database_connection()
             elif name == "get_database_schema":
                 return await self._get_database_schema()
+            elif name == "execute_supabase_sql":
+                return await self._execute_supabase_sql(arguments["sql"])
             elif name == "validate_environment":
                 return await self._validate_environment()
             elif name == "start_backend_server":
@@ -523,6 +540,17 @@ class CursorAgentMCPServer:
             return {"schema": schema}
         except Exception as e:
             return {"error": f"Failed to get database schema: {str(e)}"}
+    
+    async def _execute_supabase_sql(self, sql: str) -> Dict[str, Any]:
+        """Execute SQL query directly on Supabase database"""
+        if not self.supabase_service:
+            return {"error": "Supabase service not configured"}
+        
+        try:
+            result = await self.supabase_service.execute_sql(sql)
+            return result
+        except Exception as e:
+            return {"error": f"SQL execution failed: {str(e)}"}
     
     async def _validate_environment(self) -> Dict[str, Any]:
         """Validate environment configuration"""

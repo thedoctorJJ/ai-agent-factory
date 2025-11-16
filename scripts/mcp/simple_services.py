@@ -12,9 +12,10 @@ from typing import Dict, Any, Optional, List
 class SimpleSupabaseService:
     """Simple Supabase service for basic operations"""
     
-    def __init__(self, url: str, service_role_key: str):
+    def __init__(self, url: str, service_role_key: str, database_url: Optional[str] = None):
         self.url = url.rstrip('/')
         self.service_role_key = service_role_key
+        self.database_url = database_url
         self.headers = {
             'apikey': service_role_key,
             'Authorization': f'Bearer {service_role_key}',
@@ -42,6 +43,59 @@ class SimpleSupabaseService:
         
         except Exception as e:
             return {"error": f"Supabase operation failed: {str(e)}"}
+    
+    async def execute_sql(self, sql: str) -> Dict[str, Any]:
+        """Execute raw SQL query using direct PostgreSQL connection"""
+        if not self.database_url:
+            return {"error": "Database URL not configured. Cannot execute SQL directly."}
+        
+        try:
+            # Try to use psycopg2 if available
+            try:
+                import psycopg2
+                from psycopg2.extras import RealDictCursor
+            except ImportError:
+                return {
+                    "error": "psycopg2 not installed. Install with: pip install psycopg2-binary",
+                    "suggestion": "For SQL execution, install psycopg2-binary or use Supabase Dashboard SQL Editor"
+                }
+            
+            # Parse connection string and execute
+            conn = psycopg2.connect(self.database_url)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            
+            try:
+                cursor.execute(sql)
+                
+                # Check if it's a SELECT query
+                if sql.strip().upper().startswith('SELECT'):
+                    results = cursor.fetchall()
+                    # Convert to list of dicts
+                    data = [dict(row) for row in results]
+                    conn.commit()
+                    return {
+                        "success": True,
+                        "data": data,
+                        "row_count": len(data)
+                    }
+                else:
+                    # For INSERT, UPDATE, DELETE, etc.
+                    conn.commit()
+                    rows_affected = cursor.rowcount
+                    return {
+                        "success": True,
+                        "message": f"Query executed successfully",
+                        "rows_affected": rows_affected
+                    }
+            except Exception as e:
+                conn.rollback()
+                return {"error": f"SQL execution failed: {str(e)}"}
+            finally:
+                cursor.close()
+                conn.close()
+        
+        except Exception as e:
+            return {"error": f"Database connection failed: {str(e)}"}
     
     # Add client property for compatibility
     @property

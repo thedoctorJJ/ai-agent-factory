@@ -27,7 +27,7 @@ def register_redis_agent():
         "repository_url": "https://github.com/thedoctorJJ/ai-agent-factory/tree/main/agents/redis-caching-agent",
         "deployment_url": redis_agent_url,
         "health_check_url": f"{redis_agent_url}/health",
-        "prd_id": "6e495754-d340-476e-a2a4-cb16e9abb5d1",  # Redis PRD ID
+        "prd_id": None,  # Will be set dynamically or via update after registration
         "devin_task_id": None,
         "capabilities": [
             "cache_set",

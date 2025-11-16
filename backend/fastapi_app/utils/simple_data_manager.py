@@ -157,8 +157,33 @@ class SimpleDataManager:
         else:
             # Ensure datetime objects are converted to ISO strings for database storage
             db_data = self._prepare_data_for_db(agent_data)
-            result = self.supabase.table('agents').update(db_data).eq('id', agent_id).execute()
-            return result.data[0] if result.data else None
+            
+            # Note: We skip PRD verification here because:
+            # 1. The foreign key constraint will validate it
+            # 2. RLS might prevent the verification check even though PRD exists
+            # 3. If PRD doesn't exist, the foreign key constraint will fail with a clear error
+            # The RLS fix should allow the foreign key check to work properly
+            
+            try:
+                result = self.supabase.table('agents').update(db_data).eq('id', agent_id).execute()
+                if result.data and len(result.data) > 0:
+                    print(f"✅ Updated agent {agent_id}: {result.data[0].get('name', 'N/A')}")
+                    return result.data[0]
+                else:
+                    # No rows updated - agent might not exist
+                    print(f"⚠️  No agent found with ID {agent_id} to update")
+                    return None
+            except Exception as e:
+                error_str = str(e).lower()
+                if 'foreign key' in error_str or '23503' in str(e):
+                    # Foreign key constraint violation - provide more helpful error
+                    print(f"❌ Foreign key constraint violation: {e}")
+                    if 'prd_id' in db_data:
+                        print(f"   Attempted to set prd_id to: {db_data.get('prd_id')}")
+                        print(f"   This might be an RLS (Row Level Security) issue.")
+                        print(f"   The PRD exists but RLS might be blocking the foreign key check.")
+                print(f"❌ Error updating agent {agent_id}: {e}")
+                raise
     
     async def delete_agent(self, agent_id: str) -> bool:
         """Delete an agent."""
@@ -208,6 +233,27 @@ class SimpleDataManager:
             result = self.supabase.table('prds').select('*').eq('id', prd_id).execute()
             return result.data[0] if result.data else None
     
+    async def get_prd_by_title(self, title: str) -> Optional[Dict[str, Any]]:
+        """Get a PRD by title (case-insensitive, ignoring markdown formatting)."""
+        if self.mode == "development":
+            # Normalize title for comparison
+            normalized_title = title.strip().lower().replace('*', '').replace('#', '').strip()
+            for prd in self.memory_storage["prds"].values():
+                prd_title = prd.get("title", "").strip().lower().replace('*', '').replace('#', '').strip()
+                if prd_title == normalized_title:
+                    return prd
+            return None
+        else:
+            # Get all PRDs and filter by normalized title (Supabase doesn't have case-insensitive search easily)
+            result = self.supabase.table('prds').select('*').execute()
+            if result.data:
+                normalized_title = title.strip().lower().replace('*', '').replace('#', '').strip()
+                for prd in result.data:
+                    prd_title = prd.get("title", "").strip().lower().replace('*', '').replace('#', '').strip()
+                    if prd_title == normalized_title:
+                        return prd
+            return None
+    
     async def update_prd(self, prd_id: str, prd_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update a PRD."""
         if self.mode == "development":
@@ -227,8 +273,23 @@ class SimpleDataManager:
                 return True
             return False
         else:
-            result = self.supabase.table('prds').delete().eq('id', prd_id).execute()
-            return True
+            try:
+                # Supabase delete returns the deleted record(s) in result.data
+                # If result.data is not empty, the delete succeeded
+                result = self.supabase.table('prds').delete().eq('id', prd_id).execute()
+                
+                # Check if deletion was successful
+                # Supabase returns deleted records in result.data
+                if result.data and len(result.data) > 0:
+                    print(f"✅ Deleted PRD {prd_id}: {result.data[0].get('title', 'N/A')}")
+                    return True
+                else:
+                    # No records deleted - PRD might not exist
+                    print(f"⚠️  No PRD found with ID {prd_id} to delete")
+                    return False
+            except Exception as e:
+                print(f"❌ Error deleting PRD {prd_id}: {e}")
+                raise
     
     async def clear_all_prds(self) -> bool:
         """Clear all PRDs."""

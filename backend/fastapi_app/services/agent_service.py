@@ -294,6 +294,12 @@ class AgentService:
         # Try to update in database first
         try:
             if data_manager.is_connected():
+                # First check if agent exists in database
+                existing_agent = await data_manager.get_agent(agent_id)
+                if not existing_agent:
+                    raise HTTPException(status_code=404, detail="Agent not found")
+                
+                # Try to update
                 updated_agent = await data_manager.update_agent(agent_id, agent_data)
                 if updated_agent:
                     # Convert datetime strings back to datetime objects
@@ -304,19 +310,39 @@ class AgentService:
                     if updated_agent.get("last_health_check") and isinstance(updated_agent["last_health_check"], str):
                         updated_agent["last_health_check"] = datetime.fromisoformat(updated_agent["last_health_check"].replace('Z', '+00:00'))
                     return AgentResponse(**updated_agent)
+                else:
+                    # Update returned None but agent exists - this shouldn't happen, but if it does, fetch the agent
+                    print(f"⚠️  Update returned None for agent {agent_id}, fetching current state...")
+                    current_agent = await data_manager.get_agent(agent_id)
+                    if current_agent:
+                        # Merge the update data manually
+                        current_agent.update(agent_data)
+                        # Try update again
+                        updated_agent = await data_manager.update_agent(agent_id, agent_data)
+                        if updated_agent:
+                            if isinstance(updated_agent.get("created_at"), str):
+                                updated_agent["created_at"] = datetime.fromisoformat(updated_agent["created_at"].replace('Z', '+00:00'))
+                            if isinstance(updated_agent.get("updated_at"), str):
+                                updated_agent["updated_at"] = datetime.fromisoformat(updated_agent["updated_at"].replace('Z', '+00:00'))
+                            if updated_agent.get("last_health_check") and isinstance(updated_agent["last_health_check"], str):
+                                updated_agent["last_health_check"] = datetime.fromisoformat(updated_agent["last_health_check"].replace('Z', '+00:00'))
+                            return AgentResponse(**updated_agent)
+                    raise HTTPException(status_code=500, detail="Failed to update agent in database")
+        except HTTPException:
+            raise
         except Exception as e:
-            print(f"Database update failed, trying in-memory storage: {e}")
-
-        # Fallback to in-memory storage
-        if agent_id not in self._agents_db:
-            raise HTTPException(status_code=404, detail="Agent not found")
-
-        # Update the agent data
-        agent_dict = self._agents_db[agent_id]
-        agent_dict.update(agent_data)
-        agent_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
-
-        return AgentResponse(**agent_dict)
+            print(f"Database update failed: {e}")
+            # Only fall back to in-memory if we're in development mode
+            if data_manager.mode == "development":
+                if agent_id not in self._agents_db:
+                    raise HTTPException(status_code=404, detail="Agent not found")
+                agent_dict = self._agents_db[agent_id]
+                agent_dict.update(agent_data)
+                agent_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+                return AgentResponse(**agent_dict)
+            else:
+                # In production, if database update fails, raise error
+                raise HTTPException(status_code=500, detail=f"Failed to update agent: {str(e)}")
 
     async def delete_agent(self, agent_id: str) -> Dict[str, str]:
         """Delete an agent."""
