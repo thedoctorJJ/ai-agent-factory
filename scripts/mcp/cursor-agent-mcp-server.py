@@ -40,10 +40,12 @@ class CursorAgentMCPServer:
         try:
             # Initialize Supabase
             if self.config.supabase_url and self.config.supabase_service_role_key:
+                # Prefer DATABASE_URL from environment (MCP config) over config file
+                database_url = os.getenv("DATABASE_URL") or self.config.database_url
                 self.supabase_service = SimpleSupabaseService(
                     self.config.supabase_url,
                     self.config.supabase_service_role_key,
-                    database_url=self.config.database_url  # For SQL execution
+                    database_url=database_url  # For SQL execution
                 )
             
             # Initialize GitHub
@@ -631,6 +633,7 @@ class CursorAgentMCPServer:
 async def main():
     """Main MCP server loop"""
     server = CursorAgentMCPServer()
+    initialized = False
     
     # Handle MCP protocol messages
     while True:
@@ -639,39 +642,86 @@ async def main():
             if not line:
                 break
             
-            message = json.loads(line.strip())
+            line = line.strip()
+            if not line:
+                continue
+                
+            message = json.loads(line)
+            method = message.get("method")
+            msg_id = message.get("id")
             
-            if message.get("method") == "tools/list":
-                tools = await server.list_tools()
+            # Handle initialization handshake
+            if method == "initialize":
                 response = {
                     "jsonrpc": "2.0",
-                    "id": message.get("id"),
-                    "result": {"tools": tools}
+                    "id": msg_id,
+                    "result": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {
+                            "tools": {}
+                        },
+                        "serverInfo": {
+                            "name": "ai-agent-factory",
+                            "version": "1.0.0"
+                        }
+                    }
                 }
-            elif message.get("method") == "tools/call":
-                result = await server.call_tool(
-                    message["params"]["name"],
-                    message["params"].get("arguments", {})
-                )
-                response = {
-                    "jsonrpc": "2.0",
-                    "id": message.get("id"),
-                    "result": {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}
-                }
+                initialized = True
+            elif method == "initialized":
+                # Client confirms initialization, no response needed
+                continue
+            elif method == "tools/list":
+                if not initialized:
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": msg_id,
+                        "error": {"code": -32002, "message": "Server not initialized"}
+                    }
+                else:
+                    tools = await server.list_tools()
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": msg_id,
+                        "result": {"tools": tools}
+                    }
+            elif method == "tools/call":
+                if not initialized:
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": msg_id,
+                        "error": {"code": -32002, "message": "Server not initialized"}
+                    }
+                else:
+                    tool_name = message["params"].get("name")
+                    tool_args = message["params"].get("arguments", {})
+                    result = await server.call_tool(tool_name, tool_args)
+                    response = {
+                        "jsonrpc": "2.0",
+                        "id": msg_id,
+                        "result": {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}
+                    }
             else:
                 response = {
                     "jsonrpc": "2.0",
-                    "id": message.get("id"),
-                    "error": {"code": -32601, "message": "Method not found"}
+                    "id": msg_id,
+                    "error": {"code": -32601, "message": f"Method not found: {method}"}
                 }
             
             print(json.dumps(response))
             sys.stdout.flush()
         
+        except json.JSONDecodeError as e:
+            error_response = {
+                "jsonrpc": "2.0",
+                "id": None,
+                "error": {"code": -32700, "message": f"Parse error: {str(e)}"}
+            }
+            print(json.dumps(error_response))
+            sys.stdout.flush()
         except Exception as e:
             error_response = {
                 "jsonrpc": "2.0",
-                "id": message.get("id") if 'message' in locals() else None,
+                "id": msg_id if 'msg_id' in locals() else None,
                 "error": {"code": -32603, "message": f"Internal error: {str(e)}"}
             }
             print(json.dumps(error_response))

@@ -4,6 +4,18 @@ All notable changes to the AI Agent Factory project will be documented in this f
 
 ## [Unreleased] - 2025-11-16
 
+### ✅ **MCP Server and Database Health Check Implementation**
+- **✅ Feature**: Comprehensive health check for MCP server and database connectivity
+- **✅ Purpose**: Verify MCP server functionality and database access during startup
+- **✅ Implementation**:
+  - Created `scripts/health-check-mcp-database.py` health check script
+  - Updated startup prompt to include MCP health check as Step 4.0
+  - Added comprehensive documentation (`.cursor/MCP_HEALTH_CHECK.md`)
+  - Health check validates: MCP configuration, server initialization, database connectivity, table access, and RLS policies
+- **✅ Benefits**: Early detection of database connectivity issues, systematic verification, clear status reporting
+- **✅ Status**: Fully implemented and tested
+- **✅ Documentation**: See `docs/resolution-summaries/mcp-database-health-check-implementation-resolution-2025-11-16.md`
+
 ### 🐛 **Redis Agent Registration Fix - Resolved**
 - **✅ Issue**: Redis agent registration failing with 500 Internal Server Error
 - **✅ Root Cause**: Multiple issues - duplicate agent handling, Supabase project paused, incorrect PRD ID

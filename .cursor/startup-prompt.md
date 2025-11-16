@@ -267,6 +267,35 @@ Search for environment configuration files:
 
 ## 🏥 Step 4: Run Health Checks
 
+### 4.0 MCP Server and Database Health Check
+**⚠️ CRITICAL**: Verify MCP server is working and can access the database.
+
+**Run MCP/Database Health Check**:
+```bash
+python3 scripts/health-check-mcp-database.py
+```
+
+**What this checks**:
+1. **MCP Configuration**: Verifies `~/.cursor/mcp.json` is properly configured
+2. **MCP Server**: Tests that MCP server can be initialized
+3. **Database via MCP**: Verifies database connectivity through MCP server
+   - Tests simple SELECT queries
+   - Verifies table access (agents, prds)
+   - Checks RLS policies are correctly configured
+
+**Expected Results**:
+- ✅ MCP Configuration: PASS
+- ✅ MCP Server: PASS
+- ✅ Database (via MCP): PASS
+
+**If checks fail**:
+- Review MCP configuration in `~/.cursor/mcp.json`
+- Verify `DATABASE_URL` is correctly configured
+- Check that MCP server script exists and is executable
+- Ensure database is accessible (not banned, IP allowlist configured)
+
+**Important**: The MCP server is the primary method for database access from Cursor. If this check fails, database operations will not work.
+
 ### 4.1 Backend Health Check
 Test the production backend API:
 
@@ -494,6 +523,8 @@ After completing all steps, provide your findings in this format:
 - Deployed Agents: [List and status]
 
 ## Health Check Results
+- MCP Server: [Status - PASS/FAIL]
+- Database (via MCP): [Status - PASS/FAIL]
 - Backend Health: [Status]
 - API Endpoints: [Status]
 - Services: [Status of each service]

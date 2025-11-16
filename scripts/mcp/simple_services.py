@@ -46,7 +46,10 @@ class SimpleSupabaseService:
     
     async def execute_sql(self, sql: str) -> Dict[str, Any]:
         """Execute raw SQL query using direct PostgreSQL connection"""
-        if not self.database_url:
+        # First, try to get DATABASE_URL from environment (MCP config might have it)
+        database_url = self.database_url or os.getenv("DATABASE_URL")
+        
+        if not database_url:
             return {"error": "Database URL not configured. Cannot execute SQL directly."}
         
         try:
@@ -61,38 +64,64 @@ class SimpleSupabaseService:
                 }
             
             # Parse connection string and execute
-            conn = psycopg2.connect(self.database_url)
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            # Ensure SSL is enabled for Supabase connections
+            if 'sslmode' not in database_url:
+                if '?' in database_url:
+                    database_url += '&sslmode=require'
+                else:
+                    database_url += '?sslmode=require'
+            
+            # Force IPv4 connection to avoid IPv6 connection issues
+            import socket
+            original_getaddrinfo = socket.getaddrinfo
+            
+            def getaddrinfo_ipv4(*args, **kwargs):
+                """Force IPv4 resolution"""
+                results = original_getaddrinfo(*args, **kwargs)
+                # Filter to IPv4 only
+                ipv4_results = [r for r in results if r[0] == socket.AF_INET]
+                # If we have IPv4 results, use them; otherwise fall back to all
+                return ipv4_results if ipv4_results else results
+            
+            # Temporarily override getaddrinfo to prefer IPv4
+            socket.getaddrinfo = getaddrinfo_ipv4
             
             try:
-                cursor.execute(sql)
+                conn = psycopg2.connect(database_url, connect_timeout=10)
+                cursor = conn.cursor(cursor_factory=RealDictCursor)
                 
-                # Check if it's a SELECT query
-                if sql.strip().upper().startswith('SELECT'):
-                    results = cursor.fetchall()
-                    # Convert to list of dicts
-                    data = [dict(row) for row in results]
-                    conn.commit()
-                    return {
-                        "success": True,
-                        "data": data,
-                        "row_count": len(data)
-                    }
-                else:
-                    # For INSERT, UPDATE, DELETE, etc.
-                    conn.commit()
-                    rows_affected = cursor.rowcount
-                    return {
-                        "success": True,
-                        "message": f"Query executed successfully",
-                        "rows_affected": rows_affected
-                    }
-            except Exception as e:
-                conn.rollback()
-                return {"error": f"SQL execution failed: {str(e)}"}
+                try:
+                    cursor.execute(sql)
+                    
+                    # Check if it's a SELECT query
+                    if sql.strip().upper().startswith('SELECT'):
+                        results = cursor.fetchall()
+                        # Convert to list of dicts
+                        data = [dict(row) for row in results]
+                        conn.commit()
+                        return {
+                            "success": True,
+                            "data": data,
+                            "row_count": len(data)
+                        }
+                    else:
+                        # For INSERT, UPDATE, DELETE, etc.
+                        conn.commit()
+                        rows_affected = cursor.rowcount
+                        return {
+                            "success": True,
+                            "message": f"Query executed successfully",
+                            "rows_affected": rows_affected
+                        }
+                except Exception as e:
+                    conn.rollback()
+                    return {"error": f"SQL execution failed: {str(e)}"}
+                finally:
+                    cursor.close()
+                    conn.close()
             finally:
-                cursor.close()
-                conn.close()
+                # Restore original getaddrinfo
+                socket.getaddrinfo = original_getaddrinfo
         
         except Exception as e:
             return {"error": f"Database connection failed: {str(e)}"}
