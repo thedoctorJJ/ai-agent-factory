@@ -1,0 +1,41 @@
+name: Sync PRDs to Database
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'prds/queue/**'
+      - 'prds/**/*.md'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  sync-prds:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests
+      
+      - name: Sync PRDs to Database
+        env:
+          BACKEND_URL: https://ai-agent-factory-backend-952475323593.us-central1.run.app
+        run: |
+          chmod +x scripts/prd-management/sync-prds-to-database.sh
+          ./scripts/prd-management/sync-prds-to-database.sh
+      
+      - name: Verify PRD Sync
+        env:
+          BACKEND_URL: https://ai-agent-factory-backend-952475323593.us-central1.run.app
+        run: |
+          chmod +x scripts/prd-management/verify-prds-sync.sh
+          ./scripts/prd-management/verify-prds-sync.sh
+

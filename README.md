@@ -688,10 +688,11 @@ npm run dev
 
 ### **Sample PRDs Available:**
 - **Create PRD Files** (recommended): Run `python3 scripts/create-sample-prds-files.py` to create PRD files
-- **Sync to Database**: Run `./scripts/prd-management/sync-prds-to-database.sh` to upload files
+- **Automatic Sync**: PRDs automatically sync to database via GitHub Actions when pushed to main
+- **Manual Sync**: Run `./scripts/prd-management/sync-prds-to-database.sh` to upload files manually
 - **Or Direct Upload**: Run `python scripts/create-sample-prds.py` to create PRDs directly in database
 - Includes 9 comprehensive PRDs covering infrastructure, features, and platform improvements
-- **Note**: PRD files in `prds/` directory are the source of truth. Database is just storage.
+- **Note**: PRD files in `prds/` directory are the source of truth. Database is sync target with automatic syncing enabled.
 
 ## 🎉 **Ready to Go!**
 

@@ -88,6 +88,10 @@ Syncs all PRD files from repository to database.
 ./scripts/prd-management/sync-prds-to-database.sh
 ```
 
+**Note**: This script is automatically called by:
+- GitHub Actions workflow (on push to main)
+- Git post-commit hook (if installed, on local commits)
+
 ### **Script 2: Verify Sync** (`scripts/prd-management/verify-prds-sync.sh`)
 
 Verifies that PRD files and database are in sync.
@@ -103,7 +107,26 @@ Verifies that PRD files and database are in sync.
 ./scripts/prd-management/verify-prds-sync.sh
 ```
 
-### **Script 3: Pull from Database** (`scripts/prd-management/create-prd-files-from-database.py`)
+### **Script 3: Setup Git Hook** (`scripts/prd-management/setup-prd-sync-hook.sh`)
+
+Sets up automatic PRD syncing via git post-commit hook.
+
+**What it does**:
+- Creates `.git/hooks/post-commit` hook
+- Automatically syncs PRDs when PRD files are committed
+- Non-blocking (won't fail commit if sync fails)
+
+**Usage**:
+```bash
+./scripts/prd-management/setup-prd-sync-hook.sh
+```
+
+**Disable**:
+```bash
+rm .git/hooks/post-commit
+```
+
+### **Script 4: Pull from Database** (`scripts/prd-management/create-prd-files-from-database.py`)
 
 **Emergency only**: Creates PRD files from database (if files are lost).
 
@@ -166,6 +189,50 @@ python3 scripts/prd-management/create-prd-files-from-database.py
 
 ---
 
+## 🤖 Proactive Syncing
+
+### **Automatic Sync Mechanisms**
+
+The AI Agent Factory includes **proactive syncing** to automatically keep PRDs in sync:
+
+#### **1. GitHub Actions Workflow** (Production)
+- **Location**: `.github/workflows/sync-prds.yml`
+- **Triggers**: 
+  - Automatically runs when PRD files in `prds/queue/` are pushed to `main` branch
+  - Can be manually triggered via GitHub Actions UI
+- **What it does**:
+  - Syncs all PRD files to database
+  - Verifies sync status
+  - Reports results in GitHub Actions logs
+- **Status**: ✅ **ACTIVE** - Automatically syncs on every PRD file change
+
+#### **2. Git Post-Commit Hook** (Local Development)
+- **Setup**: `./scripts/prd-management/setup-prd-sync-hook.sh`
+- **Triggers**: Automatically runs after committing PRD files
+- **What it does**:
+  - Detects if PRD files were changed in the commit
+  - Automatically syncs to database (non-blocking)
+  - Provides feedback in terminal
+- **Installation**:
+  ```bash
+  ./scripts/prd-management/setup-prd-sync-hook.sh
+  ```
+- **Disable**: `rm .git/hooks/post-commit`
+
+#### **3. Manual Sync** (Always Available)
+- **Command**: `./scripts/prd-management/sync-prds-to-database.sh`
+- **Use when**: 
+  - Need to sync immediately
+  - Git hook not installed
+  - Testing sync functionality
+
+### **Sync Priority**
+1. **GitHub Actions** (automatic on push to main) - Primary sync mechanism
+2. **Git Hook** (automatic on commit) - Local development convenience
+3. **Manual Sync** (on-demand) - Always available as fallback
+
+---
+
 ## 📝 Best Practices
 
 ### **1. Regular Sync Checks**
@@ -175,10 +242,9 @@ python3 scripts/prd-management/create-prd-files-from-database.py
 ```
 
 ### **2. After Any PRD Change**
-```bash
-# Always sync after updating PRD files
-./scripts/prd-management/sync-prds-to-database.sh
-```
+- **Automatic**: GitHub Actions will sync when you push to main
+- **Local**: Git hook will sync when you commit (if installed)
+- **Manual**: `./scripts/prd-management/sync-prds-to-database.sh`
 
 ### **3. Before Major Deployments**
 ```bash
