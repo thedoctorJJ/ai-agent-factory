@@ -29,7 +29,37 @@ SENSITIVE_FILES=()
 # Get list of staged files
 STAGED_FILES=$(git diff --cached --name-only)
 
+# Allowed paths (documentation and scripts for secrets management)
+ALLOWED_PATTERNS=(
+    "^docs/security/SECRETS"
+    "^docs/resolution-summaries/.*secrets"
+    "^scripts/.*secrets"
+    "^scripts/.*secret"
+    "^scripts/sync-secrets"
+    "^scripts/verify-secrets"
+    "^scripts/pull-secrets"
+    "^scripts/grant-secret"
+    "^scripts/deploy-with-secrets"
+    "^scripts/setup-cloud-secrets"
+    "^scripts/load-secrets"
+)
+
 for file in $STAGED_FILES; do
+    # Check if file is in allowed list
+    IS_ALLOWED=false
+    for allowed in "${ALLOWED_PATTERNS[@]}"; do
+        if echo "$file" | grep -qE "$allowed"; then
+            IS_ALLOWED=true
+            break
+        fi
+    done
+    
+    # Skip if allowed
+    if [ "$IS_ALLOWED" = true ]; then
+        continue
+    fi
+    
+    # Check for sensitive patterns
     for pattern in "${SENSITIVE_PATTERNS[@]}"; do
         if echo "$file" | grep -qE "$pattern"; then
             echo "❌ Found sensitive file matching pattern: $pattern"

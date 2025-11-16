@@ -69,6 +69,19 @@ package-lock.json
 *secret*
 *token*
 
+# Exceptions: Allow secrets management documentation and scripts
+!docs/security/SECRETS*.md
+!docs/resolution-summaries/*secrets*.md
+!scripts/*secrets*.sh
+!scripts/*secret*.sh
+!scripts/sync-secrets*.sh
+!scripts/verify-secrets*.sh
+!scripts/pull-secrets*.sh
+!scripts/grant-secret*.sh
+!scripts/deploy-with-secrets.sh
+!scripts/setup-cloud-secrets.sh
+!scripts/load-secrets*.py
+
 # IDE
 .vscode/
 .idea/
