@@ -4,6 +4,26 @@ All notable changes to the AI Agent Factory project will be documented in this f
 
 ## [Unreleased] - 2025-11-16
 
+### 🐛 **Agents Endpoint 500 Error - Fixed (Regression)**
+- **✅ Issue**: `/api/v1/agents` endpoint returning 500 Internal Server Error (regression from Nov 13 fix)
+- **✅ Root Cause**: Insufficient error handling when creating `AgentResponse` objects from database records
+- **✅ Fix**: Added comprehensive error handling, field validation, and type checking in `get_agents()` method
+- **✅ Impact**: Endpoint now gracefully handles database errors, missing fields, and malformed records
+- **Status**: Code fix completed and deployed to production
+- **Documentation**: See `docs/resolution-summaries/agents-endpoint-500-error-resolution-nov-16-2025.md`
+
+### **Technical Details**
+- **Files**: 
+  - `backend/fastapi_app/services/agent_service.py` - Updated `get_agents()` with comprehensive error handling
+- **Changes**: 
+  - Added try-catch around data fetching from database
+  - Added validation for required fields with safe defaults
+  - Added type validation for list/dict fields
+  - Separated `AgentResponse` creation with individual error handling
+  - Added traceback logging for debugging
+- **Testing**: Endpoint now returns 200 OK with proper JSON response
+- **Deployment**: Revision `ai-agent-factory-backend-00034-7b6` deployed successfully
+
 ### 🐛 **Health Check Environment Variable Detection - Fixed**
 - **✅ Issue**: Health check endpoints showing environment variables as "missing" in production despite services functioning correctly
 - **✅ Root Cause**: Health check using `os.getenv()` directly instead of config object, which may not detect variables set via Cloud Run environment variables or Cloud Secrets Manager

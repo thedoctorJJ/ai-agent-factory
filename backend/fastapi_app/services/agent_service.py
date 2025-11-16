@@ -112,18 +112,42 @@ class AgentService:
         prd_id: Optional[str] = None
     ) -> AgentListResponse:
         """Get a list of agents with optional filtering."""
-        # Use simplified data manager
-        agents_data = await data_manager.get_agents(skip, limit)
+        try:
+            # Use simplified data manager
+            agents_data = await data_manager.get_agents(skip, limit)
+        except Exception as e:
+            print(f"❌ Error fetching agents from data manager: {e}")
+            # Return empty list if data fetch fails
+            return AgentListResponse(
+                agents=[],
+                total=0,
+                page=1,
+                size=limit,
+                has_next=False
+            )
 
         # Convert datetime strings and ensure proper formatting
         processed_agents = []
         for agent in agents_data:
             try:
+                # Ensure we have required fields with defaults
+                if not agent.get("id"):
+                    print(f"⚠️ Skipping agent with missing ID: {agent}")
+                    continue
+                
                 # Convert datetime strings to datetime objects if needed
                 if isinstance(agent.get("created_at"), str):
                     agent["created_at"] = datetime.fromisoformat(agent["created_at"].replace('Z', '+00:00'))
+                elif not agent.get("created_at"):
+                    # Default to current time if missing
+                    agent["created_at"] = datetime.now(timezone.utc)
+                
                 if isinstance(agent.get("updated_at"), str):
                     agent["updated_at"] = datetime.fromisoformat(agent["updated_at"].replace('Z', '+00:00'))
+                elif not agent.get("updated_at"):
+                    # Default to created_at if missing
+                    agent["updated_at"] = agent.get("created_at", datetime.now(timezone.utc))
+                
                 if agent.get("last_health_check") and isinstance(agent["last_health_check"], str):
                     agent["last_health_check"] = datetime.fromisoformat(agent["last_health_check"].replace('Z', '+00:00'))
 
@@ -144,11 +168,33 @@ class AgentService:
                 else:
                     agent["health_status"] = AgentHealthStatus.UNKNOWN.value
 
+                # Ensure required string fields have defaults
+                if not agent.get("name"):
+                    agent["name"] = "Unnamed Agent"
+                if not agent.get("description"):
+                    agent["description"] = ""
+                if not agent.get("purpose"):
+                    agent["purpose"] = ""
+                if not agent.get("version"):
+                    agent["version"] = "1.0.0"
+                if not agent.get("agent_type"):
+                    agent["agent_type"] = "other"
+                
+                # Ensure list fields are lists
+                if not isinstance(agent.get("capabilities"), list):
+                    agent["capabilities"] = agent.get("capabilities") or []
+                if not isinstance(agent.get("configuration"), dict):
+                    agent["configuration"] = agent.get("configuration") or {}
+                if not isinstance(agent.get("metrics"), dict):
+                    agent["metrics"] = agent.get("metrics") or {}
+
                 processed_agents.append(agent)
             except Exception as e:
                 # Log the error but continue processing other agents
                 print(f"❌ Error processing agent {agent.get('id', 'unknown')}: {e}")
                 print(f"   Agent data: {agent}")
+                import traceback
+                traceback.print_exc()
                 # Skip this agent and continue
                 continue
 
@@ -159,12 +205,25 @@ class AgentService:
         if prd_id:
             filtered_agents = [a for a in filtered_agents if a.get("prd_id") == prd_id]
 
+        # Create AgentResponse objects with error handling
+        agent_responses = []
+        for agent in filtered_agents:
+            try:
+                agent_responses.append(AgentResponse(**agent))
+            except Exception as e:
+                print(f"❌ Error creating AgentResponse for agent {agent.get('id', 'unknown')}: {e}")
+                print(f"   Agent data: {agent}")
+                import traceback
+                traceback.print_exc()
+                # Skip this agent and continue
+                continue
+
         return AgentListResponse(
-            agents=[AgentResponse(**agent) for agent in filtered_agents],
-            total=len(filtered_agents),
-            page=skip // limit + 1,
+            agents=agent_responses,
+            total=len(agent_responses),
+            page=skip // limit + 1 if limit > 0 else 1,
             size=limit,
-            has_next=len(filtered_agents) == limit
+            has_next=len(agent_responses) == limit
         )
 
     async def update_agent_status(

@@ -139,6 +139,24 @@ Scan the entire file structure to identify key components:
 
 ## 🔐 Step 3: Check Environment Configuration
 
+### 3.0 Ensure Docker is Running
+**⚠️ IMPORTANT**: Docker must be running for deployment and local development.
+
+**Check Docker Status**:
+```bash
+docker ps
+```
+
+**If Docker is not running**:
+- **macOS**: Run `open -a Docker` or `open -a "Docker Desktop"`
+- **Linux**: Start Docker service: `sudo systemctl start docker`
+- **Windows**: Open Docker Desktop application
+
+**Wait for Docker to be ready**:
+- Docker Desktop may take 10-30 seconds to fully start
+- Verify with: `docker ps` (should return container list or empty list, not an error)
+- Never proceed with deployment if Docker is not running
+
 ### 3.1 Locate Environment Files
 Search for environment configuration files:
 - `.env` - Local development environment
