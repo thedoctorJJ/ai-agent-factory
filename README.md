@@ -676,9 +676,11 @@ npm run dev
 3. **Follow the same workflow** as the production application
 
 ### **Sample PRDs Available:**
-- Run `python scripts/create-sample-prds.py` to populate the system with test PRDs
+- **Create PRD Files** (recommended): Run `python3 scripts/create-sample-prds-files.py` to create PRD files
+- **Sync to Database**: Run `./scripts/prd-management/sync-prds-to-database.sh` to upload files
+- **Or Direct Upload**: Run `python scripts/create-sample-prds.py` to create PRDs directly in database
 - Includes 9 comprehensive PRDs covering infrastructure, features, and platform improvements
-- Perfect for testing the complete workflow from submission to agent creation
+- **Note**: PRD files in `prds/` directory are the source of truth. Database is just storage.
 
 ## 🎉 **Ready to Go!**
 

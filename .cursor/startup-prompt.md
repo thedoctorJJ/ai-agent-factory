@@ -316,6 +316,110 @@ After completing all steps, provide a comprehensive summary:
 
 ---
 
+## 📝 CRITICAL: Resolution Summary Documentation Requirement
+
+**⚠️ MANDATORY**: If you make any code changes during this session, you **MUST** create a resolution summary document once the fix is resolved.
+
+### **When to Create a Resolution Summary**
+
+Create a resolution summary document (`docs/resolution-summaries/{issue-name}-resolution-{date}.md`) when:
+- ✅ You fix a bug or issue
+- ✅ You implement a new feature or system
+- ✅ You resolve a configuration problem
+- ✅ You deploy changes to production
+- ✅ You make any code changes that affect functionality
+
+### **Resolution Summary Template**
+
+Use this template structure (see existing resolution summaries for examples):
+
+```markdown
+# [Issue Name] Resolution Summary
+
+**Date**: [Date]
+**Issue**: [Brief description]
+**Status**: ✅ **RESOLVED** - [Brief status]
+**Resolution Time**: [Time taken]
+
+---
+
+## 📋 Executive Summary
+[High-level overview of the issue and resolution]
+
+## 🔍 Issue Discovery
+[How the issue was discovered, symptoms, investigation steps]
+
+## 🐛 Root Cause Analysis
+[Detailed analysis of the root cause]
+
+## ✅ Solution Implementation
+[What was fixed, how it was fixed, why it works]
+
+## 🧪 Testing
+[How the fix was tested, test results]
+
+## 🚀 Deployment
+[Deployment process and verification]
+
+## 📊 Impact Analysis
+[Before/after comparison]
+
+## 📚 Documentation
+[Documentation created or updated]
+
+## 📝 Lessons Learned
+[Technical and process lessons]
+
+## 🔗 Related Files
+[List of files modified/created]
+
+## ✅ Verification Checklist
+[Checklist of verification steps]
+
+## 🎯 Conclusion
+[Final status and confirmation]
+```
+
+### **Resolution Summary Requirements**
+
+1. **File Location**: `docs/resolution-summaries/{descriptive-name}-resolution-{YYYY-MM-DD}.md`
+2. **Naming Convention**: Use descriptive names like:
+   - `agents-endpoint-500-error-resolution-2025-11-16.md`
+   - `secrets-management-implementation-resolution-2025-11-16.md`
+   - `health-check-detection-fix-resolution-2025-11-16.md`
+
+3. **Content Requirements**:
+   - **Executive Summary**: High-level overview
+   - **Root Cause**: Detailed analysis
+   - **Solution**: What was changed and why
+   - **Testing**: How it was verified
+   - **Deployment**: Production deployment details
+   - **Impact**: Before/after comparison
+   - **Lessons Learned**: Key takeaways
+
+4. **Update Related Files**:
+   - Update `CHANGELOG.md` with the fix
+   - Update relevant documentation if needed
+   - Update this startup prompt if workflow changes
+
+### **Why This Matters**
+
+- **Knowledge Preservation**: Future sessions can learn from past fixes
+- **Pattern Recognition**: Helps identify recurring issues
+- **Onboarding**: New developers can understand system history
+- **Debugging**: Provides context for similar issues
+- **Process Improvement**: Documents what works and what doesn't
+
+### **Examples of Good Resolution Summaries**
+
+- `docs/resolution-summaries/agent-display-issue-resolution.md`
+- `docs/resolution-summaries/secrets-management-implementation-resolution.md`
+- `docs/resolution-summaries/agents-endpoint-500-error-resolution-nov-16-2025.md`
+
+**Remember**: If you change code, document it. This is not optional - it's essential for maintaining project knowledge and preventing regression.
+
+---
+
 ## 📝 Expected Output Format
 
 After completing all steps, provide your findings in this format:
@@ -361,6 +465,7 @@ After completing all steps, provide your findings in this format:
 3. **Documentation**: Always check documentation before making assumptions
 4. **Health Checks**: Always verify current state before making changes
 5. **Resolution History**: Review previous fixes to avoid repeating mistakes
+6. **Resolution Summaries**: **MANDATORY** - Create a resolution summary document for any code changes (see "Resolution Summary Documentation Requirement" section above)
 
 ---
 

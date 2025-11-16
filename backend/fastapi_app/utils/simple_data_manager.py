@@ -3,6 +3,7 @@ Simplified data manager with Supabase + In-Memory storage.
 No more complex fallback chains - just clean, predictable storage.
 """
 import os
+import time
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from supabase import create_client, Client
@@ -30,19 +31,49 @@ class SimpleDataManager:
             self._init_supabase()
     
     def _init_supabase(self):
-        """Initialize Supabase client."""
-        try:
-            supabase_url = config.supabase_url
-            supabase_key = config.supabase_key
-            
-            if not supabase_url or not supabase_key:
-                raise ValueError("Supabase URL and key are required for production mode")
-            
-            self.supabase = create_client(supabase_url, supabase_key)
-            print(f"✅ Connected to Supabase (mode: {self.mode})")
-        except Exception as e:
-            print(f"❌ Failed to connect to Supabase: {e}")
-            raise e
+        """Initialize Supabase client with retry logic."""
+        max_retries = 3
+        retry_delay = 1  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                supabase_url = config.supabase_url
+                supabase_key = config.supabase_key
+                
+                if not supabase_url or not supabase_key:
+                    raise ValueError("Supabase URL and key are required for production mode")
+                
+                # Test DNS resolution by checking if URL is valid
+                if not supabase_url.startswith('https://'):
+                    raise ValueError(f"Invalid Supabase URL format: {supabase_url}")
+                
+                self.supabase = create_client(supabase_url, supabase_key)
+                
+                # Test connection with a simple query
+                try:
+                    self.supabase.table('prds').select('id').limit(1).execute()
+                    print(f"✅ Connected to Supabase (mode: {self.mode}, attempt {attempt + 1})")
+                    return
+                except Exception as test_error:
+                    # If test query fails, it might be a connection issue
+                    error_str = str(test_error).lower()
+                    if "name or service not known" in error_str or "nxdomain" in error_str:
+                        raise ConnectionError(f"DNS resolution failed for Supabase URL: {supabase_url}. The domain may not exist or be unreachable.")
+                    raise
+                    
+            except ConnectionError as e:
+                # DNS/Network errors - don't retry
+                print(f"❌ Connection error to Supabase: {e}")
+                raise e
+            except Exception as e:
+                print(f"❌ Failed to connect to Supabase (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    print(f"⏳ Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    print(f"❌ Failed to connect to Supabase after {max_retries} attempts")
+                    raise e
     
     def _prepare_data_for_db(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Prepare data for database storage by converting datetime objects to ISO strings."""
@@ -64,8 +95,32 @@ class SimpleDataManager:
         else:
             # Ensure datetime objects are converted to ISO strings for database storage
             db_data = self._prepare_data_for_db(agent_data)
-            result = self.supabase.table('agents').insert(db_data).execute()
-            return result.data[0] if result.data else None
+            max_retries = 3
+            retry_delay = 1
+            
+            for attempt in range(max_retries):
+                try:
+                    result = self.supabase.table('agents').insert(db_data).execute()
+                    return result.data[0] if result.data else None
+                except Exception as e:
+                    error_str = str(e).lower()
+                    # Check for DNS/network errors
+                    if "name or service not known" in error_str or "nxdomain" in error_str or "connection" in error_str:
+                        if attempt < max_retries - 1:
+                            print(f"⚠️  Network error creating agent (attempt {attempt + 1}/{max_retries}): {e}")
+                            print(f"   Retrying in {retry_delay} seconds...")
+                            time.sleep(retry_delay)
+                            retry_delay *= 2
+                            continue
+                        else:
+                            print(f"❌ Network error creating agent after {max_retries} attempts: {e}")
+                            raise ConnectionError(f"Failed to connect to Supabase: {e}")
+                    else:
+                        # Log the error for debugging
+                        print(f"❌ Error creating agent in database: {e}")
+                        print(f"   Agent data: {db_data}")
+                        # Re-raise to let the service handle it
+                        raise
     
     async def get_agents(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
         """Get agents."""
@@ -84,6 +139,14 @@ class SimpleDataManager:
             result = self.supabase.table('agents').select('*').eq('id', agent_id).execute()
             return result.data[0] if result.data else None
     
+    async def get_agent_by_name(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get an agent by name."""
+        if self.mode == "development":
+            return next((a for a in self.memory_storage["agents"].values() if a.get("name") == name), None)
+        else:
+            result = self.supabase.table('agents').select('*').eq('name', name).execute()
+            return result.data[0] if result.data else None
+    
     async def update_agent(self, agent_id: str, agent_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update an agent."""
         if self.mode == "development":
@@ -92,7 +155,9 @@ class SimpleDataManager:
                 return self.memory_storage["agents"][agent_id]
             return None
         else:
-            result = self.supabase.table('agents').update(agent_data).eq('id', agent_id).execute()
+            # Ensure datetime objects are converted to ISO strings for database storage
+            db_data = self._prepare_data_for_db(agent_data)
+            result = self.supabase.table('agents').update(db_data).eq('id', agent_id).execute()
             return result.data[0] if result.data else None
     
     async def delete_agent(self, agent_id: str) -> bool:

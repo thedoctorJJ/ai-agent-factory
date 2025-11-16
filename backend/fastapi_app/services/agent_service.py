@@ -50,8 +50,54 @@ class AgentService:
             "updated_at": now.isoformat()
         }
 
-        # Use simplified data manager
-        saved_agent = await data_manager.create_agent(agent_dict)
+        # Check if agent with this name already exists
+        existing_agent = await data_manager.get_agent_by_name(agent_data.name)
+        if existing_agent:
+            print(f"⚠️  Agent with name '{agent_data.name}' already exists (ID: {existing_agent.get('id')})")
+            print(f"   Updating existing agent instead of creating new one...")
+            # Update the existing agent with new data
+            agent_id = existing_agent.get('id')
+            # Prepare update data (exclude id and timestamps)
+            update_data = {k: v for k, v in agent_dict.items() if k not in ['id', 'created_at']}
+            update_data['updated_at'] = now.isoformat()
+            saved_agent = await data_manager.update_agent(agent_id, update_data)
+            if not saved_agent:
+                raise HTTPException(status_code=500, detail="Failed to update existing agent")
+        else:
+            # Use simplified data manager to create new agent
+            try:
+                saved_agent = await data_manager.create_agent(agent_dict)
+            except Exception as e:
+                # Check if it's a unique constraint violation (agent name already exists)
+                error_str = str(e).lower()
+                if "unique" in error_str or "duplicate" in error_str or "already exists" in error_str:
+                    # Try to get the existing agent by name
+                    print(f"⚠️  Unique constraint violation, attempting to retrieve existing agent...")
+                    existing_agent = await data_manager.get_agent_by_name(agent_data.name)
+                    if existing_agent:
+                        print(f"✅ Found existing agent: {existing_agent.get('id')}")
+                        # Update instead
+                        agent_id = existing_agent.get('id')
+                        update_data = {k: v for k, v in agent_dict.items() if k not in ['id', 'created_at']}
+                        update_data['updated_at'] = now.isoformat()
+                        saved_agent = await data_manager.update_agent(agent_id, update_data)
+                    else:
+                        raise HTTPException(
+                            status_code=409,
+                            detail=f"Agent with name '{agent_data.name}' already exists but could not be retrieved"
+                        )
+                else:
+                    # Re-raise other errors
+                    print(f"❌ Error creating agent: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Failed to create agent: {str(e)}"
+                    )
+
+        if not saved_agent:
+            raise HTTPException(status_code=500, detail="Failed to create agent: No data returned")
 
         # Update PRD status to "completed" when agent is successfully created
         if agent_data.prd_id:
