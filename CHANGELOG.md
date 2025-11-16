@@ -4,6 +4,32 @@ All notable changes to the AI Agent Factory project will be documented in this f
 
 ## [Unreleased] - 2025-11-16
 
+### 🐛 **Redis Agent Registration Fix - Resolved**
+- **✅ Issue**: Redis agent registration failing with 500 Internal Server Error
+- **✅ Root Cause**: Multiple issues - duplicate agent handling, Supabase project paused, incorrect PRD ID
+- **✅ Fix**: 
+  - Added duplicate agent detection - now updates existing agents instead of failing
+  - Enhanced error handling with retry logic and exponential backoff
+  - Improved DNS/network error detection and reporting
+  - Fixed PRD ID in registration script
+  - Added `get_agent_by_name()` method for agent lookup
+- **✅ Impact**: Redis agent successfully registered, all systems operational
+- **Status**: Fully resolved and deployed to production
+- **Documentation**: See `docs/resolution-summaries/redis-agent-registration-fix-resolution-2025-11-16.md`
+
+### **Technical Details**
+- **Files**: 
+  - `backend/fastapi_app/services/agent_service.py` - Added duplicate agent handling
+  - `backend/fastapi_app/utils/simple_data_manager.py` - Added retry logic and `get_agent_by_name()`
+  - `scripts/register-redis-agent-production.py` - Fixed PRD ID
+- **Changes**: 
+  - Check for existing agents by name before creating
+  - Update existing agents instead of failing on duplicates
+  - Retry logic with exponential backoff for network operations
+  - Better error messages for DNS/network issues
+- **Testing**: Agent registration now works correctly
+- **Deployment**: Revision `ai-agent-factory-backend-00035-lmb` deployed successfully
+
 ### 🐛 **Agents Endpoint 500 Error - Fixed (Regression)**
 - **✅ Issue**: `/api/v1/agents` endpoint returning 500 Internal Server Error (regression from Nov 13 fix)
 - **✅ Root Cause**: Insufficient error handling when creating `AgentResponse` objects from database records
