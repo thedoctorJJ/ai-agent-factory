@@ -28,8 +28,8 @@ if [ -z "$ISSUE_NAME" ]; then
     exit 1
 fi
 
-# Generate filename
-FILENAME="docs/resolution-summaries/${ISSUE_NAME}-resolution-${CURRENT_DATE}.md"
+# Generate filename with date prefix (YYYY-MM-DD-description.md)
+FILENAME="docs/resolution-summaries/${CURRENT_DATE}-${ISSUE_NAME}-resolution.md"
 
 # Check if file already exists
 if [ -f "$FILENAME" ]; then
