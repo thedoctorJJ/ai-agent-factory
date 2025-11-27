@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "ai-agent-factory": {
+      "command": "python3",
+      "args": [
+        "/Users/jason/Repositories/ai-agent-factory/scripts/mcp/cursor-agent-mcp-server.py"
+      ]
+    }
+  }
+}
+
+
+
+
+
+
+
+

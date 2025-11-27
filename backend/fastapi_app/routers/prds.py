@@ -1,9 +1,10 @@
 """
 Refactored PRD router with proper separation of concerns.
 """
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException, UploadFile, File, Query
+from typing import List, Optional, Union, Dict
+from fastapi import APIRouter, HTTPException, UploadFile, File, Query, Form, Body
 from fastapi.responses import Response
+from pydantic import BaseModel
 
 from ..models.prd import (
     PRDCreate, PRDUpdate, PRDResponse, PRDType, PRDStatus,
@@ -74,6 +75,177 @@ async def clear_all_prds():
 async def upload_prd_file(file: UploadFile = File(...)):
     """Upload a PRD file (.md or .txt)."""
     return await prd_service.upload_prd_file(file)
+
+
+class IncomingPRDRequest(BaseModel):
+    """Request model for incoming PRD submission."""
+    content: str
+
+
+class SavePRDRequest(BaseModel):
+    """Minimal request model for ChatGPT Actions - simple PRD saving."""
+    title: str
+    content_markdown: str
+
+
+@router.post("/prds/incoming", response_model=PRDResponse)
+async def submit_incoming_prd(
+    request_body: Optional[IncomingPRDRequest] = Body(None),
+    file: Optional[UploadFile] = File(None),
+    content: Optional[str] = Form(None)
+):
+    """
+    Submit a PRD from an external source (AI tool, webhook, etc.).
+    
+    Accepts PRDs in multiple ways:
+    1. **JSON body** (for AI tools with API access like ChatGPT Actions):
+       ```json
+       POST /api/v1/prds/incoming
+       Content-Type: application/json
+       {
+           "content": "# PRD Title\n\n## Description\n..."
+       }
+       ```
+    
+    2. **File upload** (multipart/form-data):
+       ```
+       POST /api/v1/prds/incoming
+       Content-Type: multipart/form-data
+       file: <file content>
+       ```
+    
+    3. **Form data** (for simple webhooks):
+       ```
+       POST /api/v1/prds/incoming
+       Content-Type: application/x-www-form-urlencoded
+       content: "# PRD Title\n\n## Description\n..."
+       ```
+    """
+    # Priority: file > JSON body > form data
+    if file and file.filename:
+        # Process file upload
+        return await prd_service.upload_prd_file(file)
+    elif request_body and request_body.content:
+        # Process JSON body content (for ChatGPT Actions)
+        from io import BytesIO
+        
+        content_bytes = request_body.content.encode('utf-8')
+        file_obj = BytesIO(content_bytes)
+        
+        # Create an UploadFile-like object
+        class IncomingFile:
+            def __init__(self, file_obj, filename):
+                self.file = file_obj
+                self.filename = filename
+                self.headers = {}
+            
+            async def read(self):
+                return self.file.read()
+        
+        upload_file = IncomingFile(file_obj, "incoming-prd.md")
+        return await prd_service.upload_prd_file(upload_file)
+    elif content:
+        # Process form data content
+        from io import BytesIO
+        
+        content_bytes = content.encode('utf-8')
+        file_obj = BytesIO(content_bytes)
+        
+        class IncomingFile:
+            def __init__(self, file_obj, filename):
+                self.file = file_obj
+                self.filename = filename
+                self.headers = {}
+            
+            async def read(self):
+                return self.file.read()
+        
+        upload_file = IncomingFile(file_obj, "incoming-prd.md")
+        return await prd_service.upload_prd_file(upload_file)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Either 'content' (JSON/form) or 'file' (multipart) parameter must be provided"
+        )
+
+
+@router.post("/prds/save", response_model=Dict[str, str])
+async def save_prd(req: SavePRDRequest):
+    """
+    Minimal endpoint for ChatGPT Actions - saves PRD with simple title and markdown.
+    This is the simplest possible endpoint for voice mode.
+    
+    Request:
+    ```json
+    {
+      "title": "Some PRD Title",
+      "content_markdown": "# PRD Title\n\nFull markdown content here..."
+    }
+    ```
+    
+    Response:
+    ```json
+    {
+      "status": "ok",
+      "file_name": "generated-filename.md",
+      "prd_id": "uuid-here"
+    }
+    ```
+    """
+    from datetime import datetime
+    import re
+    from pathlib import Path
+    
+    # Generate filename from title
+    def slugify(text: str) -> str:
+        text = text.lower()
+        text = re.sub(r"[^a-z0-9]+", "-", text)
+        return text.strip("-") or "prd"
+    
+    ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+    base = slugify(req.title)
+    file_name = f"{base}-{ts}.md"
+    
+    # Save to incoming folder (for file-based workflow)
+    project_root = Path(__file__).parent.parent.parent.parent
+    incoming_folder = project_root / "prds" / "incoming"
+    incoming_folder.mkdir(parents=True, exist_ok=True)
+    
+    file_path = incoming_folder / file_name
+    file_path.write_text(req.content_markdown, encoding="utf-8")
+    
+    # Also submit to API for database storage
+    try:
+        from io import BytesIO
+        
+        content_bytes = req.content_markdown.encode('utf-8')
+        file_obj = BytesIO(content_bytes)
+        
+        class IncomingFile:
+            def __init__(self, file_obj, filename):
+                self.file = file_obj
+                self.filename = filename
+                self.headers = {}
+            
+            async def read(self):
+                return self.file.read()
+        
+        upload_file = IncomingFile(file_obj, file_name)
+        prd_response = await prd_service.upload_prd_file(upload_file)
+        
+        return {
+            "status": "ok",
+            "file_name": file_name,
+            "prd_id": prd_response.id,
+            "title": prd_response.title
+        }
+    except Exception as e:
+        # If API submission fails, still return success for file save
+        return {
+            "status": "ok",
+            "file_name": file_name,
+            "warning": f"File saved but API submission failed: {str(e)}"
+        }
 
 
 @router.get("/prds/{prd_id}/markdown", response_model=PRDMarkdownResponse)

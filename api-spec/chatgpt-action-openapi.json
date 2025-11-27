@@ -1,0 +1,81 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Agent Factory PRD Submission",
+    "description": "API for submitting Product Requirements Documents (PRDs) to the AI Agent Factory platform. ChatGPT can automatically detect when a conversation contains a PRD and submit it using this action.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://ai-agent-factory-backend-952475323593.us-central1.run.app",
+      "description": "Production API"
+    }
+  ],
+  "paths": {
+    "/api/v1/prds/incoming": {
+      "post": {
+        "operationId": "submitPRD",
+        "summary": "Submit a Product Requirements Document (PRD)",
+        "description": "Automatically submit a PRD to the AI Agent Factory. ChatGPT should call this action when it detects that the user has created or described a PRD in the conversation. The PRD content should be formatted as markdown.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "The complete PRD content in markdown format. Should include title, description, requirements, and other PRD sections.",
+                    "example": "# PRD Title\n\n## Description\n\nA comprehensive description of the product or feature...\n\n## Requirements\n\n- Requirement 1\n- Requirement 2\n\n## Technical Requirements\n\n- Technical detail 1\n- Technical detail 2"
+                  }
+                },
+                "required": ["content"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PRD submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique PRD identifier"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "PRD title"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "PRD status"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid PRD content or format"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+

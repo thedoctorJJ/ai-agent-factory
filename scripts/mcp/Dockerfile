@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
+COPY scripts/mcp/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install additional dependencies for MCP server
@@ -23,13 +23,21 @@ RUN pip install --no-cache-dir \
     python-dotenv>=1.1.1
 
 # Copy MCP server files
-COPY . .
+COPY scripts/mcp/mcp-http-server.py .
+COPY scripts/mcp/cursor-agent-mcp-server.py .
+COPY scripts/mcp/devin-mcp-server.py .
+COPY scripts/mcp/simple_services.py .
+COPY scripts/mcp/google-cloud-run-deploy.py .
 
-# Expose port
+# Copy backend config (needed by cursor-agent-mcp-server)
+# Note: Build context should be from project root
+COPY backend/fastapi_app/config.py ./backend/fastapi_app/
+RUN mkdir -p backend/fastapi_app && touch backend/fastapi_app/__init__.py
+
+# Expose port (Cloud Run will set PORT env var)
 EXPOSE 8001
 
 # Set environment variables
-ENV PORT=8001
 ENV HOST=0.0.0.0
 
 # Run the MCP HTTP server

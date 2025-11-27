@@ -24,22 +24,7 @@ REQUIRED_SECRETS=(
 )
 
 echo "📦 Loading secrets from local encrypted storage..."
-python3 << 'EOF'
-import sys
-import os
-sys.path.append('.')
-from config.secure_api_manager import SecureAPIManager
-
-manager = SecureAPIManager()
-secrets = manager.load_api_keys()
-
-# Print secrets in format: SECRET_NAME|value
-for key, value in secrets.items():
-    if value and not key.startswith('_'):
-        # Escape pipe characters in value
-        value_escaped = value.replace('|', '\\|')
-        print(f"{key}|{value_escaped}")
-EOF | while IFS='|' read -r key value; do
+python3 scripts/load-secrets-helper.py | while IFS='|' read -r key value; do
     if [ -n "$key" ] && [ -n "$value" ]; then
         # Check if secret already exists
         if gcloud secrets describe "$key" --project="$PROJECT_ID" &>/dev/null; then

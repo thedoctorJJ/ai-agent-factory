@@ -90,3 +90,6 @@ This health check is automatically run as part of the startup process (Step 4.0 
 - **Startup Prompt**: `.cursor/startup-prompt.md`
 - **RLS Fix SQL**: `infra/database/fix-foreign-key-rls-simple.sql`
 
+
+
+

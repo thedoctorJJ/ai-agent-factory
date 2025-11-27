@@ -46,3 +46,5 @@ echo ""
 echo "💡 To disable: rm .git/hooks/post-commit"
 echo "💡 To manually sync: ./scripts/prd-management/sync-prds-to-database.sh"
 
+
+

@@ -1,0 +1,82 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Agent Factory PRD Saver",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://ai-agent-factory-backend-952475323593.us-central1.run.app"
+    }
+  ],
+  "paths": {
+    "/api/v1/prds/save": {
+      "post": {
+        "operationId": "save_prd",
+        "summary": "Save a PRD",
+        "description": "Minimal endpoint for saving PRDs from ChatGPT voice mode. Saves file and stores in database.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavePRD"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PRD saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "file_name": {
+                      "type": "string",
+                      "example": "some-prd-title-20251116-123456.md"
+                    },
+                    "prd_id": {
+                      "type": "string",
+                      "description": "Unique PRD identifier in database"
+                    },
+                    "title": {
+                      "type": "string",
+                      "description": "PRD title"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SavePRD": {
+        "type": "object",
+        "required": ["title", "content_markdown"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "PRD title"
+          },
+          "content_markdown": {
+            "type": "string",
+            "description": "Complete PRD content in markdown format"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+

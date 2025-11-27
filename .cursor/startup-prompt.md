@@ -4,6 +4,14 @@
 
 You are starting a new session on the **AI Agent Factory** project. Your first task is to thoroughly understand the application, its current state, configuration, and any documented issues. Follow these steps systematically:
 
+**⚠️ CRITICAL**: This startup prompt is **Phase 1** of the complete AI Agent Workflow. After completing this startup:
+- **Read `docs/guides/AI_AGENT_WORKFLOW.md`** for the full 6-phase development process (MANDATORY)
+- **Read `.cursor/QUICK_REFERENCE.md`** for common commands and checklists
+- Check linting status in Step 4.6 below (`.cursor/LINTING_SYSTEM.md`)
+- Follow the structured workflow for all development work
+
+**💡 After solving any problem, run ONE command**: `./scripts/dev/document-solution.sh`
+
 ---
 
 ## 🔐 CRITICAL: Secrets Management Briefing
@@ -265,7 +273,7 @@ Search for environment configuration files:
 
 ---
 
-## 🏥 Step 4: Run Health Checks
+## 🏥 Step 4: Run Health Checks and Restore Data
 
 ### 4.0 MCP Server and Database Health Check
 **⚠️ CRITICAL**: Verify MCP server is working and can access the database.
@@ -295,6 +303,69 @@ python3 scripts/health-check-mcp-database.py
 - Ensure database is accessible (not banned, IP allowlist configured)
 
 **Important**: The MCP server is the primary method for database access from Cursor. If this check fails, database operations will not work.
+
+### 4.0.1 Check Supabase Status and Sync PRDs
+**⚠️ CRITICAL**: Supabase frequently pauses on free tier. This step detects and handles pauses automatically.
+
+**Background**: The AI Agent Factory uses a file-based source of truth for PRDs:
+- **Source of Truth**: PRD files in `prds/queue/` (markdown files)
+- **Database**: Supabase (sync target only, data may be wiped when paused)
+- **Sync Strategy**: Files → Database (one-way sync)
+- **Dynamic Count**: Script automatically counts files to match against database
+
+**Run Smart Sync Script**:
+```bash
+./scripts/check-supabase-and-sync.sh
+```
+
+**What this does**:
+1. **Tests Supabase connection** via MCP health check
+2. **Detects if Supabase is paused**:
+   - If paused: Shows dashboard link to manually unpause
+   - If accessible: Continues to PRD count check
+3. **Checks PRD count** in database
+4. **Auto-syncs if needed** (count is 0 or mismatched)
+5. **Verifies final status**
+
+**Possible Outcomes**:
+
+**✅ All systems operational**:
+```
+✅ Supabase: Connected
+✅ PRD Count: N (correct)
+```
+→ No action needed, continue to next step
+(N = number of .md files in prds/queue/)
+
+**⚠️ Supabase is paused**:
+```
+⚠️  SUPABASE IS PAUSED OR UNREACHABLE
+
+📋 To unpause Supabase:
+   1. Go to: https://supabase.com/dashboard/project/ssdcbhxctakgysnayzeq
+   2. Click 'Resume Project' button
+   3. Wait ~1-2 minutes for database to come online
+   4. Re-run this script
+```
+→ Follow instructions, then re-run script
+
+**🔄 Database needs sync**:
+```
+⚠️  DATABASE NEEDS SYNC
+Supabase was recently resumed and database is empty.
+Syncing PRDs from files...
+[sync output]
+✅ PRD sync complete!
+   ✅ PRD Count: N (synced)
+```
+→ Automatic - no manual action needed
+(N = number of PRD files synced)
+
+**Important Notes**:
+- **Cannot unpause programmatically**: Supabase doesn't provide an API for this
+- **Manual unpause required**: Use dashboard link provided in script output
+- **Auto-sync after unpause**: Script automatically syncs once database is accessible
+- **Idempotent**: Safe to run multiple times
 
 ### 4.1 Backend Health Check
 Test the production backend API:
@@ -351,6 +422,49 @@ Check deployed agents:
 
 ---
 
+### 4.5 Verify PRD Count
+**Check that PRD sync worked correctly**:
+
+```bash
+# Check PRD count via API
+curl -s https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/prds | jq '.total'
+
+# Expected: Should match number of .md files in prds/queue/ (excluding README.md)
+# To count files: find prds/queue -name "*.md" ! -name "README.md" | wc -l
+```
+
+**If count is still 0**:
+- Supabase may still be paused
+- Resume Supabase and re-run sync script
+- Check sync script output for errors
+
+---
+
+## 🔍 Step 4.6: Check Linting System Status
+**Verify available linting tools**:
+
+```bash
+./scripts/dev/check-linting-tools.sh
+```
+
+**This checks for**:
+- Python linters (Black, Flake8, MyPy, isort, Pylint)
+- JavaScript/TypeScript linters (ESLint, Prettier)
+- Shell linters (ShellCheck)
+- Markdown linters (Markdownlint)
+- Pre-commit hooks
+
+**Expected Outcome**:
+- If **all tools available**: ✅ Follow full linting workflow
+- If **tools missing**: ⚠️ Use minimal linting (bash -n, read_lints)
+
+**Important**: 
+- AI agents must check this at session start
+- Know what linting is available before starting work
+- Adjust workflow based on available tools
+
+---
+
 ## 📊 Step 5: Generate Summary Report
 
 After completing all steps, provide a comprehensive summary:
@@ -365,6 +479,7 @@ After completing all steps, provide a comprehensive summary:
 - **Production URLs**: All live service URLs
 - **Health Status**: Overall system health
 - **Service Status**: Status of each service (backend, frontend, MCP, agents)
+- **PRD Count**: Number of PRDs in database (should match number of .md files in `prds/queue/`)
 - **Known Issues**: Any documented issues or limitations
 
 ### 5.3 Configuration Status
@@ -554,6 +669,8 @@ After completing all steps, provide your findings in this format:
 4. **Health Checks**: Always verify current state before making changes
 5. **Resolution History**: Review previous fixes to avoid repeating mistakes
 6. **Resolution Summaries**: **MANDATORY** - Create a resolution summary document for any code changes (see "Resolution Summary Documentation Requirement" section above)
+7. **AI Agent Workflow**: **MANDATORY** - After completing this startup, read `docs/guides/AI_AGENT_WORKFLOW.md` and follow it for all development work
+8. **Linting**: Check linting system status and use throughout development, not just at the end
 
 ---
 

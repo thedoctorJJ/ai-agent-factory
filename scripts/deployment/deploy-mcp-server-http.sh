@@ -6,9 +6,10 @@ echo "🚀 Deploying AI Agent Factory Agent Factory HTTP MCP Server to Google Cl
 
 # Configuration
 PROJECT_ID="agent-factory-474201"
-SERVICE_NAME="end-cap-mcp-server-http"
+SERVICE_NAME="ai-agent-factory-mcp-server"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/mcp-server-http"
+BACKEND_URL="https://ai-agent-factory-backend-952475323593.us-central1.run.app"
 
 # Check if gcloud is installed and authenticated
 if ! command -v gcloud &> /dev/null; then
@@ -28,9 +29,8 @@ gcloud services enable run.googleapis.com \
 
 # Build and push Docker image
 echo "🏗️  Building Docker image..."
-cd scripts
-docker build --platform linux/amd64 -f mcp-server-http-dockerfile -t ${IMAGE_NAME}:latest .
-cd .. # Go back to the root directory
+# Build from project root (build context is project root)
+docker build --platform linux/amd64 -f scripts/mcp/Dockerfile -t ${IMAGE_NAME}:latest .
 
 echo "📤 Pushing image to Google Container Registry..."
 docker push ${IMAGE_NAME}:latest
@@ -42,12 +42,13 @@ gcloud run deploy ${SERVICE_NAME} \
     --region ${REGION} \
     --platform managed \
     --allow-unauthenticated \
-    --port 8001 \
+    --port 8080 \
     --memory 1Gi \
     --cpu 1 \
     --max-instances 10 \
     --min-instances 0 \
-    --set-env-vars="GITHUB_ORG_NAME=thedoctorJJ,ENDCAP_API_URL=https://ai-agent-factory-backend-xxxxx-uc.a.run.app,GITHUB_TOKEN=placeholder,SUPABASE_SERVICE_ROLE_KEY=placeholder,GCP_SERVICE_ACCOUNT_KEY=placeholder,OPENAI_API_KEY=placeholder"
+    --timeout 300 \
+    --set-env-vars="GITHUB_ORG_NAME=thedoctorJJ,BACKEND_URL=${BACKEND_URL}"
 
 echo "🎉 HTTP MCP Server deployment initiated!"
 echo "Monitor deployment status here: https://console.cloud.google.com/run/detail/${REGION}/${SERVICE_NAME}/revisions?project=${PROJECT_ID}"
