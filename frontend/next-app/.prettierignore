@@ -1,0 +1,35 @@
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.cache/
+.turbo/
+
+# Environment files
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Testing
+coverage/
+
+# Misc
+.DS_Store
+*.pem
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
