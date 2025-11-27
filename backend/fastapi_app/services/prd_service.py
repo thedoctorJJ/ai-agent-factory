@@ -224,24 +224,136 @@ class PRDService:
         return PRDResponse(**prd_dict)
 
     async def delete_prd(self, prd_id: str) -> Dict[str, str]:
-        """Delete a PRD."""
-        # Try to delete from database first
+        """Delete a PRD from database AND GitHub (bidirectional sync)."""
+        # Step 1: Get PRD details before deletion (need filename for GitHub)
+        prd_data = None
+        try:
+            if data_manager.is_connected():
+                prd_data = await data_manager.get_prd(prd_id)
+        except Exception as e:
+            print(f"Error fetching PRD before delete: {e}")
+        
+        # Step 2: Delete from database
         try:
             if data_manager.is_connected():
                 success = await data_manager.delete_prd(prd_id)
-                if success:
-                    return {"message": "PRD deleted successfully"}
+                if not success:
+                    raise HTTPException(status_code=404, detail="PRD not found")
+            else:
+                # Fallback to in-memory storage
+                if not hasattr(self, '_prds_db'):
+                    self._prds_db: Dict[str, Dict[str, Any]] = {}
+                if prd_id not in self._prds_db:
+                    raise HTTPException(status_code=404, detail="PRD not found")
+                prd_data = self._prds_db[prd_id]
+                del self._prds_db[prd_id]
+        except HTTPException:
+            raise
         except Exception as e:
-            print(f"Database delete failed, trying in-memory storage: {e}")
+            print(f"Database delete failed: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to delete PRD: {str(e)}")
         
-        # Fallback to in-memory storage
-        if not hasattr(self, '_prds_db'):
-            self._prds_db: Dict[str, Dict[str, Any]] = {}
-        if prd_id not in self._prds_db:
-            raise HTTPException(status_code=404, detail="PRD not found")
-
-        del self._prds_db[prd_id]
-        return {"message": "PRD deleted successfully"}
+        # Step 3: Delete from GitHub (bidirectional sync)
+        if prd_data:
+            await self._delete_prd_from_github(prd_data)
+        
+        return {"message": "PRD deleted successfully from database and GitHub"}
+    
+    async def _delete_prd_from_github(self, prd_data: Dict[str, Any]) -> None:
+        """Delete PRD file from GitHub repository (helper method)."""
+        try:
+            # Import GitHub service
+            from ..config import config
+            import os
+            import requests
+            
+            github_token = config.github_token or os.getenv("GITHUB_TOKEN")
+            if not github_token:
+                print("⚠️  Warning: GitHub token not available, skipping GitHub deletion")
+                return
+            
+            # Get GitHub repo details
+            repo_owner = os.getenv("GITHUB_ORG_NAME", "thedoctorJJ")
+            repo_name = os.getenv("GITHUB_REPO_NAME", "ai-agent-factory")
+            
+            # Try to find the file in GitHub
+            # First, check if original_filename is stored
+            original_filename = prd_data.get("original_filename")
+            title = prd_data.get("title", "")
+            
+            if not original_filename and title:
+                # Generate likely filename from title
+                import re
+                def slugify(text: str) -> str:
+                    text = text.lower()
+                    text = re.sub(r"[^a-z0-9]+", "-", text)
+                    return text.strip("-") or "prd"
+                
+                slug = slugify(title)
+                # Try common patterns
+                possible_patterns = [
+                    f"*{slug}*.md",
+                    f"*{slug.replace('-', '_')}*.md",
+                ]
+            else:
+                possible_patterns = [original_filename] if original_filename else []
+            
+            # Search for the file in GitHub
+            headers = {
+                'Authorization': f'token {github_token}',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+            
+            # Get all files in prds/queue/
+            url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/prds/queue'
+            response = requests.get(url, headers=headers, timeout=10)
+            
+            if response.status_code != 200:
+                print(f"⚠️  Warning: Could not list GitHub files: {response.status_code}")
+                return
+            
+            files = response.json()
+            matched_file = None
+            
+            # Try to find matching file by title comparison
+            for file_info in files:
+                file_name = file_info.get("name", "")
+                if file_name.endswith(".md") and file_name != "README.md":
+                    # Check if title matches (case-insensitive, partial match)
+                    title_slug = slugify(title)
+                    file_slug = file_name.replace(".md", "").split("_", 1)[-1] if "_" in file_name else file_name.replace(".md", "")
+                    
+                    if title_slug in file_slug or file_slug in title_slug:
+                        matched_file = file_info
+                        break
+            
+            if not matched_file:
+                print(f"⚠️  Warning: Could not find PRD file in GitHub for '{title}'")
+                return
+            
+            # Delete the file from GitHub
+            file_path = matched_file["path"]
+            file_sha = matched_file["sha"]
+            
+            delete_url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}'
+            delete_data = {
+                "message": f"Delete PRD: {title} (via website)",
+                "sha": file_sha,
+                "branch": "main"
+            }
+            
+            delete_response = requests.delete(delete_url, headers=headers, json=delete_data, timeout=10)
+            
+            if delete_response.status_code in [200, 204]:
+                print(f"✅ Deleted PRD file from GitHub: {file_path}")
+            else:
+                print(f"⚠️  Warning: Failed to delete from GitHub: {delete_response.status_code}")
+                print(f"   Response: {delete_response.text[:200]}")
+        
+        except Exception as e:
+            # Don't fail the deletion if GitHub sync fails
+            print(f"⚠️  Warning: Could not delete from GitHub: {e}")
+            # Database deletion still succeeded, so we don't raise
 
     async def clear_all_prds(self) -> Dict[str, str]:
         """Clear all PRDs from the system."""
