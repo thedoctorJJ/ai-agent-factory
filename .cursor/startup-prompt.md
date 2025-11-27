@@ -78,38 +78,52 @@ python3 config/secure-api-manager.py import config/env/.env.local
 
 ### **PRD Management Strategy**
 
-The AI Agent Factory uses a **file-based PRD system**:
+The AI Agent Factory uses a **GitHub-based PRD system**:
 
-1. **Source of Truth**: PRD files in `prds/queue/`
-2. **Database**: Supabase (sync target only)
+1. **Cloud Source of Truth**: GitHub repository (`prds/queue/`)
+2. **Automatic Sync**: GitHub Actions → Database (within 30 seconds)
+3. **Local Files**: Working copy (synced via `git pull`)
 
 ### **⚠️ IMPORTANT RULES**
 
-1. **Source of Truth**: PRD files in `prds/queue/` are the **source of truth**
-2. **Update Order**: **ALWAYS update files first, then sync to database**
-   - ✅ Files → Database (correct)
-   - ❌ Database → Files (wrong, except emergency recovery)
-3. **Never Update Database First**: Database is a sync target, not the source
-4. **Sync After Changes**: Always sync to database after updating PRD files
+1. **Source of Truth**: GitHub repository (`prds/queue/`) is the **cloud source of truth**
+2. **Update Order**: **GitHub → Database → Local**
+   - ✅ Commit to GitHub → Auto-sync to database (correct)
+   - ❌ Database first (wrong)
+   - ❌ Local files without committing (not persistent)
+3. **Automatic Sync**: GitHub Actions syncs to database automatically (no manual steps)
+4. **Local Sync**: Run `git pull` to get latest PRDs locally
 
-### **PRD Management Workflow**
+### **PRD Management Workflows**
 
-**When updating PRDs:**
-```bash
-# 1. Update PRD file (source of truth)
-vim prds/queue/2024-11-16_my-prd.md
-
-# 2. Sync to database
-./scripts/prd-management/sync-prds-to-database.sh
-
-# 3. Verify sync
-./scripts/prd-management/verify-prds-sync.sh
+**Method 1: Via ChatGPT (Recommended for New PRDs)**
+```
+1. Submit PRD via ChatGPT
+2. MCP Server commits to GitHub automatically
+3. GitHub Actions syncs to database (30 seconds)
+4. Website shows PRD immediately
+5. Later: git pull to sync locally
 ```
 
-**When checking PRDs:**
+**Method 2: Manual GitHub Commit (For Direct Edits)**
 ```bash
-# Verify files and database are in sync
-./scripts/prd-management/verify-prds-sync.sh
+# 1. Edit PRD locally
+vim prds/queue/2024-11-16_my-prd.md
+
+# 2. Commit and push to GitHub (cloud source of truth)
+git add prds/queue/2024-11-16_my-prd.md
+git commit -m "feat: Update PRD"
+git push origin main
+
+# 3. Automatic sync (GitHub Actions)
+# Database updates within 30 seconds
+# No manual action needed!
+```
+
+**Method 3: Local Sync (Fallback Only)**
+```bash
+# Only use if GitHub Actions unavailable
+./scripts/prd-management/sync-prds-to-database.sh
 ```
 
 ### **Key Documentation**

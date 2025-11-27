@@ -1,72 +1,101 @@
 # PRD Sync Strategy
 
-**Date**: November 16, 2025  
-**Purpose**: How to keep PRD files and database in sync
-**Status**: ✅ **IMPLEMENTED** - Files are source of truth, database is sync target
+**Date**: November 27, 2025 (Updated)  
+**Purpose**: How PRDs flow from GitHub (cloud source of truth) to database and local files  
+**Status**: ✅ **IMPLEMENTED** - GitHub is cloud source of truth, automatic sync to database
 
 ---
 
 ## 🎯 Sync Strategy Overview
 
-### **Source of Truth: PRD Files in Repository**
+### **Source of Truth: GitHub Repository (`prds/queue/`)**
 
-**PRD files in `prds/queue/` are the source of truth.**
+**GitHub repository is the cloud source of truth for all PRDs.**
 
-**Why**:
-- ✅ Developer-friendly: Easy to edit markdown files
-- ✅ Version controlled: Changes tracked in git
-- ✅ Single source: One place to manage all PRDs
-- ✅ Human readable: Markdown files are easy to review
-- ✅ Portable: PRDs can be moved, copied, backed up as files
+**Why GitHub (Not Local Files)**:
+- ✅ **Cloud Persistent**: Survives local machine changes, database wipes
+- ✅ **Always Accessible**: Available from any machine, any location
+- ✅ **Version Controlled**: Complete history of all changes
+- ✅ **Automated Sync**: GitHub Actions automatically updates database
+- ✅ **External Submissions**: ChatGPT and other tools commit directly to GitHub
+- ✅ **Collaborative**: Multiple developers can work simultaneously
 
-**Workflow**:
+**New Workflow**:
 ```
-1. Update PRD files in repository (source of truth)
-2. Sync to database (production)
-3. Verify sync
+GitHub Repository (prds/queue/) ← CLOUD SOURCE OF TRUTH
+       ↓
+GitHub Actions (auto-triggered on push)
+       ↓
+Database (automatic sync within seconds)
+       ↓
+Website (shows PRDs immediately)
+
+Local Development:
+git pull → Local prds/queue/ (working copy)
 ```
 
 ---
 
-## 📋 Update Order: Always Files First
+## 📋 Update Order: GitHub First
 
-### **Rule: Files → Database**
+### **Rule: GitHub → Database → Local**
 
-**Always update PRD files FIRST, then sync to database.**
+**All PRD changes go through GitHub first.**
 
 **Why**:
-- ✅ Files are source of truth
-- ✅ Can review changes in git before syncing
+- ✅ GitHub is cloud-persistent (never lost)
+- ✅ Automatic database sync (no manual steps)
+- ✅ Website updates within seconds
 - ✅ Version control tracks all changes
-- ✅ Easy rollback if needed
-- ✅ Multiple developers can work on files
+- ✅ Works from anywhere (not tied to local machine)
 
 ---
 
-## 🔄 Sync Workflow
+## 🔄 Sync Workflows
 
-### **When PRDs Change**
+### **Method 1: Via ChatGPT (Recommended for New PRDs)**
 
-#### **Step 1: Update PRD Files** (Source of Truth)
+```
+1. Submit PRD via ChatGPT
+2. MCP Server commits to GitHub automatically
+3. GitHub Actions syncs to database automatically (30 seconds)
+4. Website shows new PRD immediately
+5. Later: git pull to sync locally (when needed)
+```
+
+**No manual steps required!**
+
+### **Method 2: Manual GitHub Commit (For Direct Edits)**
+
+#### **Step 1: Create/Edit PRD Locally**
 ```bash
-# Edit PRD file
+# Edit existing PRD file
 vim prds/queue/2024-11-16_my-prd.md
 
 # Or create new PRD file
 vim prds/queue/2024-11-16_new-feature.md
 ```
 
-#### **Step 2: Sync to Database**
+#### **Step 2: Commit to GitHub**
 ```bash
-# Sync all PRD files to database
+git add prds/queue/2024-11-16_my-prd.md
+git commit -m "feat: Add new PRD for feature X"
+git push origin main
+```
+
+#### **Step 3: Automatic Sync (No Action Needed)**
+- GitHub Actions detects push to `prds/queue/`
+- Automatically syncs to database
+- Website updates within 30 seconds
+
+### **Method 3: Local Sync (Development/Testing Only)**
+
+```bash
+# Manual local sync (if GitHub Actions unavailable)
 ./scripts/prd-management/sync-prds-to-database.sh
 ```
 
-#### **Step 3: Verify Sync**
-```bash
-# Verify PRDs are in sync
-./scripts/prd-management/verify-prds-sync.sh
-```
+**Note**: This is a fallback. Normal workflow doesn't need this.
 
 ---
 
@@ -171,21 +200,22 @@ python3 scripts/prd-management/create-prd-files-from-database.py
 
 ## 🔐 Important Rules
 
-### **Never Update Database First**
+### **Never Update Database Directly**
 
 **Why**:
-- ❌ Loses source of truth
-- ❌ Hard to track changes
-- ❌ No version control
-- ❌ Difficult to rollback
+- ❌ Bypasses GitHub (source of truth)
+- ❌ Changes not version controlled
+- ❌ Lost on database wipes
+- ❌ No backup or history
 
-### **Always Update Files First**
+### **Always Go Through GitHub**
 
 **Why**:
-- ✅ Source of truth maintained
+- ✅ GitHub is cloud source of truth
+- ✅ Automatic database sync via GitHub Actions
 - ✅ Changes tracked in git
-- ✅ Easy to review before syncing
-- ✅ Can collaborate on files
+- ✅ Survives database wipes
+- ✅ Available from anywhere
 
 ---
 
@@ -292,17 +322,21 @@ The AI Agent Factory includes **proactive syncing** to automatically keep PRDs i
 ## 📋 Summary
 
 ### **Update Order**
-1. **Files First** (source of truth)
-2. **Then Database** (production)
+1. **GitHub First** (cloud source of truth)
+2. **Automatic Database Sync** (via GitHub Actions)
+3. **Local git pull** (when needed for development)
 
 ### **Sync Workflow**
-1. Update PRD files in `prds/queue/`
-2. Sync to database via API
-3. Verify sync
-4. Commit file changes to git
+1. PRD committed to GitHub (`prds/queue/`)
+   - Via ChatGPT (automatic)
+   - Via manual git commit
+2. GitHub Actions triggers automatically
+3. Database syncs within 30 seconds
+4. Website shows new PRD immediately
+5. `git pull` to sync locally (when needed)
 
 ### **Key Principle**
-**PRD files in repository are the source of truth. Database is a sync target.**
+**GitHub repository is the cloud source of truth. Database and local files are derived from GitHub.**
 
 ---
 

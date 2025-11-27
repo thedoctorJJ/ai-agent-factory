@@ -1,15 +1,27 @@
 #!/bin/bash
-# Sync PRD files from repository to database
-# This script ensures database PRDs match PRD files (source of truth)
-# Similar to sync-secrets-to-cloud.sh but for PRDs
+# Sync PRD files from local repository to database
+# 
+# NOTE: This is a LOCAL DEVELOPMENT/FALLBACK script.
+# Normal workflow: GitHub → GitHub Actions → Database (automatic)
+# 
+# Use this script only when:
+# - GitHub Actions is unavailable
+# - Testing locally before pushing to GitHub
+# - Manual sync needed for development
+#
+# Normal PRD flow:
+# 1. ChatGPT/Manual → Commit to GitHub (cloud source of truth)
+# 2. GitHub Actions auto-syncs to database (within 30 seconds)
+# 3. git pull to sync locally (when needed)
 
 set -e
 
-echo "🔄 Syncing PRD Files to Database"
+echo "🔄 Syncing Local PRD Files to Database"
 echo "=================================="
 echo ""
-echo "📋 Source of Truth: PRD files in prds/queue/"
-echo "🗄️  Sync Target: Database"
+echo "📋 Source: Local prds/queue/ (synced from GitHub)"
+echo "🗄️  Target: Database"
+echo "⚠️  Normal workflow uses GitHub Actions (this is a fallback)"
 echo ""
 
 # Colors for output

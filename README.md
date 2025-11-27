@@ -57,6 +57,21 @@ The AI Agent Factory has successfully created and deployed its first production 
 
 ## 🔧 **Recent Updates & Fixes**
 
+### **✅ GitHub-Based PRD Workflow - NEW (November 27, 2025)**
+- **Feature**: Automatic PRD submission from ChatGPT to GitHub with instant database sync
+- **How it Works**:
+  1. Submit PRD via ChatGPT → Commits to GitHub (`prds/queue/`)
+  2. GitHub Actions auto-triggers → Syncs to database
+  3. Website shows PRD within 30 seconds
+  4. No manual steps required!
+- **Source of Truth**: GitHub repository (cloud-persistent, version controlled)
+- **Benefits**: 
+  - PRDs survive database wipes
+  - Instant website updates
+  - Fully automated workflow
+  - Works from anywhere
+- **Status**: ✅ **OPERATIONAL** - See `docs/guides/CHATGPT_PRD_WORKFLOW.md`
+
 ### **✅ Cursor Agent SQL Execution - NEW FEATURE (November 16, 2025)**
 - **Feature**: Direct Supabase SQL execution from Cursor Agent via MCP server
 - **Implementation**: 
