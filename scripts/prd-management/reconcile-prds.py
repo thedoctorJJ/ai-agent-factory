@@ -81,11 +81,14 @@ def get_database_prds(backend_url: str) -> Dict[str, Dict]:
         for prd in data.get("prds", []):
             # Try to match by title (imperfect, but best we have without original_filename)
             title = prd.get("title", "")
-            db_prds[title] = {
+            # Handle multiple PRDs with same title by using title + id
+            key = f"{title}_{prd.get('id')}" if title in db_prds else title
+            db_prds[key] = {
                 "id": prd.get("id"),
                 "title": title,
                 "content_hash": prd.get("content_hash"),
-                "original_filename": prd.get("original_filename")
+                "original_filename": prd.get("original_filename"),
+                "file_content": prd.get("file_content")  # Store full content for comparison
             }
         
         return db_prds
@@ -183,12 +186,56 @@ def reconcile():
     if added == 0:
         print("   ✅ No missing PRDs found")
     
+    # Step 3: Update PRDs where content differs (GitHub wins)
+    print("\n🔄 Step 3: Updating PRDs where content differs...")
+    updated = 0
+    
+    # Re-fetch database PRDs to get the latest state after adds/deletes
+    db_prds_current = get_database_prds(backend_url)
+    db_by_title = {}
+    for key, prd in db_prds_current.items():
+        title = prd["title"]
+        if title not in db_by_title:
+            db_by_title[title] = prd
+    
+    for github_title, github_filename in github_by_title.items():
+        if github_title in db_by_title:
+            github_prd = github_prds[github_filename]
+            db_prd = db_by_title[github_title]
+            
+            # Read GitHub file content
+            github_content = github_prd["path"].read_text(encoding='utf-8')
+            github_content_normalized = github_content.replace('\r\n', '\n').strip()
+            
+            # Get database file content
+            db_content = db_prd.get("file_content", "")
+            if db_content:
+                db_content_normalized = db_content.replace('\r\n', '\n').strip()
+            else:
+                db_content_normalized = ""
+            
+            # Compare content
+            if github_content_normalized != db_content_normalized:
+                print(f"   🔍 '{github_title}' has different content - updating from GitHub")
+                # Delete old version
+                if delete_prd(backend_url, db_prd["id"], github_title):
+                    # Upload new version
+                    if upload_prd(backend_url, github_prd["path"]):
+                        print(f"   ✅ Updated: {github_title}")
+                        updated += 1
+                    else:
+                        print(f"   ❌ Failed to re-upload: {github_title}")
+    
+    if updated == 0:
+        print("   ✅ No content updates needed")
+    
     # Summary
     print("\n" + "=" * 60)
     print("📊 Reconciliation Summary:")
     print(f"   ➖ Deleted:   {deleted} PRD(s)")
     print(f"   ➕ Added:     {added} PRD(s)")
-    print(f"   ✅ Unchanged: {unchanged} PRD(s)")
+    print(f"   🔄 Updated:   {updated} PRD(s)")
+    print(f"   ✅ Unchanged: {unchanged - updated} PRD(s)")
     
     # Verify final state
     print("\n🔍 Verifying final state...")
