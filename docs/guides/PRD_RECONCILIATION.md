@@ -7,14 +7,19 @@ The PRD Reconciliation System ensures that **GitHub always wins** as the source 
 ## The Golden Rule
 
 ```
-📌 GitHub is ALWAYS the source of truth
+📌 GitHub is the source of truth for CONTENT
     ↓
-🔄 Database syncs TO match GitHub (automatically)
+🔄 Database syncs TO match GitHub (adds, updates)
+    ↑  Database syncs FROM website (deletes)
     ↓
 🌐 Website reflects Database
     ↓
 💻 Local syncs FROM GitHub (via git pull)
 ```
+
+**Bidirectional Sync:**
+- **Additions & Updates**: GitHub → Database (GitHub wins)
+- **Deletions**: Website → GitHub → Database (Either side can delete)
 
 ## What Gets Reconciled
 
@@ -108,7 +113,7 @@ git push origin main
 ✅ Database now has updated content from GitHub
 ```
 
-### Scenario 2: Delete PRD
+### Scenario 2a: Delete PRD from GitHub
 
 **Action**:
 ```bash
@@ -123,7 +128,26 @@ git push origin main
    🔍 'Old PRD' exists in database but not in GitHub
    ✅ Deleted: Old PRD
 
-✅ Database cleaned up automatically
+✅ Database cleaned up automatically (within 30s)
+```
+
+### Scenario 2b: Delete PRD from Website (NEW)
+
+**Action**:
+- Go to website
+- Click "Delete" on a PRD
+- Confirm deletion
+
+**Result**:
+```
+1. PRD deleted from database immediately
+2. Backend finds matching file in GitHub
+3. File deleted from GitHub automatically
+4. Commit created: "Delete PRD: [title] (via website)"
+
+✅ Deleted from database
+✅ Deleted from GitHub
+✅ Reconciliation keeps everything in sync
 ```
 
 ### Scenario 3: Add New PRD
@@ -274,17 +298,21 @@ git commit -m "Remove duplicate PRD"
 git push
 ```
 
-## Summary: GitHub Always Wins
+## Summary: Bidirectional Sync
 
 | Scenario | GitHub | Database Before | Database After | Auto-Fixed? |
 |----------|--------|-----------------|----------------|-------------|
 | **New PRD added to GitHub** | Has file | Missing | Added | ✅ Yes (30s) |
 | **PRD deleted from GitHub** | No file | Has PRD | Deleted | ✅ Yes (30s) |
+| **PRD deleted from Website** | Has file | Has PRD | Deleted (both) | ✅ Yes (instant) |
 | **PRD content updated in GitHub** | Updated | Old version | Updated | ✅ Yes (30s) |
 | **Duplicate files in GitHub** | 2 files | 0 or 1 | 1 | ⚠️ Manual cleanup |
 | **PRD only in Database** | No file | Has PRD | Deleted | ✅ Yes (30s) |
 
-**Bottom Line**: Make changes in GitHub, everything else syncs automatically. GitHub is the complete source of truth for ALL operations.
+**Bottom Line**: 
+- **Additions & Updates**: GitHub is source of truth → syncs to database
+- **Deletions**: Can be initiated from either side → syncs to both
+- Everything stays in sync automatically
 
 ## Related Documentation
 
