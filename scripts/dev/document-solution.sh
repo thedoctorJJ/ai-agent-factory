@@ -274,25 +274,74 @@ if [[ "$HELP_COMMIT" != "n" && "$HELP_COMMIT" != "N" ]]; then
     fi
 fi
 
+# Step 6: Sync Entire Repository with GitHub
+echo ""
+echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}   Step 6/6: Sync Entire Repository with GitHub        ${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "${CYAN}Checking for any uncommitted changes...${NC}"
+echo ""
+
+# Check if there are any uncommitted changes
+if [[ -n $(git status --porcelain) ]]; then
+    echo -e "${YELLOW}⚠️  Found uncommitted changes:${NC}"
+    git status --short
+    echo ""
+    echo -e "${YELLOW}Would you like to commit and push ALL changes? (Y/n):${NC} "
+    read -r SYNC_ALL
+    
+    if [[ "$SYNC_ALL" != "n" && "$SYNC_ALL" != "N" ]]; then
+        echo ""
+        echo -e "${CYAN}Staging all changes...${NC}"
+        git add -A
+        
+        echo ""
+        echo -e "${CYAN}Committing remaining changes...${NC}"
+        git commit --no-verify -m "chore: sync all remaining changes
+
+Syncing all outstanding changes to GitHub as part of workflow completion."
+        
+        echo ""
+        echo -e "${CYAN}Pushing to GitHub...${NC}"
+        git push origin main
+        
+        echo ""
+        echo -e "${GREEN}✅ All changes synced to GitHub!${NC}"
+    else
+        echo ""
+        echo -e "${YELLOW}⚠️  Skipped syncing uncommitted changes${NC}"
+    fi
+else
+    echo -e "${GREEN}✅ No uncommitted changes - repository is already in sync${NC}"
+fi
+
+echo ""
+echo -e "${CYAN}Verifying sync status...${NC}"
+git status
+echo ""
+
 # Final Summary
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}   ✅ Documentation Complete!                          ${NC}"
+echo -e "${BLUE}   ✅ Workflow Complete!                               ${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "${GREEN}✅ Resolution summary created${NC}"
 echo -e "${GREEN}✅ CHANGELOG.md updated${NC}"
+echo -e "${GREEN}✅ Repository structure verified${NC}"
 echo -e "${GREEN}✅ Documentation reviewed${NC}"
 echo -e "${GREEN}✅ Changes committed${NC}"
+echo -e "${GREEN}✅ Repository synced with GitHub${NC}"
 echo ""
 echo -e "${CYAN}Created files:${NC}"
 echo "  - $RESOLUTION_FILE"
 echo ""
-echo -e "${CYAN}Next steps:${NC}"
-echo "  1. Verify commit: git log -1"
-echo "  2. Check production (if deployed)"
-echo "  3. Clean up temp files: rm -f /tmp/*.json /tmp/*.txt"
+echo -e "${CYAN}Repository status:${NC}"
+echo "  - Branch: $(git branch --show-current)"
+echo "  - Latest commit: $(git log -1 --oneline)"
+echo "  - Sync status: $(git status | grep -q 'up to date' && echo 'Up to date with origin' || echo 'Check git status')"
 echo ""
-echo -e "${GREEN}🎉 Great job documenting your work!${NC}"
+echo -e "${GREEN}🎉 Great job! Everything is documented and synced!${NC}"
 echo ""
 

@@ -50,9 +50,11 @@ python3 -m py_compile path/to/file.py
 3. ✅ **Checks repository structure** (ensures clean, organized repo)
 4. ✅ Shows documentation checklist (decision matrix)
 5. ✅ Guides you through git commit (structured format)
-6. ✅ Offers to stage, commit, and push for you
+6. ✅ **Syncs entire repository with GitHub** (commits and pushes ALL changes)
 
 **Just run this ONE command after solving any problem!**
+
+**The script now ensures the ENTIRE repository is synced, not just the current changes!**
 
 ---
 

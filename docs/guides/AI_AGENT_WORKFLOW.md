@@ -395,14 +395,34 @@ git commit -m "fixed stuff"
 git commit -m "updates"
 ```
 
-#### Step 5.4: Push to GitHub
+#### Step 5.4: Sync Entire Repository with GitHub
+
+**IMPORTANT**: Always sync the ENTIRE repository, not just current changes!
+
 ```bash
-# Push to remote
+# Check for ANY uncommitted changes
+git status --short
+
+# If there are uncommitted changes, stage and commit ALL of them
+git add -A
+git commit -m "chore: sync all remaining changes"
+
+# Push everything to GitHub
 git push origin main
 
-# Or create PR if on feature branch
-git push origin feature/[branch-name]
+# Verify complete sync
+git status  # Should show "nothing to commit, working tree clean"
 ```
+
+**Why sync everything?**:
+- ✅ Ensures no work is lost
+- ✅ Keeps repository fully synced
+- ✅ Prevents accumulation of uncommitted changes
+- ✅ Makes collaboration easier
+- ✅ Complete backup to GitHub
+- ✅ No surprises for other developers or AI agents
+
+**The `document-solution.sh` script handles this automatically in Step 6!**
 
 ---
 
