@@ -180,13 +180,49 @@ class SimpleGitHubService:
         except Exception as e:
             return {"error": f"GitHub operation failed: {str(e)}"}
     
+    async def get_repository_contents(self, owner: str, repo: str, path: str = "", branch: str = "main") -> Dict[str, Any]:
+        """Get contents of a directory in repository"""
+        try:
+            url = f'https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}'
+            response = requests.get(url, headers=self.headers)
+            if response.status_code == 200:
+                contents = response.json()
+                # Decode content for files if present
+                result = {"contents": []}
+                for item in contents:
+                    item_data = {
+                        "name": item.get("name"),
+                        "path": item.get("path"),
+                        "type": item.get("type"),
+                        "sha": item.get("sha"),
+                        "size": item.get("size"),
+                        "url": item.get("url")
+                    }
+                    result["contents"].append(item_data)
+                return result
+            elif response.status_code == 404:
+                return {"error": "Path not found"}
+            else:
+                return {"error": f"Failed to get contents: {response.status_code}"}
+        except Exception as e:
+            return {"error": f"GitHub operation failed: {str(e)}"}
+    
     async def get_file_content(self, owner: str, repo: str, file_path: str, branch: str = "main") -> Dict[str, Any]:
         """Get file content from repository"""
+        import base64
         try:
             url = f'https://api.github.com/repos/{owner}/{repo}/contents/{file_path}?ref={branch}'
             response = requests.get(url, headers=self.headers)
             if response.status_code == 200:
-                return response.json()
+                file_data = response.json()
+                # Decode base64 content if present
+                if "content" in file_data and file_data.get("encoding") == "base64":
+                    try:
+                        decoded_content = base64.b64decode(file_data["content"]).decode('utf-8')
+                        file_data["content"] = decoded_content
+                    except Exception as e:
+                        file_data["decode_error"] = str(e)
+                return file_data
             elif response.status_code == 404:
                 return {"error": "File not found"}
             else:

@@ -606,13 +606,83 @@ class CursorAgentMCPServer:
             if not self.github_service:
                 return {"error": "GitHub service not configured. Cannot save PRD to cloud."}
             
-            # Check if file already exists in GitHub
             repo_owner = os.getenv("GITHUB_ORG_NAME", "thedoctorJJ")
             repo_name = os.getenv("GITHUB_REPO_NAME", "ai-agent-factory")
             
+            # Step 1: Check for content duplicates (same title + description)
+            # List all existing PRD files in GitHub
+            import hashlib
+            try:
+                # Get list of files in prds/queue/
+                repo_contents = await self.github_service.get_repository_contents(repo_owner, repo_name, "prds/queue")
+                
+                # Calculate hash of new content (title + first 500 chars of description)
+                content_lines = content.split('\n')
+                description = ""
+                capture_desc = False
+                for line in content_lines:
+                    if line.strip().startswith('## Description'):
+                        capture_desc = True
+                        continue
+                    if capture_desc and line.strip().startswith('##'):
+                        break
+                    if capture_desc:
+                        description += line + "\n"
+                
+                # Normalize for comparison
+                normalized_title = title.lower().strip()
+                normalized_desc = description.lower().strip()[:500]
+                new_content_key = f"{normalized_title}::{normalized_desc}"
+                new_hash = hashlib.sha256(new_content_key.encode('utf-8')).hexdigest()
+                
+                # Check each existing PRD file
+                for item in repo_contents.get("contents", []):
+                    if item.get("name", "").endswith(".md") and item.get("name") != "README.md":
+                        # Get file content
+                        existing_content_result = await self.github_service.get_file_content(repo_owner, repo_name, item.get("path"))
+                        if existing_content_result and "content" in existing_content_result:
+                            existing_content = existing_content_result["content"]
+                            
+                            # Extract title and description from existing file
+                            existing_lines = existing_content.split('\n')
+                            existing_title = ""
+                            existing_description = ""
+                            existing_capture_desc = False
+                            
+                            for line in existing_lines:
+                                if line.strip().startswith('# '):
+                                    existing_title = line[2:].strip()
+                                if line.strip().startswith('## Description'):
+                                    existing_capture_desc = True
+                                    continue
+                                if existing_capture_desc and line.strip().startswith('##'):
+                                    break
+                                if existing_capture_desc:
+                                    existing_description += line + "\n"
+                            
+                            # Normalize and hash existing content
+                            existing_normalized_title = existing_title.lower().strip()
+                            existing_normalized_desc = existing_description.lower().strip()[:500]
+                            existing_content_key = f"{existing_normalized_title}::{existing_normalized_desc}"
+                            existing_hash = hashlib.sha256(existing_content_key.encode('utf-8')).hexdigest()
+                            
+                            # Check if content matches
+                            if new_hash == existing_hash:
+                                return {
+                                    "status": "duplicate_prevented",
+                                    "message": f"PRD with identical content already exists: {item.get('name')}",
+                                    "existing_file": item.get("name"),
+                                    "existing_path": item.get("path"),
+                                    "github_url": f"https://github.com/{repo_owner}/{repo_name}/blob/main/{item.get('path')}"
+                                }
+            except Exception as e:
+                # If duplicate check fails, log but continue (don't block PRD creation)
+                print(f"⚠️  Warning: Duplicate check failed: {e}")
+            
+            # Step 2: Check if exact filename already exists
             existing_file = await self.github_service.get_file_content(repo_owner, repo_name, file_path)
             
-            # If file exists, add timestamp to make unique
+            # If filename exists, add timestamp to make unique
             if existing_file and "error" not in existing_file:
                 timestamp = datetime.utcnow().strftime("%H%M%S")
                 file_name = f"{date_str}_{base}-{timestamp}.md"
