@@ -93,8 +93,7 @@ async def submit_incoming_prd(request_body: IncomingPRDRequest):
     """
     Submit a PRD from an external source (AI tool, webhook, etc.).
     
-    Saves PRD to prds/queue/ (source of truth). The automatic sync mechanism
-    will pick it up and sync to database.
+    Directly creates PRD in database with content hash-based duplicate detection.
     
     Accepts JSON body with PRD content:
     ```json
@@ -109,63 +108,36 @@ async def submit_incoming_prd(request_body: IncomingPRDRequest):
     ```json
     {
         "status": "ok",
-        "file_path": "prds/queue/2025-11-27_prd-title.md",
-        "message": "PRD saved to source of truth. Automatic sync will update database."
+        "prd_id": "uuid",
+        "title": "PRD Title",
+        "message": "PRD created in database (with duplicate detection)"
     }
     ```
     """
-    from datetime import datetime
-    import re
-    from pathlib import Path
+    from io import BytesIO
     
-    # Extract title from content for filename
-    content_lines = request_body.content.split('\n')
-    title = "untitled-prd"
+    # Create a fake uploaded file object
+    content_bytes = request_body.content.encode('utf-8')
+    file_obj = BytesIO(content_bytes)
     
-    for line in content_lines:
-        line = line.strip()
-        if line.startswith('# '):
-            # H1 heading - likely the title
-            title = line[2:].strip()
-            # Strip markdown formatting
-            title = re.sub(r'\*\*(.+?)\*\*', r'\1', title)
-            title = re.sub(r'__(.+?)__', r'\1', title)
-            title = re.sub(r'\*(.+?)\*', r'\1', title)
-            title = re.sub(r'_(.+?)_', r'\1', title)
-            title = re.sub(r'`(.+?)`', r'\1', title)
-            break
+    class IncomingFile:
+        def __init__(self, file_obj, filename):
+            self.file = file_obj
+            self.filename = filename
+            self.headers = {}
+        
+        async def read(self):
+            return self.file.read()
     
-    # Generate filename from title
-    def slugify(text: str) -> str:
-        text = text.lower()
-        text = re.sub(r"[^a-z0-9]+", "-", text)
-        return text.strip("-") or "prd"
-    
-    date_str = datetime.utcnow().strftime("%Y-%m-%d")
-    base = slugify(title)
-    file_name = f"{date_str}_{base}.md"
-    
-    # Save to prds/queue/ (source of truth)
-    project_root = Path(__file__).parent.parent.parent.parent
-    queue_folder = project_root / "prds" / "queue"
-    queue_folder.mkdir(parents=True, exist_ok=True)
-    
-    file_path = queue_folder / file_name
-    
-    # Check if file already exists (avoid overwriting)
-    if file_path.exists():
-        # Add timestamp to make unique
-        timestamp = datetime.utcnow().strftime("%H%M%S")
-        file_name = f"{date_str}_{base}-{timestamp}.md"
-        file_path = queue_folder / file_name
-    
-    file_path.write_text(request_body.content, encoding="utf-8")
+    # Use upload_prd_file which calls create_prd with hash-based duplicate detection
+    upload_file = IncomingFile(file_obj, "incoming-prd.md")
+    prd_response = await prd_service.upload_prd_file(upload_file)
     
     return {
         "status": "ok",
-        "file_path": f"prds/queue/{file_name}",
-        "title": title,
-        "message": "PRD saved to source of truth (prds/queue/). Automatic sync will update database."
+        "prd_id": prd_response.id,
+        "title": prd_response.title,
+        "message": "PRD created in database with content hash-based duplicate detection"
     }
 
 

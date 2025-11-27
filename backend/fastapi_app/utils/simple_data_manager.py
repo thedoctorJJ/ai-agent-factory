@@ -233,26 +233,22 @@ class SimpleDataManager:
             result = self.supabase.table('prds').select('*').eq('id', prd_id).execute()
             return result.data[0] if result.data else None
     
-    async def get_prd_by_title(self, title: str) -> Optional[Dict[str, Any]]:
-        """Get a PRD by title (case-insensitive, ignoring markdown formatting)."""
+    async def get_prd_by_hash(self, content_hash: str) -> Optional[Dict[str, Any]]:
+        """Get a PRD by content hash (deterministic duplicate detection)."""
         if self.mode == "development":
-            # Normalize title for comparison
-            normalized_title = title.strip().lower().replace('*', '').replace('#', '').strip()
+            # Check in-memory storage
             for prd in self.memory_storage["prds"].values():
-                prd_title = prd.get("title", "").strip().lower().replace('*', '').replace('#', '').strip()
-                if prd_title == normalized_title:
+                if prd.get("content_hash") == content_hash:
                     return prd
             return None
         else:
-            # Get all PRDs and filter by normalized title (Supabase doesn't have case-insensitive search easily)
-            result = self.supabase.table('prds').select('*').execute()
-            if result.data:
-                normalized_title = title.strip().lower().replace('*', '').replace('#', '').strip()
-                for prd in result.data:
-                    prd_title = prd.get("title", "").strip().lower().replace('*', '').replace('#', '').strip()
-                    if prd_title == normalized_title:
-                        return prd
-            return None
+            # Query Supabase by content_hash
+            try:
+                result = self.supabase.table('prds').select('*').eq('content_hash', content_hash).execute()
+                return result.data[0] if result.data else None
+            except Exception as e:
+                print(f"Error querying PRD by hash: {e}")
+                return None
     
     async def update_prd(self, prd_id: str, prd_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update a PRD."""

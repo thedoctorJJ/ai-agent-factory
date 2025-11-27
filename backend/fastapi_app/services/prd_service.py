@@ -12,6 +12,7 @@ from ..models.prd import (
     PRDListResponse, PRDMarkdownResponse
 )
 from ..utils.simple_data_manager import data_manager
+from ..utils.prd_hash import calculate_prd_hash
 from .prd_parser import PRDParser
 
 
@@ -28,18 +29,30 @@ class PRDService:
         self.parser = PRDParser()
 
     async def create_prd(self, prd_data: PRDCreate) -> PRDResponse:
-        """Create a new PRD."""
-        # Check for duplicate by title (normalized)
-        existing_prd = await data_manager.get_prd_by_title(prd_data.title)
+        """Create a new PRD with content hash-based duplicate detection."""
+        # Calculate content hash for duplicate detection
+        content_hash = calculate_prd_hash(prd_data.title, prd_data.description)
+        print(f"🔍 Creating PRD: '{prd_data.title}'")
+        print(f"   Content hash: {content_hash[:16]}...")
+        
+        # Check for duplicate by content hash (deterministic, reliable)
+        print(f"   Checking for duplicates in database...")
+        existing_prd = await data_manager.get_prd_by_hash(content_hash)
+        
         if existing_prd:
-            print(f"⚠️  PRD with title '{prd_data.title}' already exists (ID: {existing_prd.get('id')})")
-            print(f"   Returning existing PRD instead of creating duplicate")
+            print(f"⚠️  DUPLICATE DETECTED! PRD with same content already exists")
+            print(f"   Existing ID: {existing_prd.get('id')}")
+            print(f"   Title: '{prd_data.title}'")
+            print(f"   Hash: {content_hash[:16]}...")
+            print(f"   ✅ Returning existing PRD (no duplicate created)")
             # Return existing PRD instead of creating duplicate
             if isinstance(existing_prd.get("created_at"), str):
                 existing_prd["created_at"] = datetime.fromisoformat(existing_prd["created_at"].replace('Z', '+00:00'))
             if isinstance(existing_prd.get("updated_at"), str):
                 existing_prd["updated_at"] = datetime.fromisoformat(existing_prd["updated_at"].replace('Z', '+00:00'))
             return PRDResponse(**existing_prd)
+        else:
+            print(f"   ✅ No duplicate found - creating new PRD")
         
         prd_id = str(uuid.uuid4())
         now = datetime.utcnow()
@@ -54,6 +67,7 @@ class PRDService:
             "github_repo_url": None,
             "created_at": now.isoformat(),
             "updated_at": now.isoformat(),
+            "content_hash": content_hash,  # Add content hash for duplicate detection
             "problem_statement": prd_data.problem_statement,
             "target_users": prd_data.target_users,
             "user_stories": prd_data.user_stories,

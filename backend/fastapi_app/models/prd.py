@@ -160,6 +160,7 @@ class PRDResponse(BaseModel):
         None, description="GitHub repository URL")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
+    content_hash: Optional[str] = Field(None, description="Content hash for duplicate detection")
 
     # Enhanced PRD sections
     problem_statement: Optional[str] = None

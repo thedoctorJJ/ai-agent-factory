@@ -91,7 +91,10 @@ The AI Agent Factory uses a **GitHub-based PRD system**:
    - ✅ Commit to GitHub → Auto-sync to database (correct)
    - ❌ Database first (wrong)
    - ❌ Local files without committing (not persistent)
-3. **Automatic Sync**: GitHub Actions syncs to database automatically (no manual steps)
+3. **Automatic Reconciliation**: GitHub Actions automatically reconciles database to match GitHub
+   - Removes PRDs in database not in GitHub
+   - Adds PRDs from GitHub not in database
+   - Runs within 30 seconds of any GitHub push
 4. **Local Sync**: Run `git pull` to get latest PRDs locally
 
 ### **PRD Management Workflows**
@@ -100,7 +103,7 @@ The AI Agent Factory uses a **GitHub-based PRD system**:
 ```
 1. Submit PRD via ChatGPT
 2. MCP Server commits to GitHub automatically
-3. GitHub Actions syncs to database (30 seconds)
+3. GitHub Actions reconciles database (30 seconds)
 4. Website shows PRD immediately
 5. Later: git pull to sync locally
 ```
@@ -115,14 +118,17 @@ git add prds/queue/2024-11-16_my-prd.md
 git commit -m "feat: Update PRD"
 git push origin main
 
-# 3. Automatic sync (GitHub Actions)
-# Database updates within 30 seconds
+# 3. Automatic reconciliation (GitHub Actions)
+# Database reconciles to match GitHub within 30 seconds
 # No manual action needed!
 ```
 
-**Method 3: Local Sync (Fallback Only)**
+**Method 3: Manual Reconciliation (Fallback/Testing)**
 ```bash
-# Only use if GitHub Actions unavailable
+# Reconcile database to match GitHub (removes orphans, adds missing)
+python3 scripts/prd-management/reconcile-prds.py
+
+# Or use legacy sync (adds only, doesn't remove)
 ./scripts/prd-management/sync-prds-to-database.sh
 ```
 

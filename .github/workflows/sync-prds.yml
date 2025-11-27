@@ -25,16 +25,19 @@ jobs:
         run: |
           pip install requests
       
-      - name: Sync PRDs to Database
+      - name: Reconcile PRDs (GitHub → Database)
         env:
           BACKEND_URL: https://ai-agent-factory-backend-952475323593.us-central1.run.app
         run: |
-          python3 scripts/prd-management/sync-prds-to-database-cloud.py
+          echo "🔄 Running PRD reconciliation..."
+          echo "📌 GitHub is the source of truth - database will be updated to match"
+          python3 scripts/prd-management/reconcile-prds.py
       
       - name: Display Sync Results
         if: always()
         run: |
-          echo "✅ PRD sync completed!"
+          echo "✅ PRD reconciliation completed!"
+          echo "📌 Database now matches GitHub (source of truth)"
           echo "🌐 PRDs are now available on the website"
           echo "📋 Check: https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/prds"
 
