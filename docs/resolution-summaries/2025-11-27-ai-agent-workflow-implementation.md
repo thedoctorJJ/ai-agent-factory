@@ -296,7 +296,7 @@ feat(startup): add dynamic PRD count to Supabase sync
 - Updates all documentation to reflect dynamic behavior
 - Future-proof for any number of PRDs
 
-Refs: docs/resolution-summaries/startup-prompt-prd-sync-enhancement-2025-11-27.md
+Refs: docs/resolution-summaries/2025-11-27-startup-prompt-prd-sync-enhancement.md
 ```
 
 ---
@@ -418,7 +418,7 @@ Refs: docs/resolution-summaries/startup-prompt-prd-sync-enhancement-2025-11-27.m
 - `docs/guides/AI_AGENT_WORKFLOW.md`
 - `.cursor/LINTING_SYSTEM.md`
 - `scripts/dev/check-linting-tools.sh`
-- `docs/resolution-summaries/ai-agent-workflow-implementation-2025-11-27.md` (this file)
+- `docs/resolution-summaries/2025-11-27-ai-agent-workflow-implementation.md` (this file)
 
 ### Modified Files
 - `.cursor/startup-prompt.md`

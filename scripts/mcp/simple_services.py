@@ -179,6 +179,62 @@ class SimpleGitHubService:
                 return {"error": f"Failed to get repository: {response.status_code}"}
         except Exception as e:
             return {"error": f"GitHub operation failed: {str(e)}"}
+    
+    async def get_file_content(self, owner: str, repo: str, file_path: str, branch: str = "main") -> Dict[str, Any]:
+        """Get file content from repository"""
+        try:
+            url = f'https://api.github.com/repos/{owner}/{repo}/contents/{file_path}?ref={branch}'
+            response = requests.get(url, headers=self.headers)
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                return {"error": "File not found"}
+            else:
+                return {"error": f"Failed to get file: {response.status_code}"}
+        except Exception as e:
+            return {"error": f"GitHub operation failed: {str(e)}"}
+    
+    async def create_or_update_file(self, repo_owner: str, repo_name: str, file_path: str, 
+                                   content: str, message: str, branch: str = "main") -> Dict[str, Any]:
+        """Create or update a file in the repository"""
+        import base64
+        
+        try:
+            # Check if file exists to get its SHA (required for updates)
+            existing_file = await self.get_file_content(repo_owner, repo_name, file_path, branch)
+            sha = existing_file.get("sha") if "error" not in existing_file else None
+            
+            # Encode content to base64
+            content_bytes = content.encode('utf-8')
+            content_base64 = base64.b64encode(content_bytes).decode('utf-8')
+            
+            # Prepare data for GitHub API
+            data = {
+                "message": message,
+                "content": content_base64,
+                "branch": branch
+            }
+            
+            # If file exists, include its SHA for update
+            if sha:
+                data["sha"] = sha
+            
+            # Create or update file via GitHub API
+            url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}'
+            response = requests.put(url, headers=self.headers, json=data)
+            
+            if response.status_code in [200, 201]:
+                result = response.json()
+                return {
+                    "success": True,
+                    "commit_sha": result.get("commit", {}).get("sha"),
+                    "html_url": result.get("content", {}).get("html_url"),
+                    "download_url": result.get("content", {}).get("download_url")
+                }
+            else:
+                return {"error": f"Failed to create/update file: {response.status_code} - {response.text}"}
+        except Exception as e:
+            return {"error": f"GitHub operation failed: {str(e)}"}
 
 class SimpleOpenAIService:
     """Simple OpenAI service for basic operations"""

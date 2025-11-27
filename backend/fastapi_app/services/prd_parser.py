@@ -116,6 +116,19 @@ class PRDParser:
         if not lines:
             return "Untitled PRD"
 
+        # Helper function to strip markdown formatting
+        def strip_markdown(text: str) -> str:
+            """Remove markdown formatting from text"""
+            # Remove bold (**text** or __text__)
+            text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+            text = re.sub(r'__(.+?)__', r'\1', text)
+            # Remove italic (*text* or _text_)
+            text = re.sub(r'\*(.+?)\*', r'\1', text)
+            text = re.sub(r'_(.+?)_', r'\1', text)
+            # Remove inline code (`text`)
+            text = re.sub(r'`(.+?)`', r'\1', text)
+            return text.strip()
+
         # First, look for explicit title sections
         for i, line in enumerate(lines):
             line = line.strip()
@@ -124,19 +137,19 @@ class PRDParser:
                 for j in range(i + 1, min(i + 3, len(lines))):
                     next_line = lines[j].strip()
                     if next_line and not next_line.startswith('#'):
-                        return next_line
+                        return strip_markdown(next_line)
 
         # Look for the first meaningful heading (H1 or H2)
         for line in lines:
             line = line.strip()
             if line.startswith('# '):
                 # H1 heading - this is likely the main title
-                title = line[2:].strip()
+                title = strip_markdown(line[2:].strip())
                 if title and len(title) > 3:  # Must be meaningful
                     return title
             elif line.startswith('## ') and not any(keyword in line.lower() for keyword in ['description', 'overview', 'summary', 'introduction', 'title']):
                 # H2 heading that's not a section header
-                title = line[3:].strip()
+                title = strip_markdown(line[3:].strip())
                 if title and len(title) > 3:
                     return title
 

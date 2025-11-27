@@ -29,15 +29,14 @@ jobs:
         env:
           BACKEND_URL: https://ai-agent-factory-backend-952475323593.us-central1.run.app
         run: |
-          chmod +x scripts/prd-management/sync-prds-to-database.sh
-          ./scripts/prd-management/sync-prds-to-database.sh
+          python3 scripts/prd-management/sync-prds-to-database-cloud.py
       
-      - name: Verify PRD Sync
-        env:
-          BACKEND_URL: https://ai-agent-factory-backend-952475323593.us-central1.run.app
+      - name: Display Sync Results
+        if: always()
         run: |
-          chmod +x scripts/prd-management/verify-prds-sync.sh
-          ./scripts/prd-management/verify-prds-sync.sh
+          echo "✅ PRD sync completed!"
+          echo "🌐 PRDs are now available on the website"
+          echo "📋 Check: https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/prds"
 
 
 

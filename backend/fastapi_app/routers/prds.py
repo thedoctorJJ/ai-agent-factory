@@ -88,85 +88,85 @@ class SavePRDRequest(BaseModel):
     content_markdown: str
 
 
-@router.post("/prds/incoming", response_model=PRDResponse)
-async def submit_incoming_prd(
-    request_body: Optional[IncomingPRDRequest] = Body(None),
-    file: Optional[UploadFile] = File(None),
-    content: Optional[str] = Form(None)
-):
+@router.post("/prds/incoming", response_model=Dict[str, str])
+async def submit_incoming_prd(request_body: IncomingPRDRequest):
     """
     Submit a PRD from an external source (AI tool, webhook, etc.).
     
-    Accepts PRDs in multiple ways:
-    1. **JSON body** (for AI tools with API access like ChatGPT Actions):
-       ```json
-       POST /api/v1/prds/incoming
-       Content-Type: application/json
-       {
-           "content": "# PRD Title\n\n## Description\n..."
-       }
-       ```
+    Saves PRD to prds/queue/ (source of truth). The automatic sync mechanism
+    will pick it up and sync to database.
     
-    2. **File upload** (multipart/form-data):
-       ```
-       POST /api/v1/prds/incoming
-       Content-Type: multipart/form-data
-       file: <file content>
-       ```
+    Accepts JSON body with PRD content:
+    ```json
+    POST /api/v1/prds/incoming
+    Content-Type: application/json
+    {
+        "content": "# PRD Title\n\n## Description\n..."
+    }
+    ```
     
-    3. **Form data** (for simple webhooks):
-       ```
-       POST /api/v1/prds/incoming
-       Content-Type: application/x-www-form-urlencoded
-       content: "# PRD Title\n\n## Description\n..."
-       ```
+    Returns:
+    ```json
+    {
+        "status": "ok",
+        "file_path": "prds/queue/2025-11-27_prd-title.md",
+        "message": "PRD saved to source of truth. Automatic sync will update database."
+    }
+    ```
     """
-    # Priority: file > JSON body > form data
-    if file and file.filename:
-        # Process file upload
-        return await prd_service.upload_prd_file(file)
-    elif request_body and request_body.content:
-        # Process JSON body content (for ChatGPT Actions)
-        from io import BytesIO
-        
-        content_bytes = request_body.content.encode('utf-8')
-        file_obj = BytesIO(content_bytes)
-        
-        # Create an UploadFile-like object
-        class IncomingFile:
-            def __init__(self, file_obj, filename):
-                self.file = file_obj
-                self.filename = filename
-                self.headers = {}
-            
-            async def read(self):
-                return self.file.read()
-        
-        upload_file = IncomingFile(file_obj, "incoming-prd.md")
-        return await prd_service.upload_prd_file(upload_file)
-    elif content:
-        # Process form data content
-        from io import BytesIO
-        
-        content_bytes = content.encode('utf-8')
-        file_obj = BytesIO(content_bytes)
-        
-        class IncomingFile:
-            def __init__(self, file_obj, filename):
-                self.file = file_obj
-                self.filename = filename
-                self.headers = {}
-            
-            async def read(self):
-                return self.file.read()
-        
-        upload_file = IncomingFile(file_obj, "incoming-prd.md")
-        return await prd_service.upload_prd_file(upload_file)
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="Either 'content' (JSON/form) or 'file' (multipart) parameter must be provided"
-        )
+    from datetime import datetime
+    import re
+    from pathlib import Path
+    
+    # Extract title from content for filename
+    content_lines = request_body.content.split('\n')
+    title = "untitled-prd"
+    
+    for line in content_lines:
+        line = line.strip()
+        if line.startswith('# '):
+            # H1 heading - likely the title
+            title = line[2:].strip()
+            # Strip markdown formatting
+            title = re.sub(r'\*\*(.+?)\*\*', r'\1', title)
+            title = re.sub(r'__(.+?)__', r'\1', title)
+            title = re.sub(r'\*(.+?)\*', r'\1', title)
+            title = re.sub(r'_(.+?)_', r'\1', title)
+            title = re.sub(r'`(.+?)`', r'\1', title)
+            break
+    
+    # Generate filename from title
+    def slugify(text: str) -> str:
+        text = text.lower()
+        text = re.sub(r"[^a-z0-9]+", "-", text)
+        return text.strip("-") or "prd"
+    
+    date_str = datetime.utcnow().strftime("%Y-%m-%d")
+    base = slugify(title)
+    file_name = f"{date_str}_{base}.md"
+    
+    # Save to prds/queue/ (source of truth)
+    project_root = Path(__file__).parent.parent.parent.parent
+    queue_folder = project_root / "prds" / "queue"
+    queue_folder.mkdir(parents=True, exist_ok=True)
+    
+    file_path = queue_folder / file_name
+    
+    # Check if file already exists (avoid overwriting)
+    if file_path.exists():
+        # Add timestamp to make unique
+        timestamp = datetime.utcnow().strftime("%H%M%S")
+        file_name = f"{date_str}_{base}-{timestamp}.md"
+        file_path = queue_folder / file_name
+    
+    file_path.write_text(request_body.content, encoding="utf-8")
+    
+    return {
+        "status": "ok",
+        "file_path": f"prds/queue/{file_name}",
+        "title": title,
+        "message": "PRD saved to source of truth (prds/queue/). Automatic sync will update database."
+    }
 
 
 @router.post("/prds/save", response_model=Dict[str, str])

@@ -7,7 +7,8 @@ Allows external applications (ChatGPT, Devin, etc.) to communicate with MCP serv
 import json
 import asyncio
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 import uvicorn
@@ -24,13 +25,7 @@ project_root = Path(current_dir).parent.parent
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, current_dir)
 
-# Import Devin MCP Server
-spec = importlib.util.spec_from_file_location("devin_mcp_server", os.path.join(current_dir, "devin-mcp-server.py"))
-devin_mcp_server = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(devin_mcp_server)
-DevinMCPServer = devin_mcp_server.DevinMCPServer
-
-# Import Cursor MCP Server for PRD submission
+# Import Cursor Agent MCP Server (primary server for all tools)
 spec_cursor = importlib.util.spec_from_file_location("cursor_mcp_server", os.path.join(current_dir, "cursor-agent-mcp-server.py"))
 cursor_mcp_server = importlib.util.module_from_spec(spec_cursor)
 spec_cursor.loader.exec_module(cursor_mcp_server)
@@ -42,9 +37,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="MCP HTTP Server", version="1.0.0")
 
-# Initialize both MCP servers
-devin_mcp_server = DevinMCPServer()
-cursor_mcp_server = CursorAgentMCPServer()
+# Initialize Cursor Agent MCP Server
+mcp_server = CursorAgentMCPServer()
 
 class MCPRequest(BaseModel):
     jsonrpc: str = "2.0"
@@ -58,17 +52,96 @@ class MCPResponse(BaseModel):
     result: Dict[str, Any] = {}
     error: Optional[Dict[str, Any]] = None
 
+@app.get("/")
+async def root():
+    """Root endpoint for MCP server discovery"""
+    tools = await mcp_server.list_tools()
+    return {
+        "name": "AI Agent Factory MCP Server",
+        "version": "1.0.0",
+        "protocol": "mcp",
+        "capabilities": {
+            "tools": len(tools)
+        },
+        "endpoints": {
+            "tools": "/mcp/tools",
+            "call": "/mcp/call",
+            "health": "/health"
+        }
+    }
+
+@app.post("/")
+async def mcp_endpoint(request: Request):
+    """
+    MCP protocol endpoint for ChatGPT
+    Handles MCP requests and returns JSON responses
+    """
+    try:
+        body = await request.json()
+        method = body.get("method")
+        msg_id = body.get("id")
+        
+        if method == "initialize":
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {
+                        "tools": {}
+                    },
+                    "serverInfo": {
+                        "name": "AI Agent Factory MCP Server",
+                        "version": "1.0.0"
+                    }
+                }
+            }
+            
+        elif method == "tools/list":
+            tools = await mcp_server.list_tools()
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {"tools": tools}
+            }
+            
+        elif method == "tools/call":
+            params = body.get("params", {})
+            tool_name = params.get("name")
+            tool_args = params.get("arguments", {})
+            
+            result = await mcp_server.call_tool(tool_name, tool_args)
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}
+            }
+        else:
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "error": {"code": -32601, "message": f"Method not found: {method}"}
+            }
+            
+    except Exception as e:
+        logger.error(f"Error in MCP endpoint: {e}")
+        return {
+            "jsonrpc": "2.0",
+            "id": body.get("id") if 'body' in locals() else None,
+            "error": {"code": -32603, "message": str(e)}
+        }
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy", 
         "service": "mcp-http-server",
+        "mcp_server": "cursor-agent-mcp-server",
         "endpoints": {
             "prd_webhook": "/api/v1/prds/incoming",
             "webhook_status": "/webhook/status",
-            "mcp_tools": "/mcp/tools",
-            "devin_cache": "/mcp/cache/status"
+            "mcp_tools": "/mcp/tools"
         }
     }
 
@@ -84,8 +157,8 @@ async def call_mcp_tool(request: MCPRequest):
             "params": request.params
         }
         
-        # Call the Devin MCP server
-        response = await devin_mcp_server.handle_request(mcp_request)
+        # Call the Cursor Agent MCP server
+        response = await mcp_server.handle_request(mcp_request)
         
         if response:
             return MCPResponse(
@@ -123,7 +196,7 @@ async def list_mcp_tools():
             "method": "tools/list"
         }
         
-        response = await devin_mcp_server.handle_request(request)
+        response = await mcp_server.handle_request(request)
         
         if response and "result" in response:
             return response["result"]
@@ -134,21 +207,19 @@ async def list_mcp_tools():
         logger.error(f"Error listing MCP tools: {e}")
         return {"tools": [], "error": str(e)}
 
-@app.get("/mcp/cache/status")
-async def get_cache_status():
-    """Get the status of the MCP server cache"""
+@app.get("/mcp/status")
+async def get_mcp_status():
+    """Get the status of the MCP server"""
     return {
-        "prd_cache_size": len(devin_mcp_server._prd_cache),
-        "agent_library_cache_size": len(devin_mcp_server._agent_library_cache),
-        "cached_prds": list(devin_mcp_server._prd_cache.keys())
+        "server": "cursor-agent-mcp-server",
+        "status": "operational",
+        "services": {
+            "supabase": bool(mcp_server.supabase_service),
+            "github": bool(mcp_server.github_service),
+            "openai": bool(mcp_server.openai_service),
+            "google_cloud": bool(mcp_server.gcp_deployer)
+        }
     }
-
-@app.delete("/mcp/cache/clear")
-async def clear_cache():
-    """Clear the MCP server cache"""
-    devin_mcp_server._prd_cache.clear()
-    devin_mcp_server._agent_library_cache.clear()
-    return {"message": "Cache cleared successfully"}
 
 # Webhook endpoint - receives PRDs from external sources (ChatGPT, webhooks, etc.) and forwards to agent factory
 class PRDWebhookRequest(BaseModel):
@@ -167,7 +238,7 @@ async def submit_prd_via_mcp(request: PRDWebhookRequest):
         logger.info(f"Received PRD via MCP webhook: {len(request.content)} characters")
         
         # Use the Cursor MCP server's submit_prd_from_conversation tool
-        result = await cursor_mcp_server._submit_prd_from_conversation({
+        result = await mcp_server._submit_prd_from_conversation({
             "prd_markdown": request.content,
             "conversation_content": request.content
         })

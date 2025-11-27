@@ -193,7 +193,7 @@ All 8 PRDs correctly restored:
 - `CHANGELOG.md` - Documented enhancement
 
 ### Documentation Created
-- `docs/resolution-summaries/startup-prompt-prd-sync-enhancement-2025-11-27.md` (this document)
+- `docs/resolution-summaries/2025-11-27-startup-prompt-prd-sync-enhancement.md` (this document)
 
 ### Documentation Updated
 - Startup prompt now includes PRD sync instructions

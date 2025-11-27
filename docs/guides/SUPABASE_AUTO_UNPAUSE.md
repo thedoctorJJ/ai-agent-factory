@@ -373,7 +373,7 @@ async def unpause_supabase_project(project_id: str, api_key: str):
 - **Startup Prompt**: `.cursor/startup-prompt.md` (Step 4.0.1)
 - **Sync Script**: `scripts/prd-management/sync-prds-to-database.sh`
 - **Health Check**: `scripts/health-check-mcp-database.py`
-- **Resolution**: `docs/resolution-summaries/startup-prompt-prd-sync-enhancement-2025-11-27.md`
+- **Resolution**: `docs/resolution-summaries/2025-11-27-startup-prompt-prd-sync-enhancement.md`
 
 ---
 

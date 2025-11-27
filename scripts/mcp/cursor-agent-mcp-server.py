@@ -548,8 +548,10 @@ class CursorAgentMCPServer:
             return {"error": f"Failed to create PRD: {str(e)}"}
     
     async def _submit_prd_from_conversation(self, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Submit a PRD from conversation content - automatically formats and submits"""
-        import aiohttp
+        """Submit a PRD from conversation content - commits to GitHub (cloud source of truth)"""
+        from datetime import datetime
+        import re
+        import base64
         
         prd_markdown = arguments.get("prd_markdown")
         conversation_content = arguments.get("conversation_content", "")
@@ -559,7 +561,6 @@ class CursorAgentMCPServer:
             content = prd_markdown
         else:
             # Format conversation content as PRD
-            # This is a simple formatter - in production, you might want more sophisticated formatting
             content = f"""# PRD from Conversation
 
 ## Description
@@ -572,31 +573,75 @@ class CursorAgentMCPServer:
 (To be filled in based on conversation)
 """
         
-        backend_url = os.getenv(
-            "BACKEND_URL",
-            "https://ai-agent-factory-backend-952475323593.us-central1.run.app"
-        )
-        
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{backend_url}/api/v1/prds/incoming",
-                    json={"content": content},
-                    timeout=aiohttp.ClientTimeout(total=30)
-                ) as response:
-                    if response.status in [200, 201]:
-                        result = await response.json()
-                        return {
-                            "prd": result,
-                            "message": "PRD submitted successfully from conversation",
-                            "prd_id": result.get("id"),
-                            "title": result.get("title")
-                        }
-                    else:
-                        error_text = await response.text()
-                        return {"error": f"API error: {response.status} - {error_text}"}
+            # Extract title from content for filename
+            content_lines = content.split('\n')
+            title = "untitled-prd"
+            
+            for line in content_lines:
+                line = line.strip()
+                if line.startswith('# '):
+                    # H1 heading - likely the title
+                    title = line[2:].strip()
+                    # Strip markdown formatting
+                    title = re.sub(r'\*\*(.+?)\*\*', r'\1', title)
+                    title = re.sub(r'__(.+?)__', r'\1', title)
+                    title = re.sub(r'\*(.+?)\*', r'\1', title)
+                    title = re.sub(r'_(.+?)_', r'\1', title)
+                    title = re.sub(r'`(.+?)`', r'\1', title)
+                    break
+            
+            # Generate filename from title
+            def slugify(text: str) -> str:
+                text = text.lower()
+                text = re.sub(r"[^a-z0-9]+", "-", text)
+                return text.strip("-") or "prd"
+            
+            date_str = datetime.utcnow().strftime("%Y-%m-%d")
+            base = slugify(title)
+            file_name = f"{date_str}_{base}.md"
+            file_path = f"prds/queue/{file_name}"
+            
+            # Check if GitHub service is available
+            if not self.github_service:
+                return {"error": "GitHub service not configured. Cannot save PRD to cloud."}
+            
+            # Check if file already exists in GitHub
+            repo_owner = os.getenv("GITHUB_ORG_NAME", "thedoctorJJ")
+            repo_name = os.getenv("GITHUB_REPO_NAME", "ai-agent-factory")
+            
+            existing_file = await self.github_service.get_file_content(repo_owner, repo_name, file_path)
+            
+            # If file exists, add timestamp to make unique
+            if existing_file and "error" not in existing_file:
+                timestamp = datetime.utcnow().strftime("%H%M%S")
+                file_name = f"{date_str}_{base}-{timestamp}.md"
+                file_path = f"prds/queue/{file_name}"
+            
+            # Commit PRD to GitHub (cloud source of truth)
+            commit_result = await self.github_service.create_or_update_file(
+                repo_owner=repo_owner,
+                repo_name=repo_name,
+                file_path=file_path,
+                content=content,
+                message=f"Add PRD: {title} (from ChatGPT)",
+                branch="main"
+            )
+            
+            if "error" in commit_result:
+                return {"error": f"Failed to commit PRD to GitHub: {commit_result['error']}"}
+            
+            return {
+                "status": "ok",
+                "file_path": file_path,
+                "title": title,
+                "github_url": commit_result.get("html_url", ""),
+                "commit_sha": commit_result.get("commit_sha", ""),
+                "message": f"PRD committed to GitHub (cloud source of truth). Run 'git pull' locally and then sync to database with: ./scripts/prd-management/sync-prds-to-database.sh"
+            }
+            
         except Exception as e:
-            return {"error": f"Failed to submit PRD: {str(e)}"}
+            return {"error": f"Failed to save PRD to GitHub: {str(e)}"}
     
     async def _update_prd_status(self, prd_id: str, status: str) -> Dict[str, Any]:
         """Update PRD status"""
@@ -1010,6 +1055,50 @@ ChatGPT should automatically submit it.
             return {
                 "success": False,
                 "error": f"Failed to test endpoint: {str(e)}"
+            }
+    
+    async def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Handle MCP protocol request (for HTTP wrapper compatibility)
+        
+        Args:
+            request: MCP request dict with jsonrpc, id, method, params
+            
+        Returns:
+            MCP response dict with jsonrpc, id, result/error
+        """
+        try:
+            method = request.get("method")
+            msg_id = request.get("id")
+            params = request.get("params", {})
+            
+            if method == "tools/list":
+                tools = await self.list_tools()
+                return {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "result": {"tools": tools}
+                }
+            elif method == "tools/call":
+                tool_name = params.get("name")
+                tool_args = params.get("arguments", {})
+                result = await self.call_tool(tool_name, tool_args)
+                return {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "result": {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}
+                }
+            else:
+                return {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {"code": -32601, "message": f"Method not found: {method}"}
+                }
+        except Exception as e:
+            return {
+                "jsonrpc": "2.0",
+                "id": request.get("id"),
+                "error": {"code": -32603, "message": f"Internal error: {str(e)}"}
             }
 
 async def main():

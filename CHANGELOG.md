@@ -103,7 +103,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
   - `.cursor/LINTING_SYSTEM.md` - Linting status and procedures
   - `scripts/dev/check-linting-tools.sh` - Linting tools checker (10 tools)
   - `scripts/dev/create-resolution-summary.sh` - **Interactive resolution summary creator**
-  - `docs/resolution-summaries/ai-agent-workflow-implementation-2025-11-27.md` - This implementation's documentation
+  - `docs/resolution-summaries/2025-11-27-ai-agent-workflow-implementation.md` - This implementation's documentation
 - **Files Modified**:
   - `.cursor/startup-prompt.md` - Added workflow reference and linting check
 - **Resolution Summary Script Features**:

@@ -387,7 +387,7 @@ git commit -m "feat(startup): add dynamic PRD count to Supabase sync
 - Updates all documentation to reflect dynamic behavior
 - Future-proof for any number of PRDs
 
-Refs: docs/resolution-summaries/startup-prompt-prd-sync-enhancement-2025-11-27.md
+Refs: docs/resolution-summaries/2025-11-27-startup-prompt-prd-sync-enhancement.md
 "
 
 # Bad
@@ -571,7 +571,7 @@ curl -k https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1
 # 1. Create resolution summary (FIRST!)
 ./scripts/dev/create-resolution-summary.sh
 # → Prompts for: issue name, description, type, status, time
-# → Creates: docs/resolution-summaries/startup-prompt-prd-sync-enhancement-2025-11-27.md
+# → Creates: docs/resolution-summaries/2025-11-27-startup-prompt-prd-sync-enhancement.md
 # → Open and complete ALL sections
 
 # 2. Update CHANGELOG
@@ -593,7 +593,7 @@ git diff
 git add scripts/check-supabase-and-sync.sh
 git add .cursor/startup-prompt.md
 git add CHANGELOG.md
-git add docs/resolution-summaries/startup-prompt-prd-sync-enhancement-2025-11-27.md
+git add docs/resolution-summaries/2025-11-27-startup-prompt-prd-sync-enhancement.md
 git add docs/guides/SUPABASE_AUTO_UNPAUSE.md
 
 # 3. Commit with structured message
@@ -612,7 +612,7 @@ Benefits:
 - Automatic recovery after unpause
 - Future-proof for any number of PRDs
 
-Refs: docs/resolution-summaries/startup-prompt-prd-sync-enhancement-2025-11-27.md
+Refs: docs/resolution-summaries/2025-11-27-startup-prompt-prd-sync-enhancement.md
 "
 
 # 4. Push
