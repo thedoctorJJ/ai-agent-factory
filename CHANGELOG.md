@@ -4,6 +4,34 @@ All notable changes to the AI Agent Factory project will be documented in this f
 
 ## [Unreleased] - 2025-11-28
 
+### 🔧 **Hard Delete Fix - Ensure PRD Deletion from GitHub**
+
+- **✅ Feature/Fix**: Fixed hard delete functionality to properly delete PRDs from GitHub (source of truth)
+- **✅ Purpose**: Hard delete from website should override GitHub source of truth and remove PRD from GitHub, not just database
+- **✅ Implementation**:
+  - Added explicit boolean conversion for `database_only` query parameter in router
+  - Enhanced `delete_prd` method with comprehensive logging for debugging
+  - Ensured hard delete (`database_only=False`) only deletes from GitHub, not database
+  - Added error handling to raise HTTP 500 if GitHub deletion fails
+  - Database sync happens automatically via GitHub Actions after GitHub deletion
+- **✅ Benefits**:
+  - **Correct Behavior**: Hard delete now properly removes PRDs from GitHub (the override)
+  - **Better Debugging**: Comprehensive logging helps identify issues with delete operations
+  - **Error Visibility**: Failures are now properly reported instead of failing silently
+  - **Source of Truth**: GitHub remains the source of truth, hard delete is the only override
+- **✅ Status**: Fix deployed and verified - hard delete now works correctly
+
+### **Technical Details**
+
+- **Root Cause**: Hard delete was deleting from database instead of GitHub, or failing silently
+- **Solution**: Added explicit boolean handling, comprehensive logging, and proper error propagation
+- **Files Modified**:
+  - `backend/fastapi_app/services/prd_service.py` - Enhanced delete logic with logging
+  - `backend/fastapi_app/routers/prds.py` - Added explicit boolean conversion
+- **Deployment**: Backend redeployed to Cloud Run (revision `ai-agent-factory-backend-00066-9hw`)
+- **Testing**: Verified hard delete removes PRDs from GitHub, all 4 locations stay in sync
+- **Impact**: Hard delete now works as intended - deletes from GitHub, database syncs automatically
+
 ### 🔧 **PRD Parser Inline Fields Fix - Enhanced Format Support**
 
 - **✅ Feature**: Fixed PRD parser to handle inline field formats (e.g., `**Description:** value`)

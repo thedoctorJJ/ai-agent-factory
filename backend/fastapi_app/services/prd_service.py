@@ -252,6 +252,9 @@ class PRDService:
         1. Delete from database only
         2. Used when PRD exists in database but not in GitHub (orphaned PRD)
         """
+        # Log the delete operation for debugging
+        print(f"🗑️  DELETE PRD: prd_id={prd_id}, database_only={database_only} (type: {type(database_only).__name__})")
+        
         if database_only:
             # Delete from database only (for reconciliation script)
             try:
@@ -275,27 +278,35 @@ class PRDService:
                 raise HTTPException(status_code=500, detail=f"Failed to delete PRD: {str(e)}")
         else:
             # Hard delete: Delete from GitHub ONLY (overrides GitHub as source of truth)
+            # IMPORTANT: Do NOT delete from database - GitHub Actions will sync database automatically
+            print(f"🔴 HARD DELETE: Deleting PRD {prd_id} from GitHub ONLY (NOT from database)")
+            
             # Step 1: Get PRD details before deletion (need filename for GitHub)
             prd_data = None
             try:
                 if data_manager.is_connected():
                     prd_data = await data_manager.get_prd(prd_id)
+                    print(f"✅ Fetched PRD data: {prd_data.get('title', 'N/A') if prd_data else 'None'}")
             except Exception as e:
-                print(f"Error fetching PRD before delete: {e}")
+                print(f"❌ Error fetching PRD before delete: {e}")
             
             if not prd_data:
+                print(f"❌ PRD not found in database: {prd_id}")
                 raise HTTPException(status_code=404, detail="PRD not found")
             
             # Step 2: Delete from GitHub (hard delete - the ONLY override to GitHub source of truth)
             # Do NOT delete from database - GitHub Actions will sync database automatically
+            print(f"🔄 Attempting to delete PRD from GitHub...")
             github_deleted = await self._delete_prd_from_github(prd_data)
             
             if not github_deleted:
+                print(f"❌ GitHub deletion failed for PRD {prd_id}")
                 raise HTTPException(
                     status_code=500,
                     detail="Failed to delete PRD from GitHub. Please check GitHub token and permissions."
                 )
             
+            print(f"✅ Successfully deleted PRD {prd_id} from GitHub. Database will be synced by GitHub Actions.")
             return {
                 "message": "PRD deleted from GitHub (hard delete - source of truth override). Database will be synced automatically via GitHub Actions within 30 seconds."
             }
