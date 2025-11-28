@@ -240,12 +240,13 @@ class PRDService:
         Args:
             prd_id: The PRD ID to delete
             database_only: If True, only delete from database (for reconciliation).
-                          If False, delete from GitHub (source of truth).
+                          If False, delete from GitHub (hard delete - overrides source of truth).
         
         When database_only=False (hard delete button):
-        1. Delete from GitHub only
-        2. GitHub Actions reconciliation will automatically delete from database
-        3. This ensures GitHub always wins as the source of truth
+        1. Delete from GitHub ONLY (hard delete overrides GitHub as source of truth)
+        2. Do NOT delete from database
+        3. GitHub Actions reconciliation will automatically delete from database within 30 seconds
+        4. This is the ONLY way to delete from GitHub (the override)
         
         When database_only=True (reconciliation script):
         1. Delete from database only
@@ -273,7 +274,7 @@ class PRDService:
                 print(f"Database delete failed: {e}")
                 raise HTTPException(status_code=500, detail=f"Failed to delete PRD: {str(e)}")
         else:
-            # Delete from GitHub only (hard delete button - source of truth)
+            # Hard delete: Delete from GitHub ONLY (overrides GitHub as source of truth)
             # Step 1: Get PRD details before deletion (need filename for GitHub)
             prd_data = None
             try:
@@ -285,15 +286,21 @@ class PRDService:
             if not prd_data:
                 raise HTTPException(status_code=404, detail="PRD not found")
             
-            # Step 2: Delete from GitHub only (source of truth)
-            # GitHub Actions reconciliation will handle database deletion automatically
-            await self._delete_prd_from_github(prd_data)
+            # Step 2: Delete from GitHub (hard delete - the ONLY override to GitHub source of truth)
+            # Do NOT delete from database - GitHub Actions will sync database automatically
+            github_deleted = await self._delete_prd_from_github(prd_data)
+            
+            if not github_deleted:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to delete PRD from GitHub. Please check GitHub token and permissions."
+                )
             
             return {
-                "message": "PRD deleted from GitHub (source of truth). Database will be synced automatically via GitHub Actions within 30 seconds."
+                "message": "PRD deleted from GitHub (hard delete - source of truth override). Database will be synced automatically via GitHub Actions within 30 seconds."
             }
     
-    async def _delete_prd_from_github(self, prd_data: Dict[str, Any]) -> None:
+    async def _delete_prd_from_github(self, prd_data: Dict[str, Any]) -> bool:
         """Delete PRD file from GitHub repository (helper method).
         
         Uses multiple matching strategies in order of reliability:
@@ -301,6 +308,9 @@ class PRDService:
         2. Exact filename match (if original_filename is stored)
         3. Filename pattern matching (based on title slug)
         4. Title/description content comparison
+        
+        Returns:
+            bool: True if deletion succeeded, False otherwise
         """
         try:
             from ..config import config
@@ -312,8 +322,8 @@ class PRDService:
             
             github_token = config.github_token or os.getenv("GITHUB_TOKEN")
             if not github_token:
-                print("⚠️  Warning: GitHub token not available, skipping GitHub deletion")
-                return
+                print("⚠️  Error: GitHub token not available, cannot delete from GitHub")
+                return False
             
             # Get GitHub repo details
             repo_owner = os.getenv("GITHUB_ORG_NAME", "thedoctorJJ")
@@ -326,8 +336,8 @@ class PRDService:
             content_hash = prd_data.get("content_hash")  # If stored in DB
             
             if not title:
-                print("⚠️  Warning: PRD title not available, cannot match GitHub file")
-                return
+                print("⚠️  Error: PRD title not available, cannot match GitHub file")
+                return False
             
             # Calculate content hash for matching (if not already stored)
             if not content_hash and description:
@@ -350,15 +360,15 @@ class PRDService:
             response = requests.get(url, headers=headers, timeout=10)
             
             if response.status_code != 200:
-                print(f"⚠️  Warning: Could not list GitHub files: {response.status_code}")
+                print(f"⚠️  Error: Could not list GitHub files: {response.status_code}")
                 if response.status_code == 404:
                     print(f"   Directory prds/queue/ may not exist in repository")
-                return
+                return False
             
             files = response.json()
             if not isinstance(files, list):
-                print(f"⚠️  Warning: Unexpected response format from GitHub API")
-                return
+                print(f"⚠️  Error: Unexpected response format from GitHub API")
+                return False
             
             matched_file = None
             match_strategy = None
@@ -510,13 +520,13 @@ class PRDService:
                                 continue
             
             if not matched_file:
-                print(f"⚠️  Warning: Could not find PRD file in GitHub for '{title}'")
+                print(f"⚠️  Error: Could not find PRD file in GitHub for '{title}'")
                 print(f"   Tried strategies: exact_filename, content_hash, filename_pattern, content_comparison")
                 if original_filename:
                     print(f"   Original filename: {original_filename}")
                 if content_hash:
                     print(f"   Content hash: {content_hash[:16]}...")
-                return
+                return False
             
             # Delete the file from GitHub
             file_path = matched_file["path"]
@@ -533,18 +543,20 @@ class PRDService:
             
             if delete_response.status_code in [200, 204]:
                 print(f"✅ Deleted PRD file from GitHub: {file_path} (matched via {match_strategy})")
+                return True
             else:
                 error_detail = delete_response.json().get("message", "Unknown error") if delete_response.text else "No error message"
-                print(f"⚠️  Warning: Failed to delete from GitHub: {delete_response.status_code}")
+                print(f"⚠️  Error: Failed to delete from GitHub: {delete_response.status_code}")
                 print(f"   Error: {error_detail}")
                 print(f"   File path: {file_path}")
+                return False
         
         except Exception as e:
-            # Don't fail the deletion if GitHub sync fails
-            print(f"⚠️  Warning: Could not delete from GitHub: {e}")
+            # Log the error but return False so caller knows deletion failed
+            print(f"⚠️  Error: Could not delete from GitHub: {e}")
             import traceback
             traceback.print_exc()
-            # Database deletion still succeeded, so we don't raise
+            return False
 
     async def clear_all_prds(self) -> Dict[str, str]:
         """Clear all PRDs from the system."""
