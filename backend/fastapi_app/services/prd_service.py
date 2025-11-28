@@ -235,7 +235,13 @@ class PRDService:
         return PRDResponse(**prd_dict)
 
     async def delete_prd(self, prd_id: str) -> Dict[str, str]:
-        """Delete a PRD from database AND GitHub (bidirectional sync)."""
+        """Delete a PRD from GitHub (source of truth).
+        
+        GitHub is the source of truth. When hard delete is used:
+        1. Delete from GitHub only
+        2. GitHub Actions reconciliation will automatically delete from database
+        3. This ensures GitHub always wins as the source of truth
+        """
         # Step 1: Get PRD details before deletion (need filename for GitHub)
         prd_data = None
         try:
@@ -244,31 +250,16 @@ class PRDService:
         except Exception as e:
             print(f"Error fetching PRD before delete: {e}")
         
-        # Step 2: Delete from database
-        try:
-            if data_manager.is_connected():
-                success = await data_manager.delete_prd(prd_id)
-                if not success:
-                    raise HTTPException(status_code=404, detail="PRD not found")
-            else:
-                # Fallback to in-memory storage
-                if not hasattr(self, '_prds_db'):
-                    self._prds_db: Dict[str, Dict[str, Any]] = {}
-                if prd_id not in self._prds_db:
-                    raise HTTPException(status_code=404, detail="PRD not found")
-                prd_data = self._prds_db[prd_id]
-                del self._prds_db[prd_id]
-        except HTTPException:
-            raise
-        except Exception as e:
-            print(f"Database delete failed: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to delete PRD: {str(e)}")
+        if not prd_data:
+            raise HTTPException(status_code=404, detail="PRD not found")
         
-        # Step 3: Delete from GitHub (bidirectional sync)
-        if prd_data:
-            await self._delete_prd_from_github(prd_data)
+        # Step 2: Delete from GitHub only (source of truth)
+        # GitHub Actions reconciliation will handle database deletion automatically
+        await self._delete_prd_from_github(prd_data)
         
-        return {"message": "PRD deleted successfully from database and GitHub"}
+        return {
+            "message": "PRD deleted from GitHub (source of truth). Database will be synced automatically via GitHub Actions within 30 seconds."
+        }
     
     async def _delete_prd_from_github(self, prd_data: Dict[str, Any]) -> None:
         """Delete PRD file from GitHub repository (helper method).
