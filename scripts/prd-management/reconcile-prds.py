@@ -13,6 +13,7 @@ import requests
 from pathlib import Path
 from typing import Set, Dict, List
 import hashlib
+import re
 
 
 def get_backend_url():
@@ -29,6 +30,61 @@ def calculate_file_hash(file_path: Path) -> str:
     # Normalize line endings
     content = content.replace('\r\n', '\n')
     return hashlib.sha256(content.encode('utf-8')).hexdigest()
+
+
+def normalize_text(text: str) -> str:
+    """Normalize text for consistent hashing (matches backend logic)"""
+    if not text:
+        return ""
+    
+    # Convert to lowercase
+    text = text.lower()
+    
+    # Remove extra whitespace
+    text = re.sub(r'\s+', ' ', text)
+    
+    # Remove markdown formatting
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)  # Bold
+    text = re.sub(r'__(.+?)__', r'\1', text)      # Bold
+    text = re.sub(r'\*(.+?)\*', r'\1', text)      # Italic
+    text = re.sub(r'_(.+?)_', r'\1', text)        # Italic
+    text = re.sub(r'`(.+?)`', r'\1', text)        # Code
+    
+    # Strip leading/trailing whitespace
+    return text.strip()
+
+
+def calculate_prd_content_hash(file_path: Path) -> str:
+    """Calculate PRD content hash from file (matches backend calculate_prd_hash logic)"""
+    content = file_path.read_text(encoding='utf-8')
+    lines = content.split('\n')
+    
+    # Extract title (first H1)
+    title = ""
+    for line in lines:
+        line = line.strip()
+        if line.startswith('# '):
+            title = line[2:].strip()
+            break
+    
+    # Extract description (first 500 chars after ## Description)
+    description = ""
+    capture_desc = False
+    for line in lines:
+        if line.strip().startswith('## Description'):
+            capture_desc = True
+            continue
+        if capture_desc and line.strip().startswith('##'):
+            break
+        if capture_desc:
+            description += line + "\n"
+    
+    # Normalize and hash (matches backend logic)
+    norm_title = normalize_text(title)
+    norm_description = normalize_text(description)[:500]  # First 500 chars
+    content_key = f"{norm_title}::{norm_description}"
+    
+    return hashlib.sha256(content_key.encode('utf-8')).hexdigest()
 
 
 def extract_title_from_file(file_path: Path) -> str:
@@ -178,8 +234,24 @@ def reconcile():
         if github_title not in db_prds:
             print(f"   🔍 '{github_title}' exists in GitHub but not in database")
             github_prd = github_prds[github_filename]
-            if upload_prd(backend_url, github_prd["path"]):
-                added += 1
+            
+            # CRITICAL FIX: Check content hash before uploading to prevent duplicates
+            github_content_hash = calculate_prd_content_hash(github_prd["path"])
+            duplicate_found = False
+            
+            # Check if any database PRD has the same content hash
+            for db_key, db_prd in db_prds.items():
+                db_hash = db_prd.get("content_hash")
+                if db_hash and db_hash == github_content_hash:
+                    print(f"   ⚠️  Duplicate detected by content hash - skipping upload")
+                    print(f"      Existing PRD: '{db_prd.get('title', 'N/A')}' (ID: {db_prd.get('id', 'N/A')[:8]}...)")
+                    duplicate_found = True
+                    unchanged += 1
+                    break
+            
+            if not duplicate_found:
+                if upload_prd(backend_url, github_prd["path"]):
+                    added += 1
         else:
             unchanged += 1
     

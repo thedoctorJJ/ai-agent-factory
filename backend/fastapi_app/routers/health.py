@@ -168,6 +168,37 @@ async def detailed_health_check():
         }
 
 
+@router.get("/debug/data-manager")
+async def debug_data_manager():
+    """Debug endpoint to check data manager status."""
+    from ..utils.simple_data_manager import data_manager
+    from ..config import config
+    import os
+    
+    return {
+        "data_manager": {
+            "mode": data_manager.mode,
+            "is_connected": data_manager.is_connected(),
+            "has_supabase_client": data_manager.supabase is not None,
+            "memory_storage_count": {
+                "prds": len(data_manager.memory_storage.get("prds", {})),
+                "agents": len(data_manager.memory_storage.get("agents", {}))
+            }
+        },
+        "environment": {
+            "ENVIRONMENT": os.getenv("ENVIRONMENT", "not set"),
+            "DATA_MODE": os.getenv("DATA_MODE", "not set"),
+        },
+        "supabase_config": {
+            "url_set": bool(config.supabase_url),
+            "url_preview": config.supabase_url[:30] + "..." if config.supabase_url else None,
+            "anon_key_set": bool(config.supabase_key),
+            "service_role_key_set": bool(config.supabase_service_role_key),
+            "key_type": "service_role" if config.supabase_service_role_key else "anon" if config.supabase_key else "none"
+        }
+    }
+
+
 @router.get("/config")
 async def get_configuration():
     """Get application configuration status"""

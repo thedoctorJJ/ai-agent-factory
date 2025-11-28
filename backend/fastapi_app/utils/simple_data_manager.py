@@ -27,8 +27,37 @@ class SimpleDataManager:
             "prds": {}
         }
         
+        print(f"🔧 Initializing SimpleDataManager with mode: {mode}")
+        
         if mode == "production":
-            self._init_supabase()
+            # In production, Supabase connection is REQUIRED - don't allow silent fallback
+            try:
+                self._init_supabase()
+                # Verify connection was successful
+                if self.supabase is None:
+                    raise RuntimeError("Supabase client is None after initialization")
+                print(f"✅ SimpleDataManager initialized in PRODUCTION mode with Supabase")
+            except Exception as e:
+                # Log the full error with stack trace
+                print(f"❌ CRITICAL ERROR: Failed to initialize Supabase in production mode!")
+                print(f"   Error: {e}")
+                print(f"   Error type: {type(e).__name__}")
+                import traceback
+                print("   Full traceback:")
+                traceback.print_exc()
+                
+                # In production, we should FAIL LOUDLY, not silently fall back
+                # But for now, allow fallback with clear warning
+                print(f"   ⚠️  WARNING: Falling back to in-memory storage")
+                print(f"   ⚠️  This means data will NOT persist and duplicates will NOT be prevented!")
+                print(f"   ⚠️  Check Cloud Run logs for Supabase connection errors")
+                
+                self.mode = "development"  # Fallback to development mode
+                self.supabase = None
+                
+                # Also log to stderr so it appears in Cloud Run logs
+                import sys
+                print(f"CRITICAL: Data manager using in-memory storage in production!", file=sys.stderr)
     
     def _init_supabase(self):
         """Initialize Supabase client with retry logic."""
@@ -37,8 +66,14 @@ class SimpleDataManager:
         
         for attempt in range(max_retries):
             try:
+                # Use service role key if available (for production), otherwise use anon key
+                # This ensures we have proper permissions for all operations
                 supabase_url = config.supabase_url
-                supabase_key = config.supabase_key
+                supabase_key = config.supabase_service_role_key or config.supabase_key
+                
+                print(f"🔍 Initializing Supabase connection...")
+                print(f"   URL: {supabase_url[:30]}..." if supabase_url else "   URL: None")
+                print(f"   Key: {'set' if supabase_key else 'missing'} ({'service_role' if config.supabase_service_role_key else 'anon' if config.supabase_key else 'none'})")
                 
                 if not supabase_url or not supabase_key:
                     raise ValueError("Supabase URL and key are required for production mode")
@@ -208,13 +243,39 @@ class SimpleDataManager:
     # PRD Operations
     async def create_prd(self, prd_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a PRD."""
+        # CRITICAL: In production environment, we MUST use Supabase, not in-memory
+        environment = os.getenv("ENVIRONMENT", "").lower()
+        if environment == "production" and self.mode == "development":
+            error_msg = "CRITICAL: Attempting to write to in-memory storage in production environment!"
+            print(f"❌ {error_msg}")
+            print(f"   This indicates Supabase connection failed during initialization")
+            print(f"   Check Cloud Run logs for Supabase connection errors")
+            raise RuntimeError(f"{error_msg} Supabase connection required in production.")
+        
         if self.mode == "development":
             prd_id = prd_data.get("id", f"prd_{len(self.memory_storage['prds']) + 1}")
             self.memory_storage["prds"][prd_id] = prd_data
             return prd_data
         else:
-            result = self.supabase.table('prds').insert(prd_data).execute()
-            return result.data[0] if result.data else None
+            if self.supabase is None:
+                raise RuntimeError("Supabase client is None - cannot create PRD in production mode")
+            try:
+                print(f"📝 Inserting PRD into Supabase: {prd_data.get('title', 'N/A')[:50]}")
+                print(f"   ID: {prd_data.get('id', 'N/A')[:8]}...")
+                print(f"   Content hash: {prd_data.get('content_hash', 'N/A')[:16]}...")
+                result = self.supabase.table('prds').insert(prd_data).execute()
+                if result.data and len(result.data) > 0:
+                    print(f"✅ PRD inserted successfully into Supabase")
+                    return result.data[0]
+                else:
+                    print(f"❌ ERROR: Supabase insert returned no data!")
+                    print(f"   Result: {result}")
+                    raise RuntimeError("Supabase insert returned no data")
+            except Exception as e:
+                print(f"❌ ERROR inserting PRD into Supabase: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
     
     async def get_prds(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
         """Get PRDs."""
@@ -293,8 +354,22 @@ class SimpleDataManager:
             self.memory_storage["prds"].clear()
             return True
         else:
-            result = self.supabase.table('prds').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
-            return True
+            try:
+                # Delete all PRDs (the .neq() filter ensures we don't accidentally delete a sentinel value)
+                # But actually, we want to delete ALL, so use .neq() with a value that won't match any real ID
+                result = self.supabase.table('prds').delete().neq('id', '00000000-0000-0000-0000-000000000000').execute()
+                
+                # Check if deletion was successful
+                # Supabase returns deleted records in result.data
+                deleted_count = len(result.data) if result.data else 0
+                print(f"✅ Cleared {deleted_count} PRD(s) from database")
+                return True
+            except Exception as e:
+                print(f"❌ Error clearing all PRDs: {e}")
+                # Check if it's an RLS policy issue
+                if "policy" in str(e).lower() or "permission" in str(e).lower():
+                    print("   ⚠️  This might be an RLS policy issue. Check Supabase RLS policies for 'prds' table.")
+                raise
     
     def is_connected(self) -> bool:
         """Check if the data manager is connected."""
@@ -312,19 +387,31 @@ class SimpleDataManager:
 # Global instance - auto-detect mode based on Supabase availability
 def _get_data_mode():
     """Auto-detect the appropriate data mode."""
+    # CRITICAL: If ENVIRONMENT=production, ALWAYS use production mode
+    # This ensures Cloud Run deployments use Supabase, not in-memory storage
+    environment = os.getenv("ENVIRONMENT", "").lower()
+    if environment == "production":
+        print("🔧 ENVIRONMENT=production detected - forcing production mode")
+        return "production"  # Always use production mode in production environment
+    
     # Check if DATA_MODE is explicitly set
     explicit_mode = os.getenv("DATA_MODE")
     if explicit_mode:
+        print(f"🔧 DATA_MODE={explicit_mode} explicitly set")
         return explicit_mode
     
-    # Check if Supabase is configured
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
+    # Check if Supabase is configured (for non-production environments)
+    supabase_url = config.supabase_url
+    supabase_key = config.supabase_service_role_key or config.supabase_key
     
     if supabase_url and supabase_key:
+        print("🔧 Supabase configured - using production mode")
         return "production"  # Use Supabase when available
     else:
+        print("🔧 Supabase not configured - using development mode (in-memory)")
         return "development"  # Fallback to in-memory
 
 # Initialize data manager with auto-detected mode
+# NOTE: In production, this will attempt to connect to Supabase
+# If connection fails, it will log an error but continue (fallback to dev mode)
 data_manager = SimpleDataManager(mode=_get_data_mode())

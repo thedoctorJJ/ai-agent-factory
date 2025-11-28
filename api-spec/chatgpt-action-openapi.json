@@ -12,11 +12,11 @@
     }
   ],
   "paths": {
-    "/api/v1/prds/incoming": {
+    "/api/v1/prds/submit": {
       "post": {
         "operationId": "submitPRD",
         "summary": "Submit a Product Requirements Document (PRD)",
-        "description": "Automatically submit a PRD to the AI Agent Factory. ChatGPT should call this action when it detects that the user has created or described a PRD in the conversation. The PRD content should be formatted as markdown.",
+        "description": "Automatically submit a PRD to the AI Agent Factory. This endpoint commits the PRD to GitHub first (cloud source of truth), then GitHub Actions syncs to the database. ChatGPT should call this action when it detects that the user has created or described a PRD in the conversation. The PRD content should be formatted as markdown.",
         "requestBody": {
           "required": true,
           "content": {
@@ -51,14 +51,17 @@
                       "type": "string",
                       "description": "PRD title"
                     },
-                    "status": {
+                    "file_path": {
                       "type": "string",
-                      "description": "PRD status"
+                      "description": "Path to PRD file in GitHub repository"
                     },
-                    "created_at": {
+                    "github_url": {
                       "type": "string",
-                      "format": "date-time",
-                      "description": "Creation timestamp"
+                      "description": "URL to PRD file in GitHub"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Status message"
                     }
                   }
                 }

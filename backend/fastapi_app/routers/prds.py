@@ -88,12 +88,223 @@ class SavePRDRequest(BaseModel):
     content_markdown: str
 
 
+@router.post("/prds/submit", response_model=Dict[str, str])
+async def submit_prd_to_github(request_body: IncomingPRDRequest):
+    """
+    Submit a PRD from ChatGPT - commits ONLY to GitHub (cloud source of truth).
+    
+    This is the preferred endpoint for ChatGPT Actions. It:
+    1. Checks for duplicates in GitHub
+    2. Commits PRD to GitHub ONLY (no database writes)
+    3. GitHub Actions will sync to database automatically
+    
+    IMPORTANT: This endpoint does NOT write to the database. GitHub is the source of truth.
+    All database updates happen via GitHub Actions after the file is committed.
+    
+    Accepts JSON body with PRD content:
+    ```json
+    POST /api/v1/prds/submit
+    Content-Type: application/json
+    {
+        "content": "# PRD Title\n\n## Description\n..."
+    }
+    ```
+    
+    Returns:
+    ```json
+    {
+        "status": "ok",
+        "file_path": "prds/queue/2025-11-27_prd-title.md",
+        "title": "PRD Title",
+        "github_url": "https://github.com/...",
+        "message": "PRD committed to GitHub (cloud source of truth)"
+    }
+    ```
+    """
+    from datetime import datetime
+    import re
+    import hashlib
+    import base64
+    import requests
+    from ..config import config
+    import os
+    
+    content = request_body.content
+    
+    # Extract title from content
+    content_lines = content.split('\n')
+    title = "untitled-prd"
+    
+    for line in content_lines:
+        line = line.strip()
+        if line.startswith('# '):
+            title = line[2:].strip()
+            # Strip markdown formatting
+            title = re.sub(r'\*\*(.+?)\*\*', r'\1', title)
+            title = re.sub(r'__(.+?)__', r'\1', title)
+            title = re.sub(r'\*(.+?)\*', r'\1', title)
+            title = re.sub(r'_(.+?)_', r'\1', title)
+            title = re.sub(r'`(.+?)`', r'\1', title)
+            break
+    
+    # Generate filename from title
+    def slugify(text: str) -> str:
+        text = text.lower()
+        text = re.sub(r"[^a-z0-9]+", "-", text)
+        return text.strip("-") or "prd"
+    
+    def normalize_text(text: str) -> str:
+        """Normalize text for consistent hashing (matches backend logic)"""
+        if not text:
+            return ""
+        text = text.lower()
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+        text = re.sub(r'__(.+?)__', r'\1', text)
+        text = re.sub(r'\*(.+?)\*', r'\1', text)
+        text = re.sub(r'_(.+?)_', r'\1', text)
+        text = re.sub(r'`(.+?)`', r'\1', text)
+        return text.strip()
+    
+    date_str = datetime.utcnow().strftime("%Y-%m-%d")
+    base = slugify(title)
+    file_name = f"{date_str}_{base}.md"
+    file_path = f"prds/queue/{file_name}"
+    
+    # Get GitHub credentials
+    github_token = config.github_token or os.getenv("GITHUB_TOKEN")
+    if not github_token:
+        raise HTTPException(
+            status_code=500,
+            detail="GitHub token not configured. Cannot commit PRD to GitHub."
+        )
+    
+    repo_owner = os.getenv("GITHUB_ORG_NAME", "thedoctorJJ")
+    repo_name = os.getenv("GITHUB_REPO_NAME", "ai-agent-factory")
+    
+    headers = {
+        'Authorization': f'token {github_token}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    
+    # Step 1: Check for duplicates in GitHub
+    try:
+        # Get list of files in prds/queue/
+        url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/prds/queue'
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            files = response.json()
+            
+            # Calculate hash of new content (title + first 500 chars of description)
+            description = ""
+            capture_desc = False
+            for line in content_lines:
+                if line.strip().startswith('## Description'):
+                    capture_desc = True
+                    continue
+                if capture_desc and line.strip().startswith('##'):
+                    break
+                if capture_desc:
+                    description += line + "\n"
+            
+            norm_title = normalize_text(title)
+            norm_description = normalize_text(description)[:500]
+            new_content_key = f"{norm_title}::{norm_description}"
+            new_hash = hashlib.sha256(new_content_key.encode('utf-8')).hexdigest()
+            
+            # Check each existing PRD file
+            for item in files:
+                if isinstance(item, dict) and item.get("name", "").endswith(".md") and item.get("name") != "README.md":
+                    # Get file content
+                    file_content_url = item.get("download_url")
+                    if file_content_url:
+                        file_response = requests.get(file_content_url, timeout=10)
+                        if file_response.status_code == 200:
+                            existing_content = file_response.text
+                            
+                            # Extract title and description from existing file
+                            existing_lines = existing_content.split('\n')
+                            existing_title = ""
+                            existing_description = ""
+                            existing_capture_desc = False
+                            
+                            for line in existing_lines:
+                                if line.strip().startswith('# '):
+                                    existing_title = line[2:].strip()
+                                if line.strip().startswith('## Description'):
+                                    existing_capture_desc = True
+                                    continue
+                                if existing_capture_desc and line.strip().startswith('##'):
+                                    break
+                                if existing_capture_desc:
+                                    existing_description += line + "\n"
+                            
+                            # Normalize and hash existing content
+                            existing_norm_title = normalize_text(existing_title)
+                            existing_norm_desc = normalize_text(existing_description)[:500]
+                            existing_content_key = f"{existing_norm_title}::{existing_norm_desc}"
+                            existing_hash = hashlib.sha256(existing_content_key.encode('utf-8')).hexdigest()
+                            
+                            # Check if content matches
+                            if new_hash == existing_hash:
+                                return {
+                                    "status": "duplicate_prevented",
+                                    "message": f"PRD with identical content already exists: {item.get('name')}",
+                                    "existing_file": item.get("name"),
+                                    "github_url": item.get("html_url", "")
+                                }
+    except Exception as e:
+        # If duplicate check fails, log but continue (don't block PRD creation)
+        print(f"⚠️  Warning: Duplicate check failed: {e}")
+    
+    # Step 2: Check if exact filename already exists
+    check_url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}'
+    check_response = requests.get(check_url, headers=headers, timeout=10)
+    
+    # If filename exists, add timestamp to make unique
+    if check_response.status_code == 200:
+        timestamp = datetime.utcnow().strftime("%H%M%S")
+        file_name = f"{date_str}_{base}-{timestamp}.md"
+        file_path = f"prds/queue/{file_name}"
+    
+    # Step 3: Commit PRD to GitHub
+    commit_url = f'https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}'
+    commit_data = {
+        "message": f"Add PRD: {title} (from ChatGPT)",
+        "content": base64.b64encode(content.encode('utf-8')).decode('utf-8'),
+        "branch": "main"
+    }
+    
+    commit_response = requests.put(commit_url, headers=headers, json=commit_data, timeout=10)
+    
+    if commit_response.status_code not in [200, 201]:
+        error_detail = commit_response.json().get("message", "Unknown error")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to commit PRD to GitHub: {error_detail}"
+        )
+    
+    commit_result = commit_response.json()
+    
+    return {
+        "status": "ok",
+        "file_path": file_path,
+        "title": title,
+        "github_url": commit_result.get("content", {}).get("html_url", ""),
+        "commit_sha": commit_result.get("commit", {}).get("sha", ""),
+        "message": "PRD committed to GitHub (cloud source of truth). GitHub Actions will sync to database automatically."
+    }
+
+
 @router.post("/prds/incoming", response_model=Dict[str, str])
 async def submit_incoming_prd(request_body: IncomingPRDRequest):
     """
     Submit a PRD from an external source (AI tool, webhook, etc.).
     
     Directly creates PRD in database with content hash-based duplicate detection.
+    
+    NOTE: For ChatGPT Actions, use /api/v1/prds/submit instead (commits to GitHub first).
     
     Accepts JSON body with PRD content:
     ```json

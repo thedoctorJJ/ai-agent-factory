@@ -612,72 +612,105 @@ class CursorAgentMCPServer:
             # Step 1: Check for content duplicates (same title + description)
             # List all existing PRD files in GitHub
             import hashlib
+            import re
+            
+            def normalize_text(text: str) -> str:
+                """Normalize text for consistent hashing (matches backend logic)"""
+                if not text:
+                    return ""
+                text = text.lower()
+                text = re.sub(r'\s+', ' ', text)
+                text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+                text = re.sub(r'__(.+?)__', r'\1', text)
+                text = re.sub(r'\*(.+?)\*', r'\1', text)
+                text = re.sub(r'_(.+?)_', r'\1', text)
+                text = re.sub(r'`(.+?)`', r'\1', text)
+                return text.strip()
+            
             try:
                 # Get list of files in prds/queue/
                 repo_contents = await self.github_service.get_repository_contents(repo_owner, repo_name, "prds/queue")
                 
-                # Calculate hash of new content (title + first 500 chars of description)
-                content_lines = content.split('\n')
-                description = ""
-                capture_desc = False
-                for line in content_lines:
-                    if line.strip().startswith('## Description'):
-                        capture_desc = True
-                        continue
-                    if capture_desc and line.strip().startswith('##'):
-                        break
-                    if capture_desc:
-                        description += line + "\n"
-                
-                # Normalize for comparison
-                normalized_title = title.lower().strip()
-                normalized_desc = description.lower().strip()[:500]
-                new_content_key = f"{normalized_title}::{normalized_desc}"
-                new_hash = hashlib.sha256(new_content_key.encode('utf-8')).hexdigest()
-                
-                # Check each existing PRD file
-                for item in repo_contents.get("contents", []):
-                    if item.get("name", "").endswith(".md") and item.get("name") != "README.md":
-                        # Get file content
-                        existing_content_result = await self.github_service.get_file_content(repo_owner, repo_name, item.get("path"))
-                        if existing_content_result and "content" in existing_content_result:
-                            existing_content = existing_content_result["content"]
+                # CRITICAL FIX: Check if GitHub API call succeeded
+                if "error" in repo_contents:
+                    print(f"⚠️  Warning: Could not check GitHub for duplicates: {repo_contents.get('error')}")
+                    print(f"   Continuing with PRD creation (duplicate check skipped)")
+                elif "contents" not in repo_contents:
+                    print(f"⚠️  Warning: Unexpected response from GitHub API: {repo_contents}")
+                    print(f"   Continuing with PRD creation (duplicate check skipped)")
+                else:
+                    # Calculate hash of new content (title + first 500 chars of description)
+                    # Use same logic as backend calculate_prd_hash
+                    content_lines = content.split('\n')
+                    description = ""
+                    capture_desc = False
+                    for line in content_lines:
+                        if line.strip().startswith('## Description'):
+                            capture_desc = True
+                            continue
+                        if capture_desc and line.strip().startswith('##'):
+                            break
+                        if capture_desc:
+                            description += line + "\n"
+                    
+                    # Normalize for comparison (matches backend logic exactly)
+                    norm_title = normalize_text(title)
+                    norm_description = normalize_text(description)[:500]  # First 500 chars
+                    new_content_key = f"{norm_title}::{norm_description}"
+                    new_hash = hashlib.sha256(new_content_key.encode('utf-8')).hexdigest()
+                    
+                    # Check each existing PRD file
+                    for item in repo_contents.get("contents", []):
+                        if item.get("name", "").endswith(".md") and item.get("name") != "README.md":
+                            # Get file content
+                            existing_content_result = await self.github_service.get_file_content(repo_owner, repo_name, item.get("path"))
                             
-                            # Extract title and description from existing file
-                            existing_lines = existing_content.split('\n')
-                            existing_title = ""
-                            existing_description = ""
-                            existing_capture_desc = False
+                            # CRITICAL FIX: Verify file content was retrieved successfully
+                            if "error" in existing_content_result:
+                                print(f"   ⚠️  Could not read file {item.get('name')}: {existing_content_result.get('error')}")
+                                continue  # Skip this file, continue checking others
                             
-                            for line in existing_lines:
-                                if line.strip().startswith('# '):
-                                    existing_title = line[2:].strip()
-                                if line.strip().startswith('## Description'):
-                                    existing_capture_desc = True
-                                    continue
-                                if existing_capture_desc and line.strip().startswith('##'):
-                                    break
-                                if existing_capture_desc:
-                                    existing_description += line + "\n"
-                            
-                            # Normalize and hash existing content
-                            existing_normalized_title = existing_title.lower().strip()
-                            existing_normalized_desc = existing_description.lower().strip()[:500]
-                            existing_content_key = f"{existing_normalized_title}::{existing_normalized_desc}"
-                            existing_hash = hashlib.sha256(existing_content_key.encode('utf-8')).hexdigest()
-                            
-                            # Check if content matches
-                            if new_hash == existing_hash:
-                                return {
-                                    "status": "duplicate_prevented",
-                                    "message": f"PRD with identical content already exists: {item.get('name')}",
-                                    "existing_file": item.get("name"),
-                                    "existing_path": item.get("path"),
-                                    "github_url": f"https://github.com/{repo_owner}/{repo_name}/blob/main/{item.get('path')}"
-                                }
+                            if existing_content_result and "content" in existing_content_result:
+                                existing_content = existing_content_result["content"]
+                                
+                                # Extract title and description from existing file
+                                existing_lines = existing_content.split('\n')
+                                existing_title = ""
+                                existing_description = ""
+                                existing_capture_desc = False
+                                
+                                for line in existing_lines:
+                                    if line.strip().startswith('# '):
+                                        existing_title = line[2:].strip()
+                                    if line.strip().startswith('## Description'):
+                                        existing_capture_desc = True
+                                        continue
+                                    if existing_capture_desc and line.strip().startswith('##'):
+                                        break
+                                    if existing_capture_desc:
+                                        existing_description += line + "\n"
+                                
+                                # Normalize and hash existing content (matches backend logic)
+                                existing_norm_title = normalize_text(existing_title)
+                                existing_norm_desc = normalize_text(existing_description)[:500]
+                                existing_content_key = f"{existing_norm_title}::{existing_norm_desc}"
+                                existing_hash = hashlib.sha256(existing_content_key.encode('utf-8')).hexdigest()
+                                
+                                # Check if content matches
+                                if new_hash == existing_hash:
+                                    print(f"✅ Duplicate detected in GitHub: {item.get('name')}")
+                                    return {
+                                        "status": "duplicate_prevented",
+                                        "message": f"PRD with identical content already exists: {item.get('name')}",
+                                        "existing_file": item.get("name"),
+                                        "existing_path": item.get("path"),
+                                        "github_url": f"https://github.com/{repo_owner}/{repo_name}/blob/main/{item.get('path')}"
+                                    }
             except Exception as e:
                 # If duplicate check fails, log but continue (don't block PRD creation)
                 print(f"⚠️  Warning: Duplicate check failed: {e}")
+                import traceback
+                traceback.print_exc()
             
             # Step 2: Check if exact filename already exists
             existing_file = await self.github_service.get_file_content(repo_owner, repo_name, file_path)
@@ -929,8 +962,8 @@ class CursorAgentMCPServer:
                     schema = json.load(f)
                 return {
                     "schema": schema,
-                    "endpoint": "https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/prds/incoming",
-                    "message": "ChatGPT Action configuration loaded successfully"
+                    "endpoint": "https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/prds/submit",
+                    "message": "ChatGPT Action configuration loaded successfully (uses /submit endpoint - commits to GitHub first)"
                 }
             else:
                 return {

@@ -46,13 +46,24 @@ class PRDService:
             print(f"   Hash: {content_hash[:16]}...")
             print(f"   ✅ Returning existing PRD (no duplicate created)")
             # Return existing PRD instead of creating duplicate
-            if isinstance(existing_prd.get("created_at"), str):
-                existing_prd["created_at"] = datetime.fromisoformat(existing_prd["created_at"].replace('Z', '+00:00'))
-            if isinstance(existing_prd.get("updated_at"), str):
-                existing_prd["updated_at"] = datetime.fromisoformat(existing_prd["updated_at"].replace('Z', '+00:00'))
-            return PRDResponse(**existing_prd)
-        else:
-            print(f"   ✅ No duplicate found - creating new PRD")
+            # CRITICAL: Must return here to prevent duplicate creation
+            try:
+                if isinstance(existing_prd.get("created_at"), str):
+                    existing_prd["created_at"] = datetime.fromisoformat(existing_prd["created_at"].replace('Z', '+00:00'))
+                if isinstance(existing_prd.get("updated_at"), str):
+                    existing_prd["updated_at"] = datetime.fromisoformat(existing_prd["updated_at"].replace('Z', '+00:00'))
+                return PRDResponse(**existing_prd)
+            except Exception as e:
+                # If datetime parsing fails, still return the existing PRD
+                # Use current time as fallback for datetime fields
+                print(f"   ⚠️  Warning: Datetime parsing failed, using fallback: {e}")
+                if "created_at" not in existing_prd or not isinstance(existing_prd.get("created_at"), datetime):
+                    existing_prd["created_at"] = datetime.utcnow()
+                if "updated_at" not in existing_prd or not isinstance(existing_prd.get("updated_at"), datetime):
+                    existing_prd["updated_at"] = datetime.utcnow()
+                return PRDResponse(**existing_prd)
+        
+        print(f"   ✅ No duplicate found - creating new PRD")
         
         prd_id = str(uuid.uuid4())
         now = datetime.utcnow()
@@ -63,7 +74,7 @@ class PRDService:
             "description": prd_data.description,
             "requirements": prd_data.requirements,
             "prd_type": prd_data.prd_type.value,
-            "status": PRDStatus.UPLOADED.value,
+            "status": PRDStatus.QUEUE.value,  # Use 'queue' instead of 'uploaded' (not in DB enum)
             "github_repo_url": None,
             "created_at": now.isoformat(),
             "updated_at": now.isoformat(),
@@ -260,12 +271,21 @@ class PRDService:
         return {"message": "PRD deleted successfully from database and GitHub"}
     
     async def _delete_prd_from_github(self, prd_data: Dict[str, Any]) -> None:
-        """Delete PRD file from GitHub repository (helper method)."""
+        """Delete PRD file from GitHub repository (helper method).
+        
+        Uses multiple matching strategies in order of reliability:
+        1. Content hash matching (most reliable - same as duplicate detection)
+        2. Exact filename match (if original_filename is stored)
+        3. Filename pattern matching (based on title slug)
+        4. Title/description content comparison
+        """
         try:
-            # Import GitHub service
             from ..config import config
+            from ..utils.prd_hash import calculate_prd_hash, normalize_text
             import os
             import requests
+            import re
+            import base64
             
             github_token = config.github_token or os.getenv("GITHUB_TOKEN")
             if not github_token:
@@ -276,27 +296,25 @@ class PRDService:
             repo_owner = os.getenv("GITHUB_ORG_NAME", "thedoctorJJ")
             repo_name = os.getenv("GITHUB_REPO_NAME", "ai-agent-factory")
             
-            # Try to find the file in GitHub
-            # First, check if original_filename is stored
-            original_filename = prd_data.get("original_filename")
+            # Extract PRD data
             title = prd_data.get("title", "")
+            description = prd_data.get("description", "")
+            original_filename = prd_data.get("original_filename")
+            content_hash = prd_data.get("content_hash")  # If stored in DB
             
-            if not original_filename and title:
-                # Generate likely filename from title
-                import re
-                def slugify(text: str) -> str:
-                    text = text.lower()
-                    text = re.sub(r"[^a-z0-9]+", "-", text)
-                    return text.strip("-") or "prd"
-                
-                slug = slugify(title)
-                # Try common patterns
-                possible_patterns = [
-                    f"*{slug}*.md",
-                    f"*{slug.replace('-', '_')}*.md",
-                ]
-            else:
-                possible_patterns = [original_filename] if original_filename else []
+            if not title:
+                print("⚠️  Warning: PRD title not available, cannot match GitHub file")
+                return
+            
+            # Calculate content hash for matching (if not already stored)
+            if not content_hash and description:
+                content_hash = calculate_prd_hash(title, description)
+            
+            # Helper function for slugifying
+            def slugify(text: str) -> str:
+                text = text.lower()
+                text = re.sub(r"[^a-z0-9]+", "-", text)
+                return text.strip("-") or "prd"
             
             # Search for the file in GitHub
             headers = {
@@ -310,25 +328,171 @@ class PRDService:
             
             if response.status_code != 200:
                 print(f"⚠️  Warning: Could not list GitHub files: {response.status_code}")
+                if response.status_code == 404:
+                    print(f"   Directory prds/queue/ may not exist in repository")
                 return
             
             files = response.json()
-            matched_file = None
+            if not isinstance(files, list):
+                print(f"⚠️  Warning: Unexpected response format from GitHub API")
+                return
             
-            # Try to find matching file by title comparison
-            for file_info in files:
-                file_name = file_info.get("name", "")
-                if file_name.endswith(".md") and file_name != "README.md":
-                    # Check if title matches (case-insensitive, partial match)
-                    title_slug = slugify(title)
-                    file_slug = file_name.replace(".md", "").split("_", 1)[-1] if "_" in file_name else file_name.replace(".md", "")
-                    
-                    if title_slug in file_slug or file_slug in title_slug:
+            matched_file = None
+            match_strategy = None
+            
+            # Strategy 1: Exact filename match (if original_filename is stored)
+            if original_filename:
+                for file_info in files:
+                    file_name = file_info.get("name", "")
+                    if file_name == original_filename or file_name == f"prds/queue/{original_filename}":
                         matched_file = file_info
+                        match_strategy = "exact_filename"
+                        print(f"✅ Matched file by exact filename: {file_name}")
                         break
+            
+            # Strategy 2: Content hash matching (most reliable)
+            if not matched_file and content_hash:
+                title_slug = slugify(title)
+                for file_info in files:
+                    file_name = file_info.get("name", "")
+                    if file_name.endswith(".md") and file_name != "README.md":
+                        # Check if filename contains hash (format: YYYY-MM-DD_slug_HASH.md)
+                        # Extract hash from filename if present
+                        file_base = file_name.replace(".md", "")
+                        if "_" in file_base:
+                            parts = file_base.split("_")
+                            if len(parts) >= 3:
+                                # Format: date_slug_hash
+                                file_hash_part = parts[-1]
+                                # Compare with first 8 chars of our hash
+                                if content_hash[:8].lower() == file_hash_part.lower():
+                                    # Verify by reading file content
+                                    file_path = file_info.get("path", "")
+                                    file_content_url = file_info.get("download_url")
+                                    if file_content_url:
+                                        try:
+                                            file_response = requests.get(file_content_url, timeout=10)
+                                            if file_response.status_code == 200:
+                                                file_content = file_response.text
+                                                # Extract title and description from file
+                                                file_lines = file_content.split('\n')
+                                                file_title = ""
+                                                file_description = ""
+                                                capture_desc = False
+                                                
+                                                for line in file_lines:
+                                                    if line.strip().startswith('# '):
+                                                        file_title = line[2:].strip()
+                                                    if line.strip().startswith('## Description'):
+                                                        capture_desc = True
+                                                        continue
+                                                    if capture_desc and line.strip().startswith('##'):
+                                                        break
+                                                    if capture_desc:
+                                                        file_description += line + "\n"
+                                                
+                                                # Calculate hash of file content
+                                                file_hash = calculate_prd_hash(file_title, file_description)
+                                                if file_hash == content_hash:
+                                                    matched_file = file_info
+                                                    match_strategy = "content_hash"
+                                                    print(f"✅ Matched file by content hash: {file_name}")
+                                                    break
+                                        except Exception as e:
+                                            print(f"   ⚠️  Error reading file {file_name}: {e}")
+                                            continue
+            
+            # Strategy 3: Filename pattern matching (based on title slug)
+            if not matched_file:
+                title_slug = slugify(title)
+                # Try different filename patterns
+                patterns = [
+                    f"*{title_slug}*.md",
+                    f"*{title_slug.replace('-', '_')}*.md",
+                ]
+                
+                for file_info in files:
+                    file_name = file_info.get("name", "")
+                    if file_name.endswith(".md") and file_name != "README.md":
+                        file_base = file_name.replace(".md", "").lower()
+                        # Remove date prefix if present (YYYY-MM-DD_)
+                        if "_" in file_base:
+                            file_slug = "_".join(file_base.split("_")[1:])  # Skip date part
+                        else:
+                            file_slug = file_base
+                        
+                        # Check if title slug matches file slug
+                        if title_slug in file_slug or file_slug in title_slug:
+                            # Verify by reading file and comparing title
+                            file_content_url = file_info.get("download_url")
+                            if file_content_url:
+                                try:
+                                    file_response = requests.get(file_content_url, timeout=10)
+                                    if file_response.status_code == 200:
+                                        file_content = file_response.text
+                                        file_lines = file_content.split('\n')
+                                        for line in file_lines:
+                                            if line.strip().startswith('# '):
+                                                file_title = line[2:].strip()
+                                                # Normalize and compare
+                                                if normalize_text(file_title) == normalize_text(title):
+                                                    matched_file = file_info
+                                                    match_strategy = "filename_pattern"
+                                                    print(f"✅ Matched file by filename pattern: {file_name}")
+                                                    break
+                                except Exception as e:
+                                    print(f"   ⚠️  Error reading file {file_name}: {e}")
+                                    continue
+                        
+                        if matched_file:
+                            break
+            
+            # Strategy 4: Content comparison (read all files and compare title/description)
+            if not matched_file and description:
+                print(f"   🔍 Trying content comparison for '{title}'...")
+                for file_info in files:
+                    file_name = file_info.get("name", "")
+                    if file_name.endswith(".md") and file_name != "README.md":
+                        file_content_url = file_info.get("download_url")
+                        if file_content_url:
+                            try:
+                                file_response = requests.get(file_content_url, timeout=10)
+                                if file_response.status_code == 200:
+                                    file_content = file_response.text
+                                    file_lines = file_content.split('\n')
+                                    file_title = ""
+                                    file_description = ""
+                                    capture_desc = False
+                                    
+                                    for line in file_lines:
+                                        if line.strip().startswith('# '):
+                                            file_title = line[2:].strip()
+                                        if line.strip().startswith('## Description'):
+                                            capture_desc = True
+                                            continue
+                                        if capture_desc and line.strip().startswith('##'):
+                                            break
+                                        if capture_desc:
+                                            file_description += line + "\n"
+                                    
+                                    # Compare normalized title and description
+                                    if (normalize_text(file_title) == normalize_text(title) and
+                                        normalize_text(file_description[:500]) == normalize_text(description[:500])):
+                                        matched_file = file_info
+                                        match_strategy = "content_comparison"
+                                        print(f"✅ Matched file by content comparison: {file_name}")
+                                        break
+                            except Exception as e:
+                                print(f"   ⚠️  Error reading file {file_name}: {e}")
+                                continue
             
             if not matched_file:
                 print(f"⚠️  Warning: Could not find PRD file in GitHub for '{title}'")
+                print(f"   Tried strategies: exact_filename, content_hash, filename_pattern, content_comparison")
+                if original_filename:
+                    print(f"   Original filename: {original_filename}")
+                if content_hash:
+                    print(f"   Content hash: {content_hash[:16]}...")
                 return
             
             # Delete the file from GitHub
@@ -345,14 +509,18 @@ class PRDService:
             delete_response = requests.delete(delete_url, headers=headers, json=delete_data, timeout=10)
             
             if delete_response.status_code in [200, 204]:
-                print(f"✅ Deleted PRD file from GitHub: {file_path}")
+                print(f"✅ Deleted PRD file from GitHub: {file_path} (matched via {match_strategy})")
             else:
+                error_detail = delete_response.json().get("message", "Unknown error") if delete_response.text else "No error message"
                 print(f"⚠️  Warning: Failed to delete from GitHub: {delete_response.status_code}")
-                print(f"   Response: {delete_response.text[:200]}")
+                print(f"   Error: {error_detail}")
+                print(f"   File path: {file_path}")
         
         except Exception as e:
             # Don't fail the deletion if GitHub sync fails
             print(f"⚠️  Warning: Could not delete from GitHub: {e}")
+            import traceback
+            traceback.print_exc()
             # Database deletion still succeeded, so we don't raise
 
     async def clear_all_prds(self) -> Dict[str, str]:
