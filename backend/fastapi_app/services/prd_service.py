@@ -234,32 +234,64 @@ class PRDService:
 
         return PRDResponse(**prd_dict)
 
-    async def delete_prd(self, prd_id: str) -> Dict[str, str]:
-        """Delete a PRD from GitHub (source of truth).
+    async def delete_prd(self, prd_id: str, database_only: bool = False) -> Dict[str, str]:
+        """Delete a PRD.
         
-        GitHub is the source of truth. When hard delete is used:
+        Args:
+            prd_id: The PRD ID to delete
+            database_only: If True, only delete from database (for reconciliation).
+                          If False, delete from GitHub (source of truth).
+        
+        When database_only=False (hard delete button):
         1. Delete from GitHub only
         2. GitHub Actions reconciliation will automatically delete from database
         3. This ensures GitHub always wins as the source of truth
+        
+        When database_only=True (reconciliation script):
+        1. Delete from database only
+        2. Used when PRD exists in database but not in GitHub (orphaned PRD)
         """
-        # Step 1: Get PRD details before deletion (need filename for GitHub)
-        prd_data = None
-        try:
-            if data_manager.is_connected():
-                prd_data = await data_manager.get_prd(prd_id)
-        except Exception as e:
-            print(f"Error fetching PRD before delete: {e}")
-        
-        if not prd_data:
-            raise HTTPException(status_code=404, detail="PRD not found")
-        
-        # Step 2: Delete from GitHub only (source of truth)
-        # GitHub Actions reconciliation will handle database deletion automatically
-        await self._delete_prd_from_github(prd_data)
-        
-        return {
-            "message": "PRD deleted from GitHub (source of truth). Database will be synced automatically via GitHub Actions within 30 seconds."
-        }
+        if database_only:
+            # Delete from database only (for reconciliation script)
+            try:
+                if data_manager.is_connected():
+                    success = await data_manager.delete_prd(prd_id)
+                    if not success:
+                        raise HTTPException(status_code=404, detail="PRD not found")
+                else:
+                    # Fallback to in-memory storage
+                    if not hasattr(self, '_prds_db'):
+                        self._prds_db: Dict[str, Dict[str, Any]] = {}
+                    if prd_id not in self._prds_db:
+                        raise HTTPException(status_code=404, detail="PRD not found")
+                    del self._prds_db[prd_id]
+                
+                return {"message": "PRD deleted from database only (orphaned PRD cleanup)"}
+            except HTTPException:
+                raise
+            except Exception as e:
+                print(f"Database delete failed: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to delete PRD: {str(e)}")
+        else:
+            # Delete from GitHub only (hard delete button - source of truth)
+            # Step 1: Get PRD details before deletion (need filename for GitHub)
+            prd_data = None
+            try:
+                if data_manager.is_connected():
+                    prd_data = await data_manager.get_prd(prd_id)
+            except Exception as e:
+                print(f"Error fetching PRD before delete: {e}")
+            
+            if not prd_data:
+                raise HTTPException(status_code=404, detail="PRD not found")
+            
+            # Step 2: Delete from GitHub only (source of truth)
+            # GitHub Actions reconciliation will handle database deletion automatically
+            await self._delete_prd_from_github(prd_data)
+            
+            return {
+                "message": "PRD deleted from GitHub (source of truth). Database will be synced automatically via GitHub Actions within 30 seconds."
+            }
     
     async def _delete_prd_from_github(self, prd_data: Dict[str, Any]) -> None:
         """Delete PRD file from GitHub repository (helper method).

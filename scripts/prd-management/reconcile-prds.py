@@ -154,9 +154,19 @@ def get_database_prds(backend_url: str) -> Dict[str, Dict]:
 
 
 def delete_prd(backend_url: str, prd_id: str, title: str) -> bool:
-    """Delete a PRD from database"""
+    """Delete a PRD from database only (for orphaned PRDs).
+    
+    Uses database_only=true to avoid deleting from GitHub.
+    GitHub is the source of truth - we only clean up orphaned PRDs from database.
+    """
     try:
-        response = requests.delete(f"{backend_url}/api/v1/prds/{prd_id}", timeout=10)
+        # Use database_only=true to only delete from database, not GitHub
+        # This is for orphaned PRDs that exist in database but not in GitHub
+        response = requests.delete(
+            f"{backend_url}/api/v1/prds/{prd_id}",
+            params={"database_only": "true"},
+            timeout=10
+        )
         if response.status_code == 200:
             print(f"   ✅ Deleted: {title}")
             return True

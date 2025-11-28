@@ -60,9 +60,13 @@ async def update_prd(prd_id: str, prd_data: PRDUpdate):
 
 
 @router.delete("/prds/{prd_id}")
-async def delete_prd(prd_id: str):
-    """Delete a PRD."""
-    return await prd_service.delete_prd(prd_id)
+async def delete_prd(prd_id: str, database_only: bool = Query(False, description="If true, only delete from database, not GitHub")):
+    """Delete a PRD.
+    
+    By default, deletes from GitHub (source of truth). Database will be synced automatically.
+    If database_only=true, only deletes from database (for reconciliation script).
+    """
+    return await prd_service.delete_prd(prd_id, database_only=database_only)
 
 
 @router.delete("/prds")
