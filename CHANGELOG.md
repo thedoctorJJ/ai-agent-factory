@@ -4,6 +4,37 @@ All notable changes to the AI Agent Factory project will be documented in this f
 
 ## [Unreleased] - 2025-11-27
 
+### 🔧 **PRD Deletion Fix - Prevent Reconciliation from Deleting GitHub Files**
+
+- **✅ Feature**: Fixed automatic PRD deletion issue where reconciliation script was deleting files from GitHub
+- **✅ Purpose**: Ensure GitHub remains the source of truth - reconciliation should only clean up database, not GitHub files
+- **✅ Implementation**:
+  - Added `database_only` parameter to DELETE API endpoint
+  - Reconciliation script now uses `database_only=true` to only delete from database
+  - Hard delete button uses `database_only=false` to delete from GitHub (as intended)
+  - Updated `prd_service.py`, `prds.py` router, and `reconcile-prds.py` script
+  - Redeployed backend to Cloud Run with the fix
+- **✅ Benefits**:
+  - **GitHub Source of Truth**: PRDs stay in GitHub unless explicitly deleted via hard delete
+  - **Proper Separation**: Reconciliation only manages database, not GitHub files
+  - **No Accidental Deletions**: PRDs won't be automatically deleted from GitHub
+  - **Correct Workflow**: Hard delete button works as intended (deletes from GitHub)
+- **✅ Status**: Fix deployed and verified - all 13 PRDs restored and stable
+
+### **Technical Details**
+
+- **Root Cause**: Reconciliation script called DELETE endpoint which deleted from both database AND GitHub
+- **Solution**: Added `database_only` parameter to control deletion behavior
+- **Files Modified**:
+  - `backend/fastapi_app/services/prd_service.py` - Added `database_only` parameter logic
+  - `backend/fastapi_app/routers/prds.py` - Added query parameter support
+  - `scripts/prd-management/reconcile-prds.py` - Uses `database_only=true`
+- **Deployment**: Backend redeployed to Cloud Run (revision `ai-agent-factory-backend-00063-csx`)
+- **Testing**: Verified PRDs remain in GitHub after reconciliation runs
+- **Impact**: All 8 previously deleted PRDs restored and now stable
+
+## [Unreleased] - 2025-11-27
+
 ### 🔧 **Markdown Linting Fixes - Documentation Quality**
 
 - **✅ Feature**: Fixed comprehensive markdownlint violations across key documentation files
