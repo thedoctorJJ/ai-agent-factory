@@ -13,18 +13,21 @@ This repository contains all core infrastructure, libraries, and documentation t
 **⚠️ IMPORTANT**: This is a **production application** currently running on **Google Cloud Run**. The application is **live and operational** - you can access it immediately without any local setup.
 
 **🌐 Access the Live Application:**
+
 - **Backend API**: https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app ✅ **WORKING**
 - **API Documentation**: https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app/docs ✅ **WORKING**
 - **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app ✅ **WORKING**
 - **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app ⚠️ **SSR ISSUE**
 
 **🤖 Cursor Agent Integration:**
+
 - **MCP Server**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app ✅ **WORKING**
 - **Available Tools**: 12 comprehensive tools for platform management (including SQL execution)
 - **Status**: Ready for Cursor Agent connection and full platform control
 - **New**: Direct Supabase SQL execution from Cursor Agent (no context switching needed!)
 
 **📊 Current Status:**
+
 - ✅ **Backend API**: Fully functional with Redis agent integration
 - ✅ **Redis Caching Agent**: Successfully deployed, running, and linked to PRD
 - ✅ **Database**: Connected and operational
@@ -49,6 +52,7 @@ The AI Agent Factory has successfully created and deployed its first production 
 - **Features**: High-performance caching service for Google Cloud Run with in-memory fallback
 
 **🔗 Access the Agent:**
+
 - **Direct Access**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app
 - **API Data**: https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app/api/v1/agents
 - **Health Status**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health
@@ -58,6 +62,7 @@ The AI Agent Factory has successfully created and deployed its first production 
 ## 🔧 **Recent Updates & Fixes**
 
 ### **✅ GitHub-Based PRD Workflow - NEW (November 27, 2025)**
+
 - **Feature**: Automatic PRD submission from ChatGPT to GitHub with instant database sync
 - **How it Works**:
   1. Submit PRD via ChatGPT → Commits to GitHub (`prds/queue/`)
@@ -65,7 +70,7 @@ The AI Agent Factory has successfully created and deployed its first production 
   3. Website shows PRD within 30 seconds
   4. No manual steps required!
 - **Source of Truth**: GitHub repository (cloud-persistent, version controlled)
-- **Benefits**: 
+- **Benefits**:
   - PRDs survive database wipes
   - Instant website updates
   - Fully automated workflow
@@ -73,8 +78,9 @@ The AI Agent Factory has successfully created and deployed its first production 
 - **Status**: ✅ **OPERATIONAL** - See `docs/guides/CHATGPT_PRD_WORKFLOW.md`
 
 ### **✅ Cursor Agent SQL Execution - NEW FEATURE (November 16, 2025)**
+
 - **Feature**: Direct Supabase SQL execution from Cursor Agent via MCP server
-- **Implementation**: 
+- **Implementation**:
   - Added `execute_supabase_sql` tool to MCP server
   - Direct PostgreSQL connection using psycopg2
   - No context switching needed - run SQL queries directly from Cursor
@@ -82,35 +88,40 @@ The AI Agent Factory has successfully created and deployed its first production 
 - **Documentation**: See `docs/guides/MCP_SETUP_SIMPLIFIED.md` for setup
 
 ### **✅ Cursor Agent Integration - FULLY OPERATIONAL (October 27, 2025)**
+
 - **Issue**: Cursor Agent integration status needed verification
-- **Resolution**: 
+- **Resolution**:
   - MCP Server fully operational with all tools working
   - Successfully tested backend integration and data access
   - Configuration files ready for Cursor Agent connection
 - **Status**: ✅ **READY** - Cursor Agent can now fully integrate with AI Agent Factory
 
 ### **✅ Redis Agent-PRD Linking Fixed (October 27, 2025)**
+
 - **Issue**: Redis agent was showing as "Standalone Agent" despite having a PRD
 - **Root Cause**: Missing agent update endpoint and production environment variables
-- **Resolution**: 
+- **Resolution**:
   - Added comprehensive agent update API endpoint (`PUT /api/v1/agents/{agent_id}`)
   - Fixed production environment variables using secure configuration system
   - Successfully linked Redis agent to its PRD
 - **Status**: ✅ **RESOLVED** - Redis agent now properly linked to PRD
 
 ### **✅ Backend URL Configuration Fixed (October 2025)**
+
 - **Issue**: Frontend was configured with incorrect backend URL fallback
 - **Resolution**: Updated Next.js configuration to use correct backend URL
 - **Current Backend URL**: `https://ai-agent-factory-backend-fdqqqinvyq-uc.a.run.app`
 - **Status**: ✅ **RESOLVED** - All services properly connected
 
 ### **✅ Secrets Management System**
+
 - **Local Development**: Encrypted file storage (`config/api-secrets.enc`) - Source of truth
 - **Production**: Google Cloud Secrets Manager (recommended) or Environment Variables
 - **Sync Strategy**: Local → Cloud (always update local first)
 - **Status**: ✅ **OPERATIONAL** - See `docs/security/SECRETS_QUICK_REFERENCE.md` for workflows
 
 ### **⚠️ Known Issues**
+
 - **Frontend SSR Issue**: Next.js server-side rendering shows `BAILOUT_TO_CLIENT_SIDE_RENDERING`
 - **Impact**: Minimal - client-side functionality works correctly
 - **Workaround**: Application loads and functions properly once JavaScript executes
@@ -164,7 +175,7 @@ python3 config/secure-api-manager.py validate
 
 #### **📁 Secure File Structure**
 
-```
+```text
 config/
 ├── api-secrets.enc          # 🔐 Encrypted API keys (DO NOT EDIT)
 ├── .master-key              # 🔑 Encryption key (DO NOT EDIT)
@@ -197,6 +208,7 @@ python3 config/secure-api-manager.py setup
 For production, secrets are stored in **Google Cloud Secrets Manager**:
 
 **Setup** (one-time):
+
 ```bash
 # 1. Create secrets in Secrets Manager
 ./scripts/setup-cloud-secrets.sh
@@ -209,6 +221,7 @@ For production, secrets are stored in **Google Cloud Secrets Manager**:
 ```
 
 **Syncing Secrets** (after updating local):
+
 ```bash
 # 1. Update local encrypted storage (source of truth)
 python3 config/secure-api-manager.py import config/env/.env.local
@@ -221,6 +234,7 @@ python3 config/secure-api-manager.py import config/env/.env.local
 ```
 
 **Key Points**:
+
 - ✅ Local encrypted storage is the **source of truth**
 - ✅ Always update local first, then sync to cloud
 - ✅ Cloud Run automatically uses latest secret versions
@@ -229,6 +243,7 @@ python3 config/secure-api-manager.py import config/env/.env.local
 #### **📊 Current Service Status**
 
 ✅ **Google Cloud** - Fully configured and working
+
 - Project: `agent-factory-474201`
 - Redis: `10.1.93.195:6379`
 - **Cloud Run**: All services deployed and responding
@@ -260,6 +275,7 @@ The AI Agent Factory is **fully deployed** and running in production on Google C
 ### **🔧 Recent Improvements**
 
 #### **Enhanced Health Check System**
+
 - **Robust Error Handling**: Health checks now gracefully handle errors instead of throwing HTTP 500 errors
 - **Smart Environment Detection**: Automatically detects production vs development environments
 - **Comprehensive Status Reporting**: Three-tier status system (healthy, degraded, unhealthy)
@@ -272,11 +288,11 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 
 #### **Health Check Endpoints**
 
-| Endpoint | Purpose | Response |
-|----------|---------|----------|
-| `/api/v1/health` | Basic health status | Overall system health and service status |
-| `/api/v1/health/detailed` | Detailed diagnostics | Environment variables and service connectivity |
-| `/api/v1/config` | Configuration validation | Environment configuration status |
+| Endpoint                   | Purpose                                  | Response                                                       |
+| -------------------------- | ---------------------------------------- | -------------------------------------------------------------- |
+| `/api/v1/health`           | Basic health status                      | Overall system health and service status                       |
+| `/api/v1/health/detailed`  | Detailed diagnostics                     | Environment variables and service connectivity                 |
+| `/api/v1/config`           | Configuration validation                 | Environment configuration status                               |
 
 #### **Health Status Levels**
 
@@ -330,10 +346,11 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 ### **🤖 Deployed Agents**
 
 #### **Redis Caching Layer Agent**
+
 - **Status**: ✅ Deployed and Running
 - **URL**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app
 - **Purpose**: High-performance caching service with in-memory fallback
-- **Capabilities**: 
+- **Capabilities**:
   - Cache operations (set, get, delete, invalidate)
   - Statistics and monitoring
   - Health checks and metrics
@@ -341,6 +358,7 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 - **Configuration**: 2 vCPU, 2GB RAM, auto-scaling 1-10 instances
 
 **Agent Health Monitoring**:
+
 - **Health Check URL**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health
 - **API Health Check**: `/api/v1/agents/{agent_id}/health` (via main backend)
 - **Status Levels**: Healthy, Degraded, Unhealthy
@@ -348,7 +366,7 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 
 ### **🔧 Service Architecture**
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    AI Agent Factory                        │
 │                   (Google Cloud Run)                       │
@@ -360,14 +378,17 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 ```
 
 ✅ **GitHub** - Configured and working
+
 - Organization: `thedoctorJJ`
 - Token: Securely stored and encrypted
 
 ✅ **Supabase** - Configured
+
 - URL: `https://ssdcbhxctakgysnayzeq.supabase.co`
 - Keys: Securely stored and encrypted
 
 ✅ **OpenAI** - Configured
+
 - API Key: Securely stored and encrypted
 
 #### **🛡️ Security Best Practices**
@@ -376,7 +397,7 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 2. **Use secure setup**: Always use `./setup-secure-config.sh`
 3. **Regular updates**: Update API keys through the secure manager
 4. **Backup encryption key**: Keep `.master-key` safe (losing it means losing access)
-5. **Secrets Management**: 
+5. **Secrets Management**:
    - Local encrypted storage is the **source of truth**
    - Always update local first, then sync to cloud
    - Verify sync status regularly: `./scripts/verify-secrets-sync.sh`
@@ -385,18 +406,21 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 ## 🔧 **Recent Fixes & Updates**
 
 ### **✅ Frontend API Proxy Fixed (Oct 26, 2025)**
+
 - **Issue**: Frontend API proxy was returning 500 errors
 - **Root Cause**: Next.js rewrites configuration wasn't picking up environment variables during build
 - **Solution**: Updated `next.config.js` to use production fallback URL when `NEXT_PUBLIC_API_URL` is not available
 - **Result**: Frontend now successfully proxies API calls to production backend
 
 ### **✅ Backend Schema Fixed (Oct 26, 2025)**
+
 - **Issue**: Backend was failing to create agents due to missing `tools` column in database
 - **Root Cause**: Code was trying to insert `tools` field that doesn't exist in Supabase schema
 - **Solution**: Removed `tools` field from `agent_service.py` and `AgentResponse` model
 - **Result**: Agent registration now works correctly
 
 ### **✅ Secrets Management Strategy (Nov 16, 2025)**
+
 - **Approach**: Two-tier system (local encrypted storage + Google Cloud Secrets Manager)
 - **Source of Truth**: Local encrypted storage (`config/api-secrets.enc`)
 - **Production**: Google Cloud Secrets Manager (recommended) for secure secret storage
@@ -407,11 +431,13 @@ The AI Agent Factory includes a comprehensive health monitoring system that prov
 #### **🚨 Troubleshooting**
 
 **If you lose access to encrypted keys:**
+
 1. Delete `config/api-secrets.enc` and `config/.master-key`
 2. Re-run `./setup/setup-secure-config.sh`
 3. Re-enter your API keys in `config/env/.env.local`
 
 **If configuration doesn't work:**
+
 1. Run: `python3 config/secure-api-manager.py validate`
 2. Check: `python3 config/secure-api-manager.py list`
 3. Recreate: `python3 config/secure-api-manager.py create`
@@ -457,17 +483,21 @@ python3 scripts/api/generate-openapi-spec.py
 ## 📚 Documentation
 
 ### **Organized Documentation Structure**
+
 The documentation has been restructured for better navigation and user experience:
 
 #### 🚀 **Getting Started**
+
 - **[Quick Start](./docs/getting-started/quick-start.md)** — Get up and running in minutes
 - **[Setup Guide](./docs/getting-started/setup-guide.md)** — Complete installation and configuration guide
 - **[Project Status](./docs/getting-started/project-status.md)** — Current project status and achievements
 
 #### 🏗️ **Architecture**
+
 - **[Architecture Overview](./docs/architecture/architecture-overview.md)** — Complete system architecture and technical overview
 
 #### 📖 **Guides**
+
 - **[PRD System](./docs/guides/prd-system.md)** — PRD management and processing system
 - **[Agent Management](./docs/guides/agent-management.md)** — Agent lifecycle and management system
 - **[Devin AI Integration](./docs/guides/devin-ai-integration.md)** — Comprehensive Devin AI integration guide
@@ -475,26 +505,31 @@ The documentation has been restructured for better navigation and user experienc
 - **[MCP Supabase SQL Execution](./docs/guides/MCP_SETUP_SIMPLIFIED.md)** — Run SQL queries directly from Cursor Agent
 
 #### 🚀 **Deployment**
+
 - **[Deployment Guide](./docs/deployment/deployment-guide.md)** — Production deployment and DevOps guide
 
 #### 🔌 **API Reference**
+
 - **[REST API](./docs/api-reference/)** — Complete API documentation and reference
 
 #### 🤝 **Contributing**
+
 - **[Contributing Guide](./docs/contributing/)** — Guidelines for contributing to the project
 
 ### **Documentation Index**
+
 📖 **[Complete Documentation Index](./docs/README.md)** — Comprehensive navigation and overview
 
 ### **Legacy Documentation**
+
 ⚠️ **Legacy documentation has been moved to `docs/legacy/` and should NOT be used.**
 
 All legacy files contain clear warnings and redirect to the new organized documentation.
 
 ---
 
-
 ### PRD Types: Platform vs Agent
+
 - `prd_type` field: `platform` (build the factory) or `agent` (use the factory)
 - **Repository Strategy**:
   - **Platform PRDs**: Agents added to main repository (`/agents/` folder)
@@ -506,10 +541,12 @@ All legacy files contain clear warnings and redirect to the new organized docume
 ## 🗺️ Product Roadmap Dashboard
 
 Features:
+
 - Filters: category, status, effort, prd_type; sorting by priority/date/title
 - Views: Roadmap list, Prioritization Matrix, Kanban, Analytics
 
 Endpoints:
+
 - `GET /api/v1/roadmap/categories`
 - `GET /api/v1/roadmap/statuses`
 - `GET /api/v1/roadmap/priorities`
@@ -522,11 +559,13 @@ Endpoints:
 The platform includes a comprehensive environment management system:
 
 ### Environment Files Organization
+
 - **`config/env.example`** - Template with all required variables
 - **`config/env/.env.local`** - Your local environment (DO NOT COMMIT)
 - **`config/env/.env.backup.*`** - Automatic backups of your configuration
 
 ### Environment Manager Script
+
 ```bash
 # Initialize new environment
 ./scripts/config/env-manager.sh init
@@ -595,6 +634,7 @@ curl https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/co
 ```
 
 **Expected Response** (when healthy):
+
 ```json
 {
   "status": "healthy",
@@ -616,6 +656,7 @@ curl https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/co
 If you want to run the application locally for development or customization:
 
 #### Prerequisites
+
 - Python 3.11+
 - Node.js 18+
 - Docker & Docker Compose
@@ -628,6 +669,7 @@ If you want to run the application locally for development or customization:
 The AI Agent Factory supports secure multi-token GitHub integration for different organizations:
 
 **Environment Configuration** (`scripts/mcp/.env`):
+
 ```bash
 # GitHub Multi-Token Configuration
 GITHUB_TOKEN_TELLENAI=ghp_xxxxx_for_tellenai_org
@@ -636,16 +678,19 @@ DEFAULT_GITHUB_ORG=thedoctorJJ
 ```
 
 **Token Requirements:**
+
 - **`repo`** scope: Full control of repositories
 - **`admin:org`** scope: Full control of organizations (for org repos)
 - **Organization Access**: Ensure tokens have access to target organizations
 
 **Supported Targets:**
+
 - ✅ **Organizations**: `tellenai`, `tellen-academy`
 - ✅ **Personal Accounts**: `thedoctorJJ`
 - ✅ **Automatic Detection**: MCP server automatically selects correct token and API endpoint
 
 #### 1. Clone and Setup
+
 ```bash
 git clone https://github.com/thedoctorJJ/ai-agent-factory.git
 cd ai-agent-factory
@@ -653,6 +698,7 @@ cd ai-agent-factory
 ```
 
 #### 2. Configure Environment
+
 ```bash
 # Initialize environment configuration
 ./scripts/config/env-manager.sh init
@@ -662,6 +708,7 @@ cd ai-agent-factory
 ```
 
 #### 3. Start Development
+
 ```bash
 # Terminal 1: Backend
 cd backend
@@ -674,6 +721,7 @@ npm run dev
 ```
 
 #### 4. Access Local Development
+
 - **Frontend Dashboard**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
@@ -689,6 +737,7 @@ npm run dev
 ## 🧪 **Testing the Complete Workflow**
 
 ### **🌐 Using the Live Production Application:**
+
 1. **Visit the dashboard** at https://ai-agent-factory-frontend-952475323593.us-central1.run.app
 2. **Submit a PRD** using the "Submit PRD" tab (upload file or paste content)
 3. **View in PRD Repository** - PRD appears in the "In Queue" section
@@ -697,11 +746,13 @@ npm run dev
 6. **Manage Agents** - View your created agent in the "Agents" tab
 
 ### **🛠️ Using Local Development:**
+
 1. **Start the platform** (see Local Development Setup above)
 2. **Navigate to the dashboard** at http://localhost:3000
 3. **Follow the same workflow** as the production application
 
 ### **Sample PRDs Available:**
+
 - **Create PRD Files** (recommended): Run `python3 scripts/create-sample-prds-files.py` to create PRD files
 - **Automatic Sync**: PRDs automatically sync to database via GitHub Actions when pushed to main
 - **Manual Sync**: Run `./scripts/prd-management/sync-prds-to-database.sh` to upload files manually
@@ -712,13 +763,17 @@ npm run dev
 ## 🎉 **Ready to Go!**
 
 ### **🌐 Production Application**
+
 The AI Agent Factory is **live and operational** - you can start using it immediately:
+
 - **Frontend Dashboard**: https://ai-agent-factory-frontend-952475323593.us-central1.run.app
 - **Backend API**: https://ai-agent-factory-backend-952475323593.us-central1.run.app
 - **API Documentation**: https://ai-agent-factory-backend-952475323593.us-central1.run.app/docs
 
 ### **🛠️ Local Development**
+
 If you want to run locally for development, the system is **fully configured** and ready:
+
 - ✅ **All APIs configured** (Supabase, OpenAI, Google Cloud, GitHub)
 - ✅ **Devin AI integration** with MCP server setup
 - ✅ **OpenAI integration** - AI processing and analysis capabilities
@@ -745,6 +800,7 @@ If you want to run locally for development, the system is **fully configured** a
 The AI Agent Factory has successfully deployed and migrated its first production agent! Here's the complete workflow in action:
 
 ### **Current Deployment Details**
+
 - **Agent**: Redis Caching Layer Agent
 - **URL**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/
 - **Platform**: Google Cloud Run with Memorystore Redis
@@ -753,6 +809,7 @@ The AI Agent Factory has successfully deployed and migrated its first production
 - **Migration**: Successfully migrated from Fly.io to Google Cloud
 
 ### **Complete Workflow Demonstration**
+
 1. ✅ **PRD Upload** → Parsed and queued in the AI Agent Factory
 2. ✅ **MCP Integration** → Devin AI connected and loaded PRD data
 3. ✅ **Agent Creation** → Devin AI processed requirements and built the agent
@@ -763,6 +820,7 @@ The AI Agent Factory has successfully deployed and migrated its first production
 8. ✅ **Monitoring** → Prometheus metrics exposed for production monitoring
 
 ### **Technical Achievements**
+
 - **High Performance**: Sub-50ms response times for all cache operations
 - **Reliable Backend**: Google Cloud Memorystore Redis with VPC Access
 - **Auto-scaling**: 1-10 instances with 2GB memory and 2 vCPU per instance
@@ -772,6 +830,7 @@ The AI Agent Factory has successfully deployed and migrated its first production
 - **Secure Connectivity**: VPC Access ensures private Redis communication
 
 ### **API Endpoints Verified**
+
 - `GET /health` - Health check with Redis connection status
 - `POST /cache` - Set cache values with TTL support
 - `GET /cache/{key}` - Retrieve cached values
@@ -785,13 +844,16 @@ This demonstrates the **complete AI Agent Factory workflow** from PRD to deploye
 ## 🔒 Security & Credentials Management
 
 ### **Important Security Notes**
+
 - **Never commit sensitive files** to version control
 - **All credential files are automatically ignored** by git
 - **Use environment variables** for all sensitive data
 - **Backup files with credentials are excluded** from commits
 
 ### **Protected File Patterns**
+
 The following file patterns are automatically excluded from git:
+
 - `.env*` - All environment files
 - `*.pem` - Private key files
 - `*-key.json` - Service account keys
@@ -800,6 +862,7 @@ The following file patterns are automatically excluded from git:
 - `*api-key*`, `*secret*`, `*token*` - Any files with sensitive names
 
 ### **Safe Development Workflow**
+
 1. **Initialize environment**: `./scripts/config/env-manager.sh init` - Creates `.env.local` from template
 2. **Add your credentials to `config/env/.env.local`** - This file is gitignored
 3. **Create backups**: `./scripts/config/env-manager.sh backup` - Automatic backup system
@@ -807,6 +870,7 @@ The following file patterns are automatically excluded from git:
 5. **Commit only code changes** - Credentials stay local and organized
 
 ### **Security Tools**
+
 - **Pre-commit hook**: Automatically prevents sensitive files from being committed with improved pattern matching
 - **Secure commit script**: `./scripts/setup/secure-commit.sh "Your message"` - Enhanced with better error handling
 - **Install security hook**: `./scripts/setup/install-pre-commit-hook.sh`
@@ -814,6 +878,7 @@ The following file patterns are automatically excluded from git:
 - **Improved Security Check**: Fixed regex patterns and error handling for reliable GitHub sync
 
 ### **If You Accidentally Commit Sensitive Files**
+
 ```bash
 # Remove from git history (if caught early)
 git reset --soft HEAD~1
@@ -828,7 +893,7 @@ git filter-branch --force --index-filter \
 
 ## 📁 Directory Structure
 
-```
+```text
 ai-agent-factory/
 ├── backend/              # FastAPI backend application
 │   ├── fastapi_app/     # Main application code
@@ -878,6 +943,7 @@ ai-agent-factory/
 ## 🏗️ Architecture
 
 ### Backend (FastAPI) - Refactored Architecture
+
 - **📊 Data Models**: Comprehensive Pydantic models with validation and enums
   - `models/prd.py` - PRD data structures with type safety
   - `models/agent.py` - Agent data structures with health monitoring
@@ -897,6 +963,7 @@ ai-agent-factory/
 - **🔐 Authentication**: JWT-based auth system
 
 ### Frontend (Next.js 14) - Refactored Architecture
+
 - **📱 Type System**: Comprehensive TypeScript definitions
   - `types/index.ts` - All interfaces, enums, and type definitions
 - **🌐 API Client**: Centralized, type-safe API communication
@@ -920,6 +987,7 @@ ai-agent-factory/
   - **Styling**: Tailwind CSS with clean, professional styling
 
 ### Infrastructure
+
 - **Local Development**: Docker Compose with PostgreSQL & Redis
 - **Production**: Google Cloud Run deployment
 - **Database**: Supabase for production, PostgreSQL for local
@@ -927,6 +995,7 @@ ai-agent-factory/
 - **Monitoring**: Integrated logging and health checks
 
 ### Configuration & Monitoring
+
 - **Centralized Configuration**: Smart environment management with validation
 - **Health Monitoring**: Comprehensive system status and service health checks
 - **Error Handling**: Robust error handling with graceful degradation
@@ -937,19 +1006,23 @@ ai-agent-factory/
 ## 📋 PRD System
 
 ### **Completed PRD Processing**
+
 The AI Agent Factory receives and processes completed, formatted PRDs:
 
 #### **PRD Sections**
+
 - **Core Sections**: Title, Description, Problem Statement, Target Users, User Stories, Requirements, Acceptance Criteria, Technical Requirements, Success Metrics, Timeline
 - **Optional Sections**: Performance Requirements, Security Requirements, Integration Requirements, Deployment Requirements, Dependencies, Risks, Assumptions
 
 #### **PRD-to-Agent Workflow**
+
 - **PRD Upload**: Upload or paste completed, formatted PRDs into the platform
 - **Devin-Ready**: Markdown files are optimized for Devin AI with clear implementation phases
 - **Complete Specifications**: Includes all technical details, repository structure, and deployment instructions
 - **Easy Sharing**: One-click download or view in browser
 
 ### **API Endpoints**
+
 - `POST /api/v1/prds` - Submit completed PRD for agent creation
 - `GET /api/v1/prds/{id}/markdown` - Export PRD as markdown for Devin AI
 - `GET /api/v1/prds/{id}/markdown/download` - Download PRD as .md file
@@ -958,17 +1031,18 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 
 ## 🧩 Principles
 
-* **Modular & Repeatable**: Every new agent follows the same lifecycle.
-* **Automated**: PRDs trigger automated agent creation and deployment pipelines.
-* **Auditable & Governed**: Supabase tracks metadata, logs, and version history.
-* **Integration Ready**: Frontend, backend, and libraries are plug-and-play.
-* **Complete & Professional**: Every PRD becomes a comprehensive document ready for Devin AI.
+- **Modular & Repeatable**: Every new agent follows the same lifecycle.
+- **Automated**: PRDs trigger automated agent creation and deployment pipelines.
+- **Auditable & Governed**: Supabase tracks metadata, logs, and version history.
+- **Integration Ready**: Frontend, backend, and libraries are plug-and-play.
+- **Complete & Professional**: Every PRD becomes a comprehensive document ready for Devin AI.
 
 ---
 
 ## 📊 Project Status
 
 ### ✅ Completed
+
 - [x] Complete project scaffolding
 - [x] FastAPI backend with agents & PRDs API
 - [x] Next.js frontend with dashboard
@@ -1025,11 +1099,13 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 - [x] **🎯 Cursor Agent Integration** - Complete MCP server integration for Cursor Agent management
 
 ### 🚧 In Progress
+
 - [ ] Advanced agent orchestration features
 - [ ] Production deployment to Google Cloud Run
 - [ ] Modular agent architecture implementation
 
 ### 📋 Next Steps
+
 1. **Advanced Agent Orchestration** - Implement advanced agent management features
 2. **Production Deployment** - Deploy to Google Cloud Run for production use
 3. **Modular Agent Architecture** - Implement modular agent architecture patterns
@@ -1039,6 +1115,6 @@ The AI Agent Factory receives and processes completed, formatted PRDs:
 
 ## 🔗 Contacts / Contributors
 
-* **Lead Architect**: JJ
-* **Platform AI**: Devin AI
-* **Repository**: [thedoctorJJ/ai-agent-factory](https://github.com/thedoctorJJ/ai-agent-factory)
+- **Lead Architect**: JJ
+- **Platform AI**: Devin AI
+- **Repository**: [thedoctorJJ/ai-agent-factory](https://github.com/thedoctorJJ/ai-agent-factory)

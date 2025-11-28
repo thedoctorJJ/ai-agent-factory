@@ -23,6 +23,7 @@
 **Purpose**: Get context, verify environment, understand linting
 
 #### Step 1.1: Run Startup Prompt
+
 ```bash
 # This is MANDATORY at the start of every session
 # Located in: .cursor/startup-prompt.md
@@ -30,6 +31,7 @@
 ```
 
 **What this does**:
+
 1. Reads README and key documentation
 2. Reviews previous issue resolutions
 3. Checks environment configuration
@@ -41,6 +43,7 @@
 **Output**: AI agent has full context and system status
 
 #### Step 1.2: Understand Linting System
+
 ```bash
 # Check what linting is available
 cat .cursor/LINTING_SYSTEM.md
@@ -50,6 +53,7 @@ cat .cursor/LINTING_SYSTEM.md
 ```
 
 **AI Agent must**:
+
 - Know which linters are available for each file type
 - Understand how to run linting
 - Be aware of linting standards and rules
@@ -62,18 +66,21 @@ cat .cursor/LINTING_SYSTEM.md
 **Purpose**: Address the user's request with quality and testing
 
 #### Step 2.1: Understand the Problem
+
 - Read any referenced files or documentation
 - Ask clarifying questions if needed
 - Break down complex tasks into steps
 - Create TODOs for multi-step tasks
 
 #### Step 2.2: Implement Solution
+
 - Write code following project conventions
 - **Lint as you go** - don't wait until the end
 - Test changes incrementally
 - Handle edge cases and errors
 
 #### Step 2.3: Lint During Development
+
 ```bash
 # IMPORTANT: Lint DURING development, not after
 
@@ -93,12 +100,14 @@ shellcheck <file>.sh
 ```
 
 **Why lint during development**:
+
 - Catch issues immediately
 - Don't accumulate linting debt
 - Easier to fix in context
 - Better code quality throughout
 
 #### Step 2.4: Test Changes
+
 - Run relevant tests
 - Verify functionality manually
 - Check integration points
@@ -113,11 +122,13 @@ shellcheck <file>.sh
 #### Step 3.1: Check Repository Structure
 
 **Keep the repository clean and organized**:
+
 ```bash
 ./scripts/dev/check-repo-structure.sh
 ```
 
 **What this checks**:
+
 - ✅ No loose files in root directory
 - ✅ Python files in correct locations (backend/, scripts/, config/)
 - ✅ JS/TS files in correct locations (frontend/)
@@ -132,12 +143,14 @@ shellcheck <file>.sh
 **If issues found**: Fix them before proceeding!
 
 **Why this matters**:
+
 - Clean, organized repository is easier to navigate
 - Prevents confusion about where files belong
 - Maintains professional appearance
 - Makes onboarding easier for new contributors
 
 #### Step 3.2: Comprehensive Linting
+
 ```bash
 # Run full linting suite
 ./scripts/dev/lint-all.sh
@@ -149,6 +162,7 @@ shellcheck <file>.sh
 ```
 
 **AI Agent checklist**:
+
 - [ ] All Python files pass black, flake8, mypy
 - [ ] All TypeScript files pass ESLint
 - [ ] All shell scripts pass shellcheck
@@ -157,6 +171,7 @@ shellcheck <file>.sh
 - [ ] No TODO comments without associated issues
 
 #### Step 3.2: Run Tests
+
 ```bash
 # Backend tests
 cd backend && pytest
@@ -169,6 +184,7 @@ cd frontend/next-app && npm test
 ```
 
 #### Step 3.3: Verify Health Checks
+
 ```bash
 # Ensure system still works
 ./scripts/check-supabase-and-sync.sh
@@ -194,6 +210,7 @@ curl -k -s https://ai-agent-factory-backend-952475323593.us-central1.run.app/api
 ```
 
 **This interactive script handles the entire documentation workflow**:
+
 1. ✅ Creates resolution summary (Step 4.1)
 2. ✅ Guides CHANGELOG update (Step 4.2)
 3. ✅ Shows documentation checklist (Step 4.3)
@@ -206,6 +223,7 @@ curl -k -s https://ai-agent-factory-backend-952475323593.us-central1.run.app/api
 ### 💬 **For AI Agents: Natural Language Commands**
 
 When the user says any of these, run `./scripts/dev/document-solution.sh`:
+
 - "invoke the lint, doc update, github sync command"
 - "run the documentation workflow"
 - "document this solution"
@@ -222,13 +240,12 @@ When the user says any of these, run `./scripts/dev/document-solution.sh`:
 
 ---
 
-### Or Follow Manual Steps:
-
-
+### Or Follow Manual Steps
 
 #### Step 4.1: Create Resolution Summary (ALWAYS for problem-solving)
 
 **When to create**:
+
 - ✅ Fixed a bug
 - ✅ Implemented a feature
 - ✅ Enhanced existing functionality
@@ -237,11 +254,13 @@ When the user says any of these, run `./scripts/dev/document-solution.sh`:
 - ✅ Made any code changes that solve a problem
 
 **Use the helper script**:
+
 ```bash
 ./scripts/dev/create-resolution-summary.sh
 ```
 
 **What this script does**:
+
 1. Prompts for issue name (auto-generates filename)
 2. Prompts for basic info (description, type, status, time)
 3. Creates template with all required sections
@@ -249,7 +268,8 @@ When the user says any of these, run `./scripts/dev/document-solution.sh`:
 5. Provides checklist of what to fill in
 
 **Interactive prompts**:
-```
+
+```text
 What issue did you solve? → agents-endpoint-500-error
 Brief description: → Endpoint returning 500 error
 Type: → bug
@@ -260,6 +280,7 @@ Resolution time: → 2 hours
 **Generated file**: `docs/resolution-summaries/agents-endpoint-500-error-resolution-2025-11-27.md`
 
 **Required sections** (in template):
+
 1. ✅ Executive Summary (2-3 paragraphs)
 2. ✅ Issue Discovery (symptoms, investigation)
 3. ✅ Root Cause Analysis (why it happened)
@@ -277,6 +298,7 @@ Resolution time: → 2 hours
 **See examples**: `docs/resolution-summaries/` for reference
 
 #### Step 4.2: Update CHANGELOG
+
 ```bash
 # Add entry to CHANGELOG.md with:
 # - Date
@@ -286,6 +308,7 @@ Resolution time: → 2 hours
 ```
 
 **Format**:
+
 ```markdown
 ## [Unreleased] - YYYY-MM-DD
 
@@ -309,6 +332,7 @@ Resolution time: → 2 hours
 **📋 Use the comprehensive checklist**: `docs/guides/DOCUMENTATION_UPDATE_CHECKLIST.md`
 
 **This checklist covers 24 document categories**:
+
 - Core docs (README, startup prompt, workflow)
 - Security & configuration docs
 - Architecture & technical guides
@@ -320,6 +344,7 @@ Resolution time: → 2 hours
 - Project status & planning
 
 **Quick Decision Matrix** (in checklist):
+
 - After fixing a bug → Update X, Y, Z docs
 - After adding a feature → Update A, B, C docs
 - After deployment → Update D, E, F docs
@@ -334,6 +359,7 @@ Resolution time: → 2 hours
 **Purpose**: Clean, atomic commits with meaningful messages
 
 #### Step 5.1: Review Changes
+
 ```bash
 # See what changed
 git status
@@ -346,6 +372,7 @@ git diff --staged
 ```
 
 #### Step 5.2: Stage Files Logically
+
 ```bash
 # Stage related changes together
 git add [files for specific feature/fix]
@@ -355,6 +382,7 @@ git add [files for specific feature/fix]
 ```
 
 #### Step 5.3: Write Meaningful Commit Message
+
 ```bash
 git commit -m "type(scope): description
 
@@ -368,6 +396,7 @@ Refs: docs/resolution-summaries/[filename].md
 ```
 
 **Commit Types**:
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -378,6 +407,7 @@ Refs: docs/resolution-summaries/[filename].md
 - `perf`: Performance improvements
 
 **Examples**:
+
 ```bash
 # Good
 git commit -m "feat(startup): add dynamic PRD count to Supabase sync
@@ -415,6 +445,7 @@ git status  # Should show "nothing to commit, working tree clean"
 ```
 
 **Why sync everything?**:
+
 - ✅ Ensures no work is lost
 - ✅ Keeps repository fully synced
 - ✅ Prevents accumulation of uncommitted changes
@@ -431,6 +462,7 @@ git status  # Should show "nothing to commit, working tree clean"
 **Purpose**: Ensure nothing is left incomplete
 
 #### Step 6.1: Final Verification
+
 - [ ] All changes committed and pushed
 - [ ] CHANGELOG updated
 - [ ] Documentation updated
@@ -440,6 +472,7 @@ git status  # Should show "nothing to commit, working tree clean"
 - [ ] Health checks passed
 
 #### Step 6.2: Clean Up Temporary Files
+
 ```bash
 # Remove any test files, debug scripts, etc.
 rm -f /tmp/test-*.json
@@ -447,7 +480,9 @@ rm -f debug-*.log
 ```
 
 #### Step 6.3: Session Summary
+
 AI Agent provides:
+
 - Summary of what was accomplished
 - List of files changed
 - Any follow-up items needed
@@ -460,36 +495,44 @@ AI Agent provides:
 ### Don't Do This
 
 ❌ **Skip startup prompt**
+
 - Always run the full startup prompt
 - Don't assume you know the current state
 
 ❌ **Lint only at the end**
+
 - Lint throughout development
 - Fix linting issues immediately
 
 ❌ **Commit without documentation**
+
 - Every significant change needs documentation
 - Update CHANGELOG for all user-facing changes
 
 ❌ **Push without testing**
+
 - Always verify changes work
 - Run health checks before pushing
 
 ❌ **Generic commit messages**
+
 - "fixed bug" tells us nothing
 - "updated files" is meaningless
 
 ❌ **Skip resolution summaries**
+
 - **MANDATORY** for ALL problem-solving (not just bugs)
 - Use `./scripts/dev/create-resolution-summary.sh` helper
 - Complete ALL sections before committing
 - Future you will thank present you
 
 ❌ **Accumulate changes**
+
 - Commit logical units of work
 - Don't wait until everything is done
 
 ❌ **Ignore linting errors**
+
 - Fix linting issues immediately
 - Don't disable linters to bypass errors
 
@@ -498,18 +541,21 @@ AI Agent provides:
 ## 🎯 Quick Reference Checklist
 
 ### Every Session Start
+
 - [ ] Run full startup prompt
 - [ ] Read linting system documentation
 - [ ] Verify linting tools are available
 - [ ] Check recent changes (git log)
 
 ### During Development
+
 - [ ] Lint files as you edit them
 - [ ] Test changes incrementally
 - [ ] Document complex decisions
 - [ ] Handle errors gracefully
 
 ### Before Commit
+
 - [ ] Run comprehensive linting
 - [ ] Run all tests
 - [ ] Verify health checks pass
@@ -518,6 +564,7 @@ AI Agent provides:
 - [ ] Update relevant documentation
 
 ### Git Commit
+
 - [ ] Review all changes (git diff)
 - [ ] Stage logically related files
 - [ ] Write meaningful commit message
@@ -525,6 +572,7 @@ AI Agent provides:
 - [ ] Push to GitHub
 
 ### Session End
+
 - [ ] All changes committed
 - [ ] All documentation updated
 - [ ] All temporary files cleaned up
@@ -537,6 +585,7 @@ AI Agent provides:
 ### Scenario: "Website shows 0 PRDs after Supabase pause"
 
 **Phase 1: Session Startup**
+
 ```bash
 # 1. Run startup prompt (includes health checks, PRD sync)
 # 2. Check linting: ./scripts/dev/check-linting-tools.sh
@@ -544,6 +593,7 @@ AI Agent provides:
 ```
 
 **Phase 2: Problem Solving**
+
 ```bash
 # 1. Understand: Supabase pauses wipe data, happens frequently
 # 2. Implement: Create smart detection script
@@ -552,6 +602,7 @@ AI Agent provides:
 ```
 
 **Phase 3: Quality Assurance**
+
 ```bash
 # 1. Lint all modified files
 bash -n scripts/check-supabase-and-sync.sh
@@ -567,6 +618,7 @@ curl -k https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1
 ```
 
 **Phase 4: Documentation**
+
 ```bash
 # 1. Create resolution summary (FIRST!)
 ./scripts/dev/create-resolution-summary.sh
@@ -584,6 +636,7 @@ vim docs/guides/SUPABASE_AUTO_UNPAUSE.md  # Created new guide
 ```
 
 **Phase 5: Git Commit**
+
 ```bash
 # 1. Review changes
 git status
@@ -620,6 +673,7 @@ git push origin main
 ```
 
 **Phase 6: Session Closure**
+
 ```bash
 # 1. Final verification
 git log -1  # Verify commit
@@ -658,6 +712,7 @@ rm -f /tmp/*.json  # Remove temp files
 ## 🔄 Continuous Improvement
 
 This workflow is **living documentation**. If you find:
+
 - Steps that could be automated
 - Process improvements
 - Missing safeguards
@@ -670,6 +725,7 @@ This workflow is **living documentation**. If you find:
 ## 💡 Philosophy
 
 **Why this matters**:
+
 1. **Consistency**: Every session follows the same high-quality process
 2. **Knowledge Preservation**: Documentation ensures nothing is lost
 3. **Quality**: Linting and testing catch issues early
@@ -686,4 +742,3 @@ This workflow is **living documentation**. If you find:
 
 **Last Updated**: November 27, 2025
 **Status**: ✅ Active - Use for all AI agent sessions
-

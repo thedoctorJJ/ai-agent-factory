@@ -5,6 +5,7 @@
 You are starting a new session on the **AI Agent Factory** project. Your first task is to thoroughly understand the application, its current state, configuration, and any documented issues. Follow these steps systematically:
 
 **⚠️ CRITICAL**: This startup prompt is **Phase 1** of the complete AI Agent Workflow. After completing this startup:
+
 - **Read `docs/guides/AI_AGENT_WORKFLOW.md`** for the full 6-phase development process (MANDATORY)
 - **Read `.cursor/QUICK_REFERENCE.md`** for common commands and checklists
 - Check linting status in Step 4.6 below (`.cursor/LINTING_SYSTEM.md`)
@@ -37,6 +38,7 @@ The AI Agent Factory uses a **two-tier secrets management approach**:
 ### **Secrets Management Workflow**
 
 **When updating secrets:**
+
 ```bash
 # 1. Update local (source of truth)
 vim config/env/.env.local
@@ -50,6 +52,7 @@ python3 config/secure-api-manager.py import config/env/.env.local
 ```
 
 **When checking secrets:**
+
 ```bash
 # Verify local and cloud are in sync
 ./scripts/verify-secrets-sync.sh
@@ -100,7 +103,8 @@ The AI Agent Factory uses a **GitHub-based PRD system**:
 ### **PRD Management Workflows**
 
 **Method 1: Via ChatGPT (Recommended for New PRDs)**
-```
+
+```text
 1. Submit PRD via ChatGPT
 2. MCP Server commits to GitHub automatically
 3. GitHub Actions reconciles database (30 seconds)
@@ -109,6 +113,7 @@ The AI Agent Factory uses a **GitHub-based PRD system**:
 ```
 
 **Method 2: Manual GitHub Commit (For Direct Edits)**
+
 ```bash
 # 1. Edit PRD locally
 vim prds/queue/2024-11-16_my-prd.md
@@ -124,6 +129,7 @@ git push origin main
 ```
 
 **Method 3: Manual Reconciliation (Fallback/Testing)**
+
 ```bash
 # Reconcile database to match GitHub (removes orphans, adds missing)
 python3 scripts/prd-management/reconcile-prds.py
@@ -152,6 +158,7 @@ python3 scripts/prd-management/reconcile-prds.py
 ## 📋 Step 1: Understand What This Application Does
 
 ### 1.1 Read the README
+
 - **File**: `README.md` (project root)
 - **Action**: Read the entire README file carefully
 - **Focus on**:
@@ -163,7 +170,9 @@ python3 scripts/prd-management/reconcile-prds.py
   - Recent updates and fixes
 
 ### 1.2 Scan Key Documentation Files
+
 Read these files to understand the application structure:
+
 - `docs/architecture/01-architecture-overview.md` - System architecture
 - `docs/getting-started/quick-start.md` - Quick start guide
 - `docs/guides/04-prd-system.md` - PRD system documentation
@@ -171,9 +180,11 @@ Read these files to understand the application structure:
 - `CHANGELOG.md` - Recent changes and updates
 
 ### 1.3 Examine Project Structure
+
 Scan the entire file structure to identify key components:
 
 **Backend**:
+
 - `backend/fastapi_app/main.py` - Main FastAPI application
 - `backend/fastapi_app/routers/` - API route handlers
 - `backend/fastapi_app/services/` - Business logic services
@@ -181,15 +192,18 @@ Scan the entire file structure to identify key components:
 - `backend/fastapi_app/utils/` - Utility functions
 
 **Frontend**:
+
 - `frontend/next-app/` - Next.js frontend application
 - `frontend/next-app/types/` - TypeScript type definitions
 
 **Infrastructure**:
+
 - `infra/` - Infrastructure configuration
 - `scripts/` - Automation scripts
 - `api-spec/` - OpenAPI specifications
 
 **Documentation**:
+
 - `docs/` - Complete documentation suite
 - `docs/resolution-summaries/` - Previous issue resolutions
 
@@ -198,6 +212,7 @@ Scan the entire file structure to identify key components:
 ## 📚 Step 2: Review Previous Issue Resolutions
 
 ### 2.1 Read Resolution Summaries
+
 - **Directory**: `docs/resolution-summaries/`
 - **Action**: Read all resolution summary documents
 - **Files to read**:
@@ -205,6 +220,7 @@ Scan the entire file structure to identify key components:
   - `secrets-management-implementation-resolution.md` - Secrets management system implementation (November 16, 2025)
 
 ### 2.2 Review Troubleshooting Documentation
+
 - **Directory**: `docs/troubleshooting/`
 - **Action**: Review all troubleshooting guides
 - **Focus on**:
@@ -213,6 +229,7 @@ Scan the entire file structure to identify key components:
   - Error patterns and resolutions
 
 ### 2.3 Check CHANGELOG
+
 - **File**: `CHANGELOG.md`
 - **Action**: Review recent entries to understand:
   - Recent fixes and improvements
@@ -225,25 +242,31 @@ Scan the entire file structure to identify key components:
 ## 🔐 Step 3: Check Environment Configuration
 
 ### 3.0 Ensure Docker is Running
+
 **⚠️ IMPORTANT**: Docker must be running for deployment and local development.
 
 **Check Docker Status**:
+
 ```bash
 docker ps
 ```
 
 **If Docker is not running**:
+
 - **macOS**: Run `open -a Docker` or `open -a "Docker Desktop"`
 - **Linux**: Start Docker service: `sudo systemctl start docker`
 - **Windows**: Open Docker Desktop application
 
 **Wait for Docker to be ready**:
+
 - Docker Desktop may take 10-30 seconds to fully start
 - Verify with: `docker ps` (should return container list or empty list, not an error)
 - Never proceed with deployment if Docker is not running
 
 ### 3.1 Locate Environment Files
+
 Search for environment configuration files:
+
 - `.env` - Local development environment
 - `.env.local` - Local overrides
 - `.env.production` - Production configuration
@@ -252,6 +275,7 @@ Search for environment configuration files:
 - `frontend/next-app/.env*` - Frontend environment files
 
 ### 3.2 Check for API Keys and Secrets
+
 **IMPORTANT**: When checking environment files, identify but **DO NOT DISPLAY** sensitive values:
 
 1. **Check for presence** of these keys (but don't show values):
@@ -267,7 +291,7 @@ Search for environment configuration files:
    - Environment (development/production)
    - Configuration method (local encrypted storage, Cloud Secrets Manager, etc.)
 
-3. **Security Note**: 
+3. **Security Note**:
    - Never display actual API key values
    - Report only presence/absence and configuration status
    - Note if using secure configuration system
@@ -287,6 +311,7 @@ Search for environment configuration files:
    - See `docs/troubleshooting/health-check-environment-variables.md` for details
 
 ### 3.3 Review Configuration System
+
 - **File**: `config/secure-api-manager.py` (if exists)
 - **Action**: Understand how configuration is managed
 - **Check**: Secure configuration system usage
@@ -296,14 +321,17 @@ Search for environment configuration files:
 ## 🏥 Step 4: Run Health Checks and Restore Data
 
 ### 4.0 MCP Server and Database Health Check
+
 **⚠️ CRITICAL**: Verify MCP server is working and can access the database.
 
 **Run MCP/Database Health Check**:
+
 ```bash
 python3 scripts/health-check-mcp-database.py
 ```
 
 **What this checks**:
+
 1. **MCP Configuration**: Verifies `~/.cursor/mcp.json` is properly configured
 2. **MCP Server**: Tests that MCP server can be initialized
 3. **Database via MCP**: Verifies database connectivity through MCP server
@@ -312,11 +340,13 @@ python3 scripts/health-check-mcp-database.py
    - Checks RLS policies are correctly configured
 
 **Expected Results**:
+
 - ✅ MCP Configuration: PASS
 - ✅ MCP Server: PASS
 - ✅ Database (via MCP): PASS
 
 **If checks fail**:
+
 - Review MCP configuration in `~/.cursor/mcp.json`
 - Verify `DATABASE_URL` is correctly configured
 - Check that MCP server script exists and is executable
@@ -325,20 +355,24 @@ python3 scripts/health-check-mcp-database.py
 **Important**: The MCP server is the primary method for database access from Cursor. If this check fails, database operations will not work.
 
 ### 4.0.1 Check Supabase Status and Sync PRDs
+
 **⚠️ CRITICAL**: Supabase frequently pauses on free tier. This step detects and handles pauses automatically.
 
 **Background**: The AI Agent Factory uses a file-based source of truth for PRDs:
+
 - **Source of Truth**: PRD files in `prds/queue/` (markdown files)
 - **Database**: Supabase (sync target only, data may be wiped when paused)
 - **Sync Strategy**: Files → Database (one-way sync)
 - **Dynamic Count**: Script automatically counts files to match against database
 
 **Run Smart Sync Script**:
+
 ```bash
 ./scripts/check-supabase-and-sync.sh
 ```
 
 **What this does**:
+
 1. **Tests Supabase connection** via MCP health check
 2. **Detects if Supabase is paused**:
    - If paused: Shows dashboard link to manually unpause
@@ -350,15 +384,18 @@ python3 scripts/health-check-mcp-database.py
 **Possible Outcomes**:
 
 **✅ All systems operational**:
-```
+
+```text
 ✅ Supabase: Connected
 ✅ PRD Count: N (correct)
 ```
+
 → No action needed, continue to next step
 (N = number of .md files in prds/queue/)
 
 **⚠️ Supabase is paused**:
-```
+
+```text
 ⚠️  SUPABASE IS PAUSED OR UNREACHABLE
 
 📋 To unpause Supabase:
@@ -367,10 +404,12 @@ python3 scripts/health-check-mcp-database.py
    3. Wait ~1-2 minutes for database to come online
    4. Re-run this script
 ```
+
 → Follow instructions, then re-run script
 
 **🔄 Database needs sync**:
-```
+
+```text
 ⚠️  DATABASE NEEDS SYNC
 Supabase was recently resumed and database is empty.
 Syncing PRDs from files...
@@ -378,20 +417,24 @@ Syncing PRDs from files...
 ✅ PRD sync complete!
    ✅ PRD Count: N (synced)
 ```
+
 → Automatic - no manual action needed
 (N = number of PRD files synced)
 
 **Important Notes**:
+
 - **Cannot unpause programmatically**: Supabase doesn't provide an API for this
 - **Manual unpause required**: Use dashboard link provided in script output
 - **Auto-sync after unpause**: Script automatically syncs once database is accessible
 - **Idempotent**: Safe to run multiple times
 
 ### 4.1 Backend Health Check
+
 Test the production backend API:
 
 **Endpoints to check**:
-1. **Basic Health**: 
+
+1. **Basic Health**:
    - URL: `https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1/health`
    - Expected: `200 OK` with health status
 
@@ -404,18 +447,21 @@ Test the production backend API:
    - Expected: Configuration validation status
 
 **Report**:
+
 - HTTP status codes
 - Service status (healthy/degraded/unhealthy)
 - Environment configuration status
 - Service connectivity (Supabase, OpenAI, GitHub, Google Cloud)
 
 **Important Notes**:
+
 - Health checks use the `config` object to detect configuration, which correctly handles all sources (env vars, Cloud Run vars, secrets)
 - If health check shows "degraded" but endpoints work, configuration is likely correct
 - The health check was updated (Nov 16, 2025) to use config object instead of `os.getenv()` directly for accurate detection
 - See `docs/troubleshooting/health-check-environment-variables.md` for details on health check behavior
 
 ### 4.2 Key API Endpoints
+
 Test critical endpoints:
 
 1. **Agents Endpoint**:
@@ -431,18 +477,22 @@ Test critical endpoints:
    - Expected: MCP server health status
 
 ### 4.3 Frontend Status
+
 - **URL**: `https://ai-agent-factory-frontend-952475323593.us-central1.run.app`
 - **Check**: Frontend accessibility and status
 - **Note**: Known SSR issue (documented in README)
 
 ### 4.4 Deployed Agents
+
 Check deployed agents:
+
 - **Redis Caching Agent**: `https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health`
 - **Status**: Verify agent is running and healthy
 
 ---
 
 ### 4.5 Verify PRD Count
+
 **Check that PRD sync worked correctly**:
 
 ```bash
@@ -454,6 +504,7 @@ curl -s https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1
 ```
 
 **If count is still 0**:
+
 - Supabase may still be paused
 - Resume Supabase and re-run sync script
 - Check sync script output for errors
@@ -461,6 +512,7 @@ curl -s https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1
 ---
 
 ## 🔍 Step 4.6: Check Linting System Status
+
 **Verify available linting tools**:
 
 ```bash
@@ -468,6 +520,7 @@ curl -s https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1
 ```
 
 **This checks for**:
+
 - Python linters (Black, Flake8, MyPy, isort, Pylint)
 - JavaScript/TypeScript linters (ESLint, Prettier)
 - Shell linters (ShellCheck)
@@ -475,10 +528,12 @@ curl -s https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1
 - Pre-commit hooks
 
 **Expected Outcome**:
+
 - If **all tools available**: ✅ Follow full linting workflow
 - If **tools missing**: ⚠️ Use minimal linting (bash -n, read_lints)
 
-**Important**: 
+**Important**:
+
 - AI agents must check this at session start
 - Know what linting is available before starting work
 - Adjust workflow based on available tools
@@ -490,12 +545,14 @@ curl -s https://ai-agent-factory-backend-952475323593.us-central1.run.app/api/v1
 After completing all steps, provide a comprehensive summary:
 
 ### 5.1 Application Overview
+
 - **What it does**: Brief description of the AI Agent Factory
 - **Purpose**: Main goal and use case
 - **Architecture**: High-level architecture (backend, frontend, infrastructure)
 - **Technology Stack**: Key technologies used
 
 ### 5.2 Current Status
+
 - **Production URLs**: All live service URLs
 - **Health Status**: Overall system health
 - **Service Status**: Status of each service (backend, frontend, MCP, agents)
@@ -503,6 +560,7 @@ After completing all steps, provide a comprehensive summary:
 - **Known Issues**: Any documented issues or limitations
 
 ### 5.3 Configuration Status
+
 - **Environment**: Development or production
 - **API Keys**: Which keys are configured (without showing values)
 - **Missing Keys**: Any missing required configuration
@@ -515,11 +573,13 @@ After completing all steps, provide a comprehensive summary:
 - **Production Configuration**: Note that production uses Cloud Secrets Manager or Cloud Run environment variables
 
 ### 5.4 Recent Changes
+
 - **Latest Fixes**: Recent bug fixes and improvements
 - **Deployments**: Recent deployment history
 - **Documented Issues**: Issues resolved in resolution summaries
 
 ### 5.5 Project Structure
+
 - **Key Directories**: Important directories and their purposes
 - **Key Files**: Critical files for understanding the codebase
 - **Documentation**: Available documentation resources
@@ -544,6 +604,7 @@ After completing all steps, provide a comprehensive summary:
 ### **When to Create a Resolution Summary**
 
 Create a resolution summary document (`docs/resolution-summaries/{issue-name}-resolution-{date}.md`) when:
+
 - ✅ You fix a bug or issue
 - ✅ You implement a new feature or system
 - ✅ You resolve a configuration problem
@@ -695,4 +756,3 @@ After completing all steps, provide your findings in this format:
 ---
 
 **Start Now**: Begin with Step 1.1 - Read the README file.
-

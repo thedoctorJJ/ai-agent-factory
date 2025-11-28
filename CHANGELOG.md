@@ -4,7 +4,52 @@ All notable changes to the AI Agent Factory project will be documented in this f
 
 ## [Unreleased] - 2025-11-27
 
+### 🔧 **Markdown Linting Fixes - Documentation Quality**
+
+- **✅ Feature**: Fixed comprehensive markdownlint violations across key documentation files
+- **✅ Purpose**: Improve documentation quality, consistency, and markdown best practices
+- **✅ Implementation**:
+  - Fixed 30+ markdownlint violations in README.md, startup-prompt.md, and AI_AGENT_WORKFLOW.md
+  - Added language specifiers to all fenced code blocks (improves syntax highlighting)
+  - Fixed table formatting and alignment issues
+  - Auto-fixed blank lines, headings, and list formatting
+  - Verified with both markdownlint and read_lints tool
+- **✅ Benefits**:
+  - **Better Syntax Highlighting**: Code blocks now have proper language tags
+  - **Improved Readability**: Tables properly formatted and aligned
+  - **Consistent Formatting**: All documentation follows markdown best practices
+  - **Better GitHub Rendering**: Properly formatted markdown renders better on GitHub
+  - **Easier Maintenance**: Consistent formatting makes documentation easier to maintain
+- **✅ Status**: All critical issues fixed, documentation improved
+
+### **Technical Details**
+
+- **Files Modified**:
+  - `README.md` - Fixed 3 code blocks, table formatting
+  - `.cursor/startup-prompt.md` - Fixed 4 code blocks
+  - `docs/guides/AI_AGENT_WORKFLOW.md` - Fixed 1 code block
+- **Files Created**:
+  - `docs/resolution-summaries/2025-11-27-markdown-linting-fixes-resolution.md` - Complete resolution documentation
+- **Tools Used**:
+  - `markdownlint` (v0.46.0) - Markdown linter/formatter
+  - `shellcheck` (v0.11.0) - Shell script analyzer (verified scripts)
+  - `read_lints` - Cursor IDE linting tool
+- **Issues Fixed**:
+  - MD040: Fenced code blocks without language specifiers (8 instances)
+  - MD060: Table column alignment issues
+  - MD032: Lists not surrounded by blank lines (auto-fixed)
+  - MD022: Headings not surrounded by blank lines (auto-fixed)
+  - MD031: Fenced code blocks not surrounded by blank lines (auto-fixed)
+  - MD009: Trailing spaces (auto-fixed)
+  - MD012: Multiple consecutive blank lines (auto-fixed)
+- **Remaining Warnings**: 11 MD036 warnings (intentional emphasis markers - acceptable)
+- **Testing**: All files verified with markdownlint and read_lints - no errors remaining
+- **Documentation**: See `docs/resolution-summaries/2025-11-27-markdown-linting-fixes-resolution.md`
+
+## [Unreleased] - 2025-11-27
+
 ### 🔍 **Comprehensive Linting System - FULLY OPERATIONAL**
+
 - **✅ Feature**: Enterprise-grade linting system covering all code types
 - **✅ Purpose**: Enforce code quality, consistency, and repository organization
 - **✅ Implementation**:
@@ -26,6 +71,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **✅ Status**: Fully operational - 10/10 tools installed and configured
 
 ### **Linting Tools Installed**
+
 1. **Black** v25.11.0 - Python code formatter
 2. **Flake8** v7.3.0 - Python style guide enforcement
 3. **MyPy** v1.18.2 - Python type checker
@@ -38,6 +84,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 10. **Pre-commit** v4.5.0 - Git hook framework
 
 ### **Repository Structure Checker**
+
 - **✅ Feature**: Automated repository organization verification
 - **✅ Purpose**: Ensure clean, well-organized file structure
 - **✅ Checks**:
@@ -51,6 +98,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **✅ Integration**: Part of `document-solution.sh` workflow (Step 3)
 
 ### **Technical Details**
+
 - **Files Created**:
   - Configuration: `pyproject.toml`, `.flake8`, `frontend/next-app/.eslintrc.json`, `frontend/next-app/.prettierrc`, `frontend/next-app/.prettierignore`, `.markdownlint.json`, `.pre-commit-config.yaml`
   - Scripts: `scripts/dev/lint-python.sh`, `scripts/dev/lint-frontend.sh`, `scripts/dev/lint-scripts.sh`, `scripts/dev/lint-markdown.sh`, `scripts/dev/lint-all.sh`, `scripts/dev/check-repo-structure.sh`
@@ -68,6 +116,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Quick Command**: Run `./scripts/dev/lint-all.sh` to lint everything
 
 ### 📋 **AI Agent Development Workflow - NEW SYSTEM**
+
 - **✅ Feature**: Comprehensive documented workflow for all AI agent sessions
 - **✅ Purpose**: Ensure consistency, quality, and knowledge preservation across sessions
 - **✅ Implementation**:
@@ -90,6 +139,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **✅ Status**: Documented and integrated into startup prompt
 
 ### **Workflow Phases**
+
 1. **Session Startup**: Run startup prompt, check linting, get context
 2. **Problem Solving**: Understand, implement, lint during development
 3. **Quality Assurance**: Comprehensive linting, testing, verification
@@ -98,6 +148,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 6. **Session Closure**: Final verification and cleanup
 
 ### **Technical Details**
+
 - **Files Created**:
   - `docs/guides/AI_AGENT_WORKFLOW.md` - 500+ line workflow guide with complete example
   - `.cursor/LINTING_SYSTEM.md` - Linting status and procedures
@@ -117,6 +168,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Next Steps**: Install comprehensive linting system (Black, ESLint, ShellCheck, etc.)
 
 ### 🔄 **Smart Supabase Status Check and PRD Sync - ENHANCEMENT**
+
 - **✅ Feature**: Intelligent Supabase pause detection and automatic PRD sync
 - **✅ Purpose**: Detect when Supabase is paused, guide manual unpause, then auto-sync PRDs
 - **✅ Implementation**:
@@ -127,7 +179,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
   - Automatically syncs PRDs once database is accessible
   - **Dynamic PRD count**: Counts actual files in `prds/queue/` (not hardcoded)
   - Integrated into Step 4.0.1 of startup prompt
-- **✅ Benefits**: 
+- **✅ Benefits**:
   - **Smart Detection**: Knows when Supabase is paused vs just empty
   - **Clear Instructions**: Shows exact dashboard link to unpause
   - **Auto-Recovery**: Syncs PRDs automatically once database is back
@@ -138,12 +190,13 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **✅ Documentation**: Updated `.cursor/startup-prompt.md`
 
 ### **Technical Details**
+
 - **Files Created**:
   - `scripts/check-supabase-and-sync.sh` - Smart detection and sync script
 - **Files Updated**:
   - `.cursor/startup-prompt.md` - Updated Step 4.0.1 with smart script
   - `CHANGELOG.md` - Documented enhancement
-- **Limitations**: 
+- **Limitations**:
   - **No programmatic unpause**: Supabase doesn't provide Management API for unpause
   - **Manual step required**: User must click "Resume Project" in dashboard
   - **Auto-sync after manual unpause**: Everything else is automatic
@@ -155,12 +208,13 @@ All notable changes to the AI Agent Factory project will be documented in this f
 ## [Unreleased] - 2025-11-16
 
 ### ✅ **Proactive PRD Syncing Implementation - NEW FEATURE**
+
 - **✅ Feature**: Automatic PRD synchronization from files (source of truth) to database
 - **✅ Implementation**:
   - GitHub Actions workflow (`.github/workflows/sync-prds.yml`) automatically syncs PRDs on push to main
   - Git post-commit hook setup script for local development convenience
   - Comprehensive documentation in `docs/guides/PRD_SYNC_STRATEGY.md`
-- **✅ Benefits**: 
+- **✅ Benefits**:
   - PRDs automatically stay in sync between files and database
   - No manual sync required when PRD files are committed/pushed
   - Ensures database always reflects file-based source of truth
@@ -168,23 +222,25 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **✅ Documentation**: See `docs/resolution-summaries/proactive-prd-syncing-implementation-resolution-2025-11-16.md`
 
 ### **Technical Details**
-- **Files Created**: 
+
+- **Files Created**:
   - `.github/workflows/sync-prds.yml` - GitHub Actions workflow for automatic syncing
   - `scripts/prd-management/setup-prd-sync-hook.sh` - Git hook setup script
 - **Files Updated**:
   - `docs/guides/PRD_SYNC_STRATEGY.md` - Added proactive syncing section
   - `README.md` - Updated to mention automatic syncing
-- **Workflow**: 
+- **Workflow**:
   - Files → Commit → Git Hook syncs (local)
   - Files → Push to main → GitHub Actions syncs (production)
 - **Testing**: All scripts validated, syntax checks passed
 
 ### 🐛 **Secrets Sync DATABASE_URL Fix - Resolved**
+
 - **✅ Issue**: DATABASE_URL secret out of sync between local and cloud, plus sync script syntax error
-- **✅ Root Cause**: 
+- **✅ Root Cause**:
   - DATABASE_URL in local storage (source of truth) had longer value than cloud
   - Sync script had Python heredoc syntax error preventing execution
-- **✅ Fix**: 
+- **✅ Fix**:
   - Fixed sync script to use helper script (`scripts/load-secrets-helper.py`) instead of inline Python heredoc
   - Synced DATABASE_URL from local to cloud (created version 3)
   - All 20 secrets now confirmed in sync
@@ -193,15 +249,17 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Documentation**: See `docs/resolution-summaries/secrets-sync-database-url-fix-resolution-2025-11-16.md`
 
 ### **Technical Details**
-- **Files**: 
+
+- **Files**:
   - `scripts/sync-secrets-to-cloud.sh` - Fixed syntax error, now uses helper script
-- **Changes**: 
+- **Changes**:
   - Replaced inline Python heredoc with call to `scripts/load-secrets-helper.py`
   - DATABASE_URL updated in Google Cloud Secrets Manager (version 3)
 - **Testing**: All secrets verified in sync, backend health maintained
 - **Deployment**: Cloud Run automatically uses latest secret versions (no redeploy needed)
 
 ### ✅ **MCP Server and Database Health Check Implementation**
+
 - **✅ Feature**: Comprehensive health check for MCP server and database connectivity
 - **✅ Purpose**: Verify MCP server functionality and database access during startup
 - **✅ Implementation**:
@@ -214,9 +272,10 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **✅ Documentation**: See `docs/resolution-summaries/mcp-database-health-check-implementation-resolution-2025-11-16.md`
 
 ### 🐛 **Redis Agent Registration Fix - Resolved**
+
 - **✅ Issue**: Redis agent registration failing with 500 Internal Server Error
 - **✅ Root Cause**: Multiple issues - duplicate agent handling, Supabase project paused, incorrect PRD ID
-- **✅ Fix**: 
+- **✅ Fix**:
   - Added duplicate agent detection - now updates existing agents instead of failing
   - Enhanced error handling with retry logic and exponential backoff
   - Improved DNS/network error detection and reporting
@@ -227,11 +286,12 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Documentation**: See `docs/resolution-summaries/redis-agent-registration-fix-resolution-2025-11-16.md`
 
 ### **Technical Details**
-- **Files**: 
+
+- **Files**:
   - `backend/fastapi_app/services/agent_service.py` - Added duplicate agent handling
   - `backend/fastapi_app/utils/simple_data_manager.py` - Added retry logic and `get_agent_by_name()`
   - `scripts/register-redis-agent-production.py` - Fixed PRD ID
-- **Changes**: 
+- **Changes**:
   - Check for existing agents by name before creating
   - Update existing agents instead of failing on duplicates
   - Retry logic with exponential backoff for network operations
@@ -240,6 +300,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Deployment**: Revision `ai-agent-factory-backend-00035-lmb` deployed successfully
 
 ### 🐛 **Agents Endpoint 500 Error - Fixed (Regression)**
+
 - **✅ Issue**: `/api/v1/agents` endpoint returning 500 Internal Server Error (regression from Nov 13 fix)
 - **✅ Root Cause**: Insufficient error handling when creating `AgentResponse` objects from database records
 - **✅ Fix**: Added comprehensive error handling, field validation, and type checking in `get_agents()` method
@@ -248,9 +309,10 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Documentation**: See `docs/resolution-summaries/agents-endpoint-500-error-resolution-nov-16-2025.md`
 
 ### **Technical Details**
-- **Files**: 
+
+- **Files**:
   - `backend/fastapi_app/services/agent_service.py` - Updated `get_agents()` with comprehensive error handling
-- **Changes**: 
+- **Changes**:
   - Added try-catch around data fetching from database
   - Added validation for required fields with safe defaults
   - Added type validation for list/dict fields
@@ -260,6 +322,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Deployment**: Revision `ai-agent-factory-backend-00034-7b6` deployed successfully
 
 ### 🐛 **Health Check Environment Variable Detection - Fixed**
+
 - **✅ Issue**: Health check endpoints showing environment variables as "missing" in production despite services functioning correctly
 - **✅ Root Cause**: Health check using `os.getenv()` directly instead of config object, which may not detect variables set via Cloud Run environment variables or Cloud Secrets Manager
 - **✅ Fix**: Updated health check endpoints to use config object for configuration detection, ensuring consistency with how the application loads configuration
@@ -268,10 +331,11 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Documentation**: See `docs/troubleshooting/health-check-environment-variables.md`
 
 ### **Technical Details**
-- **Files**: 
+
+- **Files**:
   - `backend/fastapi_app/routers/health.py` - Updated `detailed_health_check()` to use config object
   - `backend/fastapi_app/config.py` - Updated `validate_config()` to use config properties
-- **Changes**: 
+- **Changes**:
   - Health check now checks `config.supabase_url`, `config.openai_api_key`, etc. instead of `os.getenv()` directly
   - Ensures detection works regardless of configuration source (env vars, Cloud Run vars, secrets)
 - **Testing**: Health checks now accurately detect configuration in production environments
@@ -279,6 +343,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 ## [Unreleased] - 2025-11-13
 
 ### 📋 **API Contract Specification System - Added**
+
 - **✅ OpenAPI 3.1 Specification**: Complete API contract with 28 endpoints and 28 schemas
 - **✅ TypeScript Type Generation**: Automated type generation from OpenAPI spec
 - **✅ Contract Validation**: Scripts to validate API contract and endpoints
@@ -287,6 +352,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Status**: API contract system fully operational and integrated
 
 ### **Technical Details**
+
 - **Files**: `api-spec/openapi.json`, `api-spec/openapi.yaml` - OpenAPI 3.1 specifications
 - **Scripts**: `scripts/api/generate-openapi-spec.py`, `scripts/api/generate-typescript-types.sh`, `scripts/api/validate-api-contract.sh`
 - **Documentation**: `docs/api/API_CONTRACT.md` - Complete API contract guide
@@ -295,6 +361,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Testing**: Contract validation passes for all endpoints
 
 ### 🐛 **Agents Endpoint Internal Server Error - Fixed**
+
 - **✅ Issue**: `/api/v1/agents` endpoint returning 500 Internal Server Error
 - **✅ Root Cause**: Missing datetime conversion and enum validation in `get_agents()` method
 - **✅ Fix**: Added proper data type conversion for datetime fields and enum validation
@@ -303,6 +370,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Documentation**: See `docs/troubleshooting/agents-endpoint-internal-server-error.md`
 
 ### **Technical Details**
+
 - **File**: `backend/fastapi_app/services/agent_service.py`
 - **Method**: `get_agents()` - Added datetime conversion and enum validation
 - **Impact**: Agents endpoint now properly handles Supabase data format
@@ -311,6 +379,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 ## [Unreleased] - 2025-10-27
 
 ### 🤖 **Cursor Agent Integration - FULLY OPERATIONAL**
+
 - **✅ MCP Server**: Fully operational and healthy
 - **✅ MCP Tools**: All 11 tools working correctly
 - **✅ Backend Integration**: Successfully connects to AI Agent Factory backend
@@ -319,12 +388,14 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Status**: Cursor agent integration is fully functional and ready to use
 
 ### **MCP Server Details**
+
 - **URL**: https://ai-agent-factory-mcp-server-952475323593.us-central1.run.app
 - **Available Tools**: 11 comprehensive tools for platform management
 - **Test Results**: Successfully tested PRD retrieval and startup guide
 - **Configuration Files**: Standard and enhanced configs available
 
 ### 🔗 **Redis Agent-PRD Linking Fixed**
+
 - **✅ Agent Update Endpoint**: Added comprehensive agent update API endpoint
 - **✅ Redis Agent Linked**: Successfully linked Redis agent to its PRD
 - **✅ Production Environment**: Fixed missing environment variables using secure configuration
@@ -332,6 +403,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Status**: Redis agent no longer shows as "Standalone Agent"
 
 ### **Technical Details**
+
 - **Agent Update Model**: Added `AgentUpdate` model for partial agent updates
 - **API Endpoint**: `PUT /api/v1/agents/{agent_id}` for updating agent properties
 - **Environment Variables**: Used secure API manager to set production environment variables
@@ -340,6 +412,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 ## [Unreleased] - 2025-10-26
 
 ### 🔧 **PRD Status Standardization**
+
 - **✅ Database Schema**: Updated to include all 9 PRD states
 - **✅ Backend Models**: Standardized PRD status enumeration
 - **✅ Frontend Types**: Aligned TypeScript types with backend
@@ -348,6 +421,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Status**: All PRD states now consistent across the entire system
 
 ### **Standardized PRD States**
+
 - **`uploaded`** - PRD uploaded and awaiting standardization
 - **`standardizing`** - PRD being converted to AI Agent Factory format
 - **`review`** - PRD awaiting user review and approval
@@ -359,6 +433,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **`processed`** - Final state after completion
 
 ### **Configuration & Deployment Fixes**
+
 - **✅ Backend URL Configuration**: Fixed Next.js configuration to use correct backend URL
 - **✅ Environment Variables**: Resolved missing production environment variables
 - **✅ Network Connectivity**: All services properly connected and operational
@@ -367,12 +442,14 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Status**: Production environment fully operational
 
 ### Fixed
+
 - **Backend URL Mismatch**: Resolved incorrect backend URL fallback in Next.js config
 - **Environment Variables**: Fixed missing production environment variables
 - **Service Connectivity**: All services now properly connected
 - **Documentation**: Updated README and deployment docs with current URLs
 
 ### Known Issues
+
 - **Frontend SSR Issue**: Next.js server-side rendering shows `BAILOUT_TO_CLIENT_SIDE_RENDERING`
 - **Impact**: Minimal - client-side functionality works correctly
 - **Workaround**: Application loads and functions properly once JavaScript executes
@@ -380,6 +457,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 ## [Unreleased] - 2024-12-19
 
 ### 🎉 **MAJOR SUCCESS: Redis Caching Layer Agent Integration**
+
 - **✅ Redis Agent Deployed**: Successfully deployed Redis Caching Layer Agent to production
 - **✅ Agent Registration**: Agent successfully registered with AI Agent Factory platform
 - **✅ Database Integration**: Agents table created and operational in Supabase
@@ -389,6 +467,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Health Check**: https://redis-caching-agent-fdqqqinvyq-uc.a.run.app/health
 
 ### Added
+
 - **Hybrid Repository Strategy**: Implemented intelligent repository management based on PRD type
   - Platform PRDs: Agents stored in main repository (`/agents/` folder)
   - Agent PRDs: Separate GitHub repositories created (`ai-agents-{name}`)
@@ -396,12 +475,14 @@ All notable changes to the AI Agent Factory project will be documented in this f
 - **Enhanced Agent Creation**: Automatic repository strategy detection during agent creation
 
 ### Changed
+
 - **Repository Naming Convention**: Updated from `end-cap-agent-{name}` to `ai-agents-{name}`
 - **Devin MCP Server**: Enhanced with hybrid repository strategy logic
 - **Devin Service**: Updated agent creation flow to support both repository strategies
 - **Documentation**: Updated all references to reflect new naming convention and strategy
 
 ### Technical Details
+
 - Modified `scripts/mcp/devin-mcp-server.py`:
   - Updated `_create_agent_from_prd` with repository strategy logic
   - Enhanced `_create_github_repository` to validate PRD type
@@ -419,6 +500,7 @@ All notable changes to the AI Agent Factory project will be documented in this f
   - Main README.md with repository strategy information
 
 ### Benefits
+
 - **Organized Infrastructure**: Platform agents stay in main repository for easy management
 - **Isolated Agent Development**: Individual agents get dedicated repositories for full isolation
 - **Automatic Detection**: System automatically chooses appropriate repository strategy
