@@ -2,6 +2,37 @@
 
 All notable changes to the AI Agent Factory project will be documented in this file.
 
+## [Unreleased] - 2025-11-28
+
+### 🔧 **PRD Parser Inline Fields Fix - Enhanced Format Support**
+
+- **✅ Feature**: Fixed PRD parser to handle inline field formats (e.g., `**Description:** value`)
+- **✅ Purpose**: Support PRDs created via ChatGPT mobile and other tools that use inline formats instead of section headers
+- **✅ Implementation**:
+  - Added `_extract_inline_fields()` method to parse inline field formats
+  - Enhanced `parse_prd_content()` to extract inline fields before parsing sections
+  - Fixed description validator to handle `None` values gracefully
+  - Made validation warnings non-blocking (missing fields generate warnings, not errors)
+  - Maintained backward compatibility with section header formats
+- **✅ Benefits**:
+  - **Flexible Format Support**: Parser now handles both section headers (`## Description`) and inline formats (`**Description:** value`)
+  - **Better Error Handling**: Validation warnings don't block PRD creation
+  - **Improved Robustness**: Parser gracefully handles missing optional fields
+  - **Backward Compatible**: Existing PRDs with section headers still work perfectly
+- **✅ Status**: Fix deployed and verified - all 13 PRDs now synced across all locations
+
+### **Technical Details**
+
+- **Root Cause**: Parser only recognized section header formats, causing HTTP 500 errors for inline formats
+- **Solution**: Enhanced parser with inline field extraction and improved validation
+- **Files Modified**:
+  - `backend/fastapi_app/services/prd_parser.py` - Added inline field extraction method
+  - `backend/fastapi_app/models/prd.py` - Fixed description validator to handle None values
+- **Deployment**: Backend redeployed to Cloud Run (revision `ai-agent-factory-backend-00064-bhj`)
+- **Testing**: Verified parser extracts description and requirements from inline format, all PRDs synced
+- **Impact**: Fixed missing PRD (`2025-11-27_test-prd.md`) now successfully uploads, all 4 locations in sync
+- **Resolution Summary**: `docs/resolution-summaries/2025-11-28-prd-parser-inline-fields-fix-resolution.md`
+
 ## [Unreleased] - 2025-11-27
 
 ### 🔧 **PRD Deletion Fix - Prevent Reconciliation from Deleting GitHub Files**

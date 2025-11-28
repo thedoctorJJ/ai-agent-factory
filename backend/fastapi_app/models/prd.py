@@ -110,7 +110,9 @@ class PRDCreate(BaseModel):
     @validator('description')
     def validate_description(cls, v):
         """Validate description."""
-        return v.strip()
+        if v is None:
+            return ''
+        return v.strip() if isinstance(v, str) else str(v).strip()
 
 
 class PRDUpdate(BaseModel):

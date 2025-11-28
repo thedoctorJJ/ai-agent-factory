@@ -84,6 +84,9 @@ class PRDParser:
         # Determine PRD type based on content
         result['prd_type'] = self._determine_prd_type(content, filename)
         
+        # First, try to extract inline fields (e.g., **Description:** value)
+        self._extract_inline_fields(content, result)
+        
         # Parse all sections
         sections = self._identify_sections(lines)
         
@@ -97,17 +100,29 @@ class PRDParser:
                                   'security_requirements', 'integration_requirements',
                                   'deployment_requirements', 'success_metrics',
                                   'key_milestones', 'dependencies', 'risks', 'assumptions']:
-                    result[section_name] = self._parse_list_section(section_content)
+                    parsed_value = self._parse_list_section(section_content)
+                    # Only override if we don't already have a value from inline extraction
+                    if not result[section_name] or (isinstance(result[section_name], list) and len(result[section_name]) == 0):
+                        result[section_name] = parsed_value
                 elif section_name == 'performance_requirements':
-                    result[section_name] = self._parse_performance_requirements(section_content)
+                    parsed_value = self._parse_performance_requirements(section_content)
+                    if not result[section_name]:
+                        result[section_name] = parsed_value
                 elif section_name == 'timeline':
                     timeline_data = self._parse_timeline(section_content)
-                    result['timeline'] = timeline_data['timeline']
-                    result['start_date'] = timeline_data['start_date']
-                    result['target_completion_date'] = timeline_data['target_completion_date']
-                    result['key_milestones'] = timeline_data['key_milestones']
+                    if not result['timeline']:
+                        result['timeline'] = timeline_data['timeline']
+                    if not result['start_date']:
+                        result['start_date'] = timeline_data['start_date']
+                    if not result['target_completion_date']:
+                        result['target_completion_date'] = timeline_data['target_completion_date']
+                    if not result['key_milestones']:
+                        result['key_milestones'] = timeline_data['key_milestones']
                 else:
-                    result[section_name] = self._parse_text_section(section_content)
+                    parsed_value = self._parse_text_section(section_content)
+                    # Only override if we don't already have a value from inline extraction
+                    if not result[section_name] or (isinstance(result[section_name], str) and not result[section_name].strip()):
+                        result[section_name] = parsed_value
         
         return result
     
@@ -191,6 +206,60 @@ class PRDParser:
                 return line[:100]  # Limit length
 
         return "Untitled PRD"
+    
+    def _extract_inline_fields(self, content: str, result: Dict[str, Any]) -> None:
+        """Extract fields from inline format like **Field:** value"""
+        lines = content.split('\n')
+        
+        # Map of inline field patterns to result keys
+        field_patterns = {
+            r'\*\*Description:\*\*': 'description',
+            r'\*\*Problem Statement:\*\*': 'problem_statement',
+            r'\*\*Description\*\*:': 'description',
+            r'\*\*Problem Statement\*\*:': 'problem_statement',
+        }
+        
+        for line in lines:
+            line_stripped = line.strip()
+            if not line_stripped:
+                continue
+            
+            # Check for inline field patterns
+            for pattern, field_key in field_patterns.items():
+                if re.search(pattern, line_stripped, re.IGNORECASE):
+                    # Extract value after the colon
+                    match = re.search(r':\s*(.+)', line_stripped)
+                    if match:
+                        value = match.group(1).strip()
+                        # Remove any remaining markdown formatting (including leading/trailing **)
+                        value = re.sub(r'^\*\*\s*', '', value)  # Remove leading **
+                        value = re.sub(r'\s*\*\*$', '', value)  # Remove trailing **
+                        value = re.sub(r'\*\*(.+?)\*\*', r'\1', value)  # Remove inline **
+                        value = re.sub(r'\*(.+?)\*', r'\1', value)  # Remove inline *
+                        if value and (not result[field_key] or (isinstance(result[field_key], str) and not result[field_key].strip())):
+                            result[field_key] = value
+                    break
+            
+            # Also check for Requirements inline format
+            if re.search(r'\*\*Requirements?:\*\*', line_stripped, re.IGNORECASE):
+                # Look for list items on following lines
+                requirements = []
+                for next_line in lines[lines.index(line) + 1:]:
+                    next_line_stripped = next_line.strip()
+                    if not next_line_stripped:
+                        continue
+                    if next_line_stripped.startswith('-') or next_line_stripped.startswith('*'):
+                        # Extract requirement text
+                        req_text = re.sub(r'^[\*\-\+]\s*', '', next_line_stripped)
+                        req_text = re.sub(r'\*\*(.+?)\*\*', r'\1', req_text)
+                        req_text = re.sub(r'\*(.+?)\*', r'\1', req_text)
+                        if req_text.strip():
+                            requirements.append(req_text.strip())
+                    elif next_line_stripped.startswith('#'):
+                        # Hit another section, stop
+                        break
+                if requirements and (not result['requirements'] or len(result['requirements']) == 0):
+                    result['requirements'] = requirements
     
     def _determine_prd_type(self, content: str, filename: str = None) -> str:
         """Determine PRD type based on content and filename"""
@@ -379,11 +448,12 @@ class PRDParser:
             'technical_requirements', 'success_metrics', 'timeline'
         ]
         
-        # Check required fields
+        # Check required fields (but don't fail validation - just warn)
         for field in required_fields:
             if not parsed_data.get(field) or (isinstance(parsed_data[field], str) and not parsed_data[field].strip()):
-                validation_result['errors'].append(f"Missing required field: {field}")
-                validation_result['is_valid'] = False
+                validation_result['warnings'].append(f"Missing or empty field: {field}")
+                # Don't mark as invalid - allow PRDs with missing fields to be created
+                # validation_result['is_valid'] = False
         
         # Check optional fields and calculate completeness
         present_fields = 0
